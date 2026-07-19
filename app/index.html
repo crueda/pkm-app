@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f6f7f2">
+    <meta name="color-scheme" content="light dark">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com">
+    <title>Notas Drive</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./config.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <div id="app-shell" class="app-shell">
+      <header class="topbar">
+        <button id="menu-button" class="icon-button mobile-only" type="button" aria-label="Abrir navegación" aria-controls="sidebar" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="brand" aria-label="Notas Drive">
+          <span class="brand-mark" aria-hidden="true">N</span>
+          <span id="brand-name" class="brand-name">Notas Drive</span>
+        </div>
+        <div class="topbar-spacer"></div>
+        <button id="sync-status-button" class="sync-chip" type="button" aria-label="Estado de sincronización">
+          <span id="sync-dot" class="sync-dot"></span>
+          <span id="sync-label">Solo local</span>
+        </button>
+        <button id="theme-button" class="icon-button" type="button" aria-label="Cambiar tema">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.3A7 7 0 0 1 12 3Z"/></svg>
+        </button>
+        <button id="connect-button" class="primary-button compact" type="button">Conectar</button>
+      </header>
+
+      <div class="app-layout">
+        <aside id="sidebar" class="sidebar" aria-label="Navegación de notas">
+          <div class="sidebar-search">
+            <label class="search-box" for="search-input">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar notas, #tags, path:carpeta">
+              <kbd>⌘ K</kbd>
+            </label>
+          </div>
+
+          <div class="sidebar-actions" role="toolbar" aria-label="Crear e importar">
+            <button id="new-note-button" class="primary-button grow" type="button">
+              <span aria-hidden="true">＋</span> Nueva nota
+            </button>
+            <button id="new-folder-button" class="icon-button bordered" type="button" aria-label="Nueva carpeta" title="Nueva carpeta">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/><path d="M12 10v6M9 13h6"/></svg>
+            </button>
+            <button id="import-button" class="icon-button bordered" type="button" aria-label="Importar Markdown" title="Importar una carpeta Markdown">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            </button>
+            <input id="import-input" class="visually-hidden" type="file" accept=".md,text/markdown,text/plain" multiple webkitdirectory>
+          </div>
+
+          <div class="section-heading">
+            <span id="list-heading">Notas</span>
+            <span id="list-count" class="count-badge">0</span>
+          </div>
+          <nav id="note-list" class="note-list" aria-live="polite"></nav>
+
+          <footer class="sidebar-footer">
+            <button id="settings-button" class="text-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+              Ajustes y seguridad
+            </button>
+            <div id="last-sync-label" class="footer-meta">Sin sincronizar</div>
+          </footer>
+        </aside>
+
+        <button id="sidebar-scrim" class="sidebar-scrim" type="button" aria-label="Cerrar navegación"></button>
+
+        <main class="main-content">
+          <section id="welcome-view" class="welcome-view">
+            <div class="welcome-card">
+              <div class="welcome-icon" aria-hidden="true">N</div>
+              <p class="eyebrow">Markdown local-first</p>
+              <h1>Tus notas, sin depender de Obsidian</h1>
+              <p id="welcome-description">Conecta Google Drive para crear tu bóveda privada, o continúa leyendo las notas guardadas en este dispositivo.</p>
+              <div class="welcome-actions">
+                <button id="welcome-connect-button" class="primary-button" type="button">Continuar con Google</button>
+                <button id="install-help-button" class="secondary-button" type="button">Instalar en iPhone</button>
+              </div>
+              <div id="configuration-warning" class="configuration-warning" hidden>
+                <strong>Falta el Client ID de Google.</strong>
+                <span>Consulta <code>docs/GOOGLE_CLOUD_SETUP.md</code> y vuelve a compilar.</span>
+              </div>
+              <div class="privacy-note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3"/><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M12 14v3"/></svg>
+                <span>El token de Google vive solo en memoria. Tus notas no se publican con la web.</span>
+              </div>
+            </div>
+          </section>
+
+          <section id="editor-view" class="editor-view" hidden>
+            <header class="note-header">
+              <div class="note-title-area">
+                <div id="note-path" class="note-path"></div>
+                <input id="note-title-input" class="note-title-input" type="text" autocomplete="off" aria-label="Título de la nota">
+                <div class="note-meta-line">
+                  <span id="note-save-state">Guardado localmente</span>
+                  <span aria-hidden="true">·</span>
+                  <span id="note-modified"></span>
+                </div>
+              </div>
+              <div class="note-actions">
+                <div class="segmented-control" aria-label="Modo de visualización">
+                  <button class="view-mode-button active" type="button" data-view-mode="edit">Editar</button>
+                  <button class="view-mode-button" type="button" data-view-mode="preview">Vista</button>
+                  <button class="view-mode-button desktop-only" type="button" data-view-mode="split">Ambos</button>
+                </div>
+                <button id="delete-note-button" class="icon-button danger-hover" type="button" aria-label="Mover a la papelera" title="Mover a la papelera">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 3h6l1 4H8l1-4Z"/><path d="m7 7 1 14h8l1-14M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </header>
+
+            <div id="editor-panes" class="editor-panes mode-edit">
+              <section class="editor-pane" aria-label="Editor Markdown">
+                <textarea id="markdown-editor" spellcheck="true" autocomplete="off" placeholder="# Empieza a escribir…"></textarea>
+              </section>
+              <section id="markdown-preview" class="preview-pane markdown-body" aria-label="Vista previa Markdown"></section>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <dialog id="create-dialog" class="app-dialog">
+      <form id="create-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" id="create-eyebrow">Crear</p>
+            <h2 id="create-title">Nueva nota</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <input id="create-kind" type="hidden" value="note">
+        <label class="field-label" for="create-name">Nombre</label>
+        <input id="create-name" class="text-field" type="text" required maxlength="120" autocomplete="off">
+        <label class="field-label" for="create-parent">Carpeta</label>
+        <select id="create-parent" class="text-field"></select>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" data-close-dialog>Cancelar</button>
+          <button class="primary-button" type="submit">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="app-dialog compact-dialog">
+      <form id="delete-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Papelera</p>
+            <h2>¿Eliminar este elemento?</h2>
+          </div>
+        </div>
+        <p id="delete-description">Se moverá a la papelera de Google Drive en la próxima sincronización.</p>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" data-close-dialog>Cancelar</button>
+          <button class="danger-button" type="submit">Mover a la papelera</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog" class="app-dialog settings-dialog">
+      <form method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Configuración</p>
+            <h2>Ajustes y seguridad</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <div class="settings-section">
+          <h3>Google Drive</h3>
+          <dl class="settings-list">
+            <div><dt>Estado</dt><dd id="settings-auth-state">Desconectado</dd></div>
+            <div><dt>Cuenta</dt><dd id="settings-account">—</dd></div>
+            <div><dt>Bóveda</dt><dd id="settings-vault-name">NotesVault</dd></div>
+            <div><dt>Pendientes</dt><dd id="settings-pending-count">0</dd></div>
+            <div><dt>Última sincronización</dt><dd id="settings-last-sync">Nunca</dd></div>
+          </dl>
+          <div class="inline-actions">
+            <button id="settings-sync-button" class="secondary-button" type="button">Sincronizar ahora</button>
+            <button id="disconnect-button" class="text-button danger-text" type="button">Desconectar Google</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Privacidad</h3>
+          <p>El token OAuth no se guarda. Los IDs y el contenido de las notas se conservan únicamente en Google Drive y en la caché privada de este origen para el uso sin conexión.</p>
+          <button id="clear-local-data-button" class="secondary-button" type="button">Borrar caché local</button>
+        </div>
+        <div class="settings-section">
+          <h3>Aplicación</h3>
+          <dl class="settings-list">
+            <div><dt>Versión</dt><dd id="settings-version">—</dd></div>
+            <div><dt>Conexión</dt><dd id="settings-network">—</dd></div>
+          </dl>
+          <button id="settings-install-button" class="secondary-button" type="button">Cómo instalarla</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="install-dialog" class="app-dialog compact-dialog">
+      <form method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">iPhone y iPad</p>
+            <h2>Instalar como aplicación</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <ol class="install-steps">
+          <li>Abre esta dirección en <strong>Safari</strong>.</li>
+          <li>Pulsa el botón <strong>Compartir</strong>.</li>
+          <li>Selecciona <strong>Añadir a pantalla de inicio</strong>.</li>
+          <li>Activa <strong>Abrir como app web</strong> y confirma.</li>
+        </ol>
+        <div class="dialog-actions">
+          <button class="primary-button" type="button" data-close-dialog>Entendido</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>

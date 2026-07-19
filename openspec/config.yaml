@@ -1,0 +1,24 @@
+schema: spec-driven
+context: |
+  Producto: Notas Drive, una PWA local-first en español para gestionar una bóveda de notas Markdown en Google Drive.
+  Plataforma: navegador moderno, Safari/iOS como plataforma prioritaria y escritorio como plataforma secundaria.
+  Arquitectura: aplicación estática sin backend ni dependencias de ejecución; JavaScript ES modules, IndexedDB, Service Worker, Google Identity Services y Google Drive REST API.
+  Datos: Google Drive es la fuente remota de verdad; IndexedDB es una caché local y una cola de operaciones pendientes.
+  Privacidad: el OAuth Client ID es público por diseño; los access tokens solo viven en memoria y nunca se persisten.
+  Permisos: solicitar exclusivamente https://www.googleapis.com/auth/drive.file.
+  Seguridad: no ejecutar HTML crudo de Markdown, no usar eval, no publicar IDs personales ni crear permisos de compartición.
+  Calidad: Node.js >=20.19, pruebas con node:test y scripts sin dependencias externas.
+  Idioma de producto, documentación y especificaciones: español.
+rules:
+  proposal:
+    - Explicar el valor para el usuario, los no objetivos y el plan de reversión.
+    - Identificar cualquier impacto en permisos OAuth o privacidad.
+  specs:
+    - Redactar requisitos observables con SHALL y escenarios Given/When/Then.
+    - Incluir escenarios offline, expiración del token, conflictos y errores de red cuando sean aplicables.
+    - No convertir mecanismos internos en requisitos salvo que formen parte del contrato visible o de seguridad.
+  design:
+    - Documentar el flujo de datos, límites de confianza, modelo local y estrategia de conflictos.
+    - Registrar decisiones que reduzcan permisos, dependencias y exposición de secretos.
+  tasks:
+    - Mantener tareas verificables y marcar como completadas solo las que tengan implementación o documentación comprobable.

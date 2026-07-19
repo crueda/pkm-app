@@ -1,0 +1,17 @@
+{
+  "name": "notas-drive-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PWA local-first para leer, crear, editar y buscar notas Markdown almacenadas en Google Drive.",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "check": "node scripts/check-project.mjs && node --test && node scripts/build.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "license": "MIT"
+}
