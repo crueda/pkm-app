@@ -237,6 +237,28 @@ test("importa el contenido de la carpeta seleccionada sin crear una carpeta raí
   assert.ok(localFiles.find(file => file.kind === "note" && file.path === "Proyectos/Proyecto.md"));
 });
 
+test("emite progreso al descargar notas remotas", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault", maxDownloadConcurrency: 2 });
+  const progress = [];
+
+  const root = await engine.ensureVault();
+  await drive.createMarkdownFile("Uno.md", root.id, "# Uno", { notesAppManaged: "v1" });
+  await drive.createMarkdownFile("Dos.md", root.id, "# Dos", { notesAppManaged: "v1" });
+  await drive.createMarkdownFile("Tres.md", root.id, "# Tres", { notesAppManaged: "v1" });
+  engine.addEventListener("progress", event => {
+    if (event.detail.phase === "download") progress.push(`${event.detail.current}/${event.detail.total}`);
+  });
+
+  await engine.pullRemoteTree(root.id);
+  const notes = (await engine.getLocalFiles()).filter(file => file.kind === "note");
+
+  assert.deepEqual(progress, ["0/3", "1/3", "2/3", "3/3"]);
+  assert.equal(notes.length, 3);
+  assert.equal(notes.every(note => note.content?.startsWith("# ")), true);
+});
+
 test("bloquea la sincronización al autorizar otra cuenta y conserva la cola", async () => {
   const db = new MemoryDb();
   const drive = new MemoryDrive();

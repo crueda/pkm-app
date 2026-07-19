@@ -38,6 +38,19 @@ function commonImportedRoot(files) {
   return roots.values().next().value ?? "";
 }
 
+async function runWithConcurrency(tasks, limit = 4) {
+  let next = 0;
+  const workerCount = Math.min(limit, tasks.length);
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (next < tasks.length) {
+      const task = tasks[next];
+      next += 1;
+      await task();
+    }
+  });
+  await Promise.all(workers);
+}
+
 export class AccountMismatchError extends Error {
   constructor(message = "Se ha autorizado una cuenta de Google distinta. Reconecta la cuenta anterior o borra la caché local antes de cambiar de cuenta.") {
     super(message);
@@ -53,12 +66,13 @@ function conflictFileName(name) {
 }
 
 export class SyncEngine extends EventTarget {
-  constructor({ db, drive, vaultName = "NotesVault", maxImportFiles = 2000 }) {
+  constructor({ db, drive, vaultName = "NotesVault", maxImportFiles = 2000, maxDownloadConcurrency = 4 }) {
     super();
     this.db = db;
     this.drive = drive;
     this.vaultName = vaultName;
     this.maxImportFiles = maxImportFiles;
+    this.maxDownloadConcurrency = maxDownloadConcurrency;
     this.syncPromise = null;
   }
 
@@ -212,8 +226,8 @@ export class SyncEngine extends EventTarget {
     };
     const records = [root];
     const remoteIds = new Set([rootId]);
+    const downloads = [];
 
-    let processed = 0;
     for (const metadata of remoteMetadata) {
       remoteIds.add(metadata.id);
       const normalized = normalizeDriveFile(metadata);
@@ -231,15 +245,23 @@ export class SyncEngine extends EventTarget {
             remoteCurrentVersion: normalized.remoteVersion
           };
         } else if (!unchanged) {
-          const content = await this.drive.downloadText(metadata.id);
-          record = { ...record, content, dirty: false, localUpdatedAt: normalized.modifiedTime };
+          downloads.push(async () => {
+            const content = await this.drive.downloadText(metadata.id);
+            Object.assign(record, { content, dirty: false, localUpdatedAt: normalized.modifiedTime });
+          });
         }
       }
       records.push(record);
-      processed += 1;
-      if (processed % 25 === 0) {
-        this.emit("progress", { phase: "download", current: processed, total: remoteMetadata.length });
-      }
+    }
+
+    if (downloads.length) {
+      let completed = 0;
+      this.emit("progress", { phase: "download", current: completed, total: downloads.length });
+      await runWithConcurrency(downloads.map(download => async () => {
+        await download();
+        completed += 1;
+        this.emit("progress", { phase: "download", current: completed, total: downloads.length });
+      }), this.maxDownloadConcurrency);
     }
 
     for (const local of localFiles) {
