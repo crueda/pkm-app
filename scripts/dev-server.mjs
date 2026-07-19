@@ -46,7 +46,7 @@ const server = createServer(async (request, response) => {
     response.setHeader("Content-Type", mimeTypes[extension] || "application/octet-stream");
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
-    response.setHeader("Referrer-Policy", "no-referrer");
+    response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     createReadStream(filePath).pipe(response);
   } catch (error) {
     response.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });

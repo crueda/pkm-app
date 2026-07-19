@@ -53,7 +53,7 @@ for (const file of javascriptFiles) {
 
 const html = await read("app/index.html");
 requirePattern(html, /http-equiv="Content-Security-Policy"/i, "app/index.html: falta Content Security Policy");
-requirePattern(html, /name="referrer" content="no-referrer"/i, "app/index.html: falta Referrer-Policy no-referrer");
+requirePattern(html, /name="referrer" content="strict-origin-when-cross-origin"/i, "app/index.html: falta Referrer-Policy strict-origin-when-cross-origin");
 if (/\son[a-z]+\s*=/i.test(html)) failures.push("app/index.html: contiene un manejador de eventos inline");
 if (/\sstyle\s*=/i.test(html)) failures.push("app/index.html: contiene estilos inline incompatibles con la CSP");
 if (/<script(?![^>]+src=)[^>]*>/i.test(html)) failures.push("app/index.html: contiene un script inline");
