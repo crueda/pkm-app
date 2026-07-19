@@ -23,6 +23,21 @@ function prepareRecords(files, rootId) {
   });
 }
 
+function importPathFor(file) {
+  return String(file.webkitRelativePath || file.name).replace(/^\/+/, "");
+}
+
+function commonImportedRoot(files) {
+  const roots = new Set();
+  for (const file of files) {
+    const parts = importPathFor(file).split("/").filter(Boolean);
+    if (!file.webkitRelativePath || parts.length < 2) return "";
+    roots.add(parts[0]);
+    if (roots.size > 1) return "";
+  }
+  return roots.values().next().value ?? "";
+}
+
 export class AccountMismatchError extends Error {
   constructor(message = "Se ha autorizado una cuenta de Google distinta. Reconecta la cuenta anterior o borra la caché local antes de cambiar de cuenta.") {
     super(message);
@@ -534,11 +549,14 @@ export class SyncEngine extends EventTarget {
     const rootId = parentId || await this.getRootId();
     if (!rootId) throw new Error("Conecta Google Drive una vez antes de importar");
     const folderIds = new Map([["", rootId]]);
+    const stripRoot = commonImportedRoot(candidates);
     const imported = [];
 
     for (let index = 0; index < candidates.length; index += 1) {
       const file = candidates[index];
-      const relative = String(file.webkitRelativePath || file.name).replace(/^\/+/, "");
+      const relativeParts = importPathFor(file).split("/").filter(Boolean);
+      if (stripRoot && relativeParts[0] === stripRoot) relativeParts.shift();
+      const relative = relativeParts.join("/");
       const parts = relative.split("/").filter(Boolean);
       const filename = parts.pop();
       let accumulated = "";

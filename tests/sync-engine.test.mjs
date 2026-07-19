@@ -217,6 +217,25 @@ test("conserva la versión remota y crea una copia cuando hay conflicto", async 
   assert.equal(drive.contents.get(conflict.id), "# Plan\n\nCambio local");
 });
 
+test("importa el contenido de la carpeta seleccionada sin crear una carpeta raíz extra", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const files = [
+    { name: "Inicio.md", type: "text/markdown", webkitRelativePath: "aa/Inicio.md", text: async () => "# Inicio" },
+    { name: "Proyecto.md", type: "text/markdown", webkitRelativePath: "aa/Proyectos/Proyecto.md", text: async () => "# Proyecto" }
+  ];
+
+  await engine.importMarkdownFiles(files, root.id);
+  const localFiles = await engine.getLocalFiles();
+
+  assert.equal(localFiles.some(file => file.kind === "folder" && file.name === "aa"), false);
+  assert.ok(localFiles.find(file => file.kind === "note" && file.path === "Inicio.md"));
+  assert.ok(localFiles.find(file => file.kind === "folder" && file.path === "Proyectos"));
+  assert.ok(localFiles.find(file => file.kind === "note" && file.path === "Proyectos/Proyecto.md"));
+});
 
 test("bloquea la sincronización al autorizar otra cuenta y conserva la cola", async () => {
   const db = new MemoryDb();
