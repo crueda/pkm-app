@@ -587,7 +587,7 @@ async function handleAttachPhoto(file) {
     return;
   }
 
-  elements["attach-photo-button"].disabled = true;
+  elements["attach-photo-button"].setAttribute("aria-disabled", "true");
   elements["note-save-state"].textContent = "Adjuntando foto…";
   try {
     await saveCurrentNote.flush();
@@ -604,7 +604,7 @@ async function handleAttachPhoto(file) {
     showToast(error.message || "No se pudo adjuntar la foto", "error");
   } finally {
     elements["attach-photo-input"].value = "";
-    elements["attach-photo-button"].disabled = false;
+    elements["attach-photo-button"].setAttribute("aria-disabled", "false");
   }
 }
 
@@ -658,7 +658,11 @@ function bindEvents() {
   elements["new-folder-button"].addEventListener("click", () => openCreateDialog("folder"));
   elements["import-button"].addEventListener("click", () => elements["import-input"].click());
   elements["import-input"].addEventListener("change", event => handleImport(event.target.files));
-  elements["attach-photo-button"].addEventListener("click", () => elements["attach-photo-input"].click());
+  elements["attach-photo-button"].addEventListener("keydown", event => {
+    if (!["Enter", " "].includes(event.key) || elements["attach-photo-button"].getAttribute("aria-disabled") === "true") return;
+    event.preventDefault();
+    elements["attach-photo-input"].click();
+  });
   elements["attach-photo-input"].addEventListener("change", event => handleAttachPhoto(event.target.files?.[0]));
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["delete-note-button"].addEventListener("click", openDeleteDialog);

@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +11,31 @@ const appName = process.env.APP_NAME?.trim() || "Notas Drive";
 const vaultName = process.env.VAULT_NAME?.trim() || "NotesVault";
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim() || "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID";
 const buildVersion = process.env.BUILD_VERSION?.trim() || `${packageJson.version}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+const assetVersion = encodeURIComponent(buildVersion);
+
+async function listFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await listFiles(fullPath));
+    else files.push(fullPath);
+  }
+  return files;
+}
+
+function versionLocalAssets(html) {
+  return html
+    .replaceAll('href="./styles.css"', `href="./styles.css?v=${assetVersion}"`)
+    .replaceAll('src="./config.js"', `src="./config.js?v=${assetVersion}"`)
+    .replaceAll('src="./src/app.js"', `src="./src/app.js?v=${assetVersion}"`);
+}
+
+function versionModuleImports(source) {
+  return source
+    .replace(/(from\s+["']\.\/[^"']+\.js)(["'])/g, `$1?v=${assetVersion}$2`)
+    .replace(/(import\s*\(\s*["']\.\/[^"']+\.js)(["']\s*\))/g, `$1?v=${assetVersion}$2`);
+}
 
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
@@ -35,7 +60,14 @@ manifest.name = appName;
 manifest.short_name = appName.length <= 12 ? appName : "Notas";
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
-const indexHtml = await readFile(path.join(distDir, "index.html"), "utf8");
+for (const jsPath of (await listFiles(path.join(distDir, "src"))).filter(file => file.endsWith(".js"))) {
+  const source = await readFile(jsPath, "utf8");
+  await writeFile(jsPath, versionModuleImports(source), "utf8");
+}
+
+const indexPath = path.join(distDir, "index.html");
+const indexHtml = versionLocalAssets(await readFile(indexPath, "utf8"));
+await writeFile(indexPath, indexHtml, "utf8");
 await writeFile(path.join(distDir, "404.html"), indexHtml, "utf8");
 await writeFile(path.join(distDir, ".nojekyll"), "", "utf8");
 
