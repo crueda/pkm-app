@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { renderInlineMarkdown, renderMarkdown } from "../app/src/markdown.js";
+import { markdownToPlainText, renderInlineMarkdown, renderMarkdown } from "../app/src/markdown.js";
 
 test("el Markdown escapa HTML crudo", () => {
   const html = renderMarkdown("# Seguro\n\n<script>alert('x')</script>");
@@ -27,4 +27,23 @@ test("renderiza frontmatter, listas de tareas y tablas", () => {
   assert.ok(html.includes("checked"));
   assert.ok(html.includes("<table>"));
   assert.ok(!html.includes("style="));
+});
+
+test("renderiza imágenes Markdown mediante URLs seguras", () => {
+  const html = renderMarkdown("![Foto](foto.png)", {
+    resolveImageUrl: source => source === "foto.png" ? "blob:https://local.test/foto" : source
+  });
+  assert.ok(html.includes("<img"));
+  assert.ok(html.includes('src="blob:https://local.test/foto"'));
+  assert.ok(html.includes('alt="Foto"'));
+});
+
+test("las imágenes inseguras no generan src ejecutable", () => {
+  const html = renderInlineMarkdown("![x](javascript:alert(1))");
+  assert.ok(!html.includes("<img"));
+  assert.ok(!html.includes("src="));
+});
+
+test("markdownToPlainText usa el texto alternativo de imágenes", () => {
+  assert.equal(markdownToPlainText("Antes ![Pizarra](foto.png) después"), "Antes Pizarra después");
 });

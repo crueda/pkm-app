@@ -13,6 +13,11 @@ test("createUniqueName evita duplicados sin distinguir mayúsculas", () => {
   assert.equal(createUniqueName(files, "root", "idea", { markdown: true }), "idea 2.md");
 });
 
+test("createUniqueName conserva la extensión en adjuntos", () => {
+  const files = [{ id: "1", parentId: "root", name: "foto.jpg" }];
+  assert.equal(createUniqueName(files, "root", "foto.jpg", { preserveExtension: true }), "foto 2.jpg");
+});
+
 test("buildPathMap construye rutas de carpetas y notas", () => {
   const files = [
     { id: "root", name: "NotesVault", parentId: null, mimeType: MIME_FOLDER },

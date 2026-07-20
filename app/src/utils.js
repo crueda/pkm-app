@@ -52,6 +52,13 @@ export function isMarkdownFile(fileOrName) {
   return /\.md$/i.test(name) || mimeType === MIME_MARKDOWN || mimeType === "text/plain";
 }
 
+export function isImageFile(fileOrName) {
+  const name = typeof fileOrName === "string" ? fileOrName : fileOrName?.name ?? "";
+  const mimeType = typeof fileOrName === "object" ? fileOrName?.mimeType ?? fileOrName?.type : "";
+  return String(mimeType).toLocaleLowerCase("es").startsWith("image/") ||
+    /\.(?:avif|bmp|gif|heic|heif|jpe?g|png|webp)$/i.test(name);
+}
+
 export function formatDateTime(value) {
   if (!value) return "—";
   const date = value instanceof Date ? value : new Date(value);
@@ -92,6 +99,23 @@ export function safeUrl(rawUrl = "") {
     return null;
   }
   return null;
+}
+
+export function safeImageUrl(rawUrl = "") {
+  const value = String(rawUrl).trim();
+  if (!value) return null;
+  if (value.startsWith("//")) return null;
+  if (/^data:image\/(?:avif|bmp|gif|jpe?g|png|webp);/i.test(value)) return value;
+
+  try {
+    const parsed = new URL(value, "https://local.invalid/");
+    if (["blob:", "https:", "http:"].includes(parsed.protocol)) return value;
+  } catch {
+    return null;
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("//")) return null;
+  return value;
 }
 
 export function textToUint8Array(text) {

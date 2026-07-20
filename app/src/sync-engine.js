@@ -1,10 +1,57 @@
 import { AuthExpiredError, DriveApiError, normalizeDriveFile } from "./drive-api.js";
 import { buildPathMap, createUniqueName, sanitizeName } from "./path-utils.js";
 import { enrichNoteRecord } from "./search.js";
-import { MIME_FOLDER, MIME_MARKDOWN, createId, isMarkdownFile } from "./utils.js";
+import { MIME_FOLDER, MIME_MARKDOWN, createId, humanFileSize, isImageFile, isMarkdownFile } from "./utils.js";
+
+const MAX_IMAGE_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function compactTimestamp(date = new Date()) {
+  const pad = value => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    "-",
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds())
+  ].join("");
+}
+
+function imageExtension(file) {
+  const fromName = String(file?.name ?? "").match(/\.(avif|bmp|gif|heic|heif|jpe?g|png|webp)$/i)?.[1];
+  if (fromName) return fromName.toLocaleLowerCase("es").replace("jpeg", "jpg");
+  const type = String(file?.type || file?.mimeType || "").toLocaleLowerCase("es");
+  return ({
+    "image/avif": "avif",
+    "image/bmp": "bmp",
+    "image/gif": "gif",
+    "image/heic": "heic",
+    "image/heif": "heif",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp"
+  })[type] ?? "jpg";
+}
+
+function imageMimeType(file) {
+  const type = String(file?.type || file?.mimeType || "").toLocaleLowerCase("es");
+  if (type.startsWith("image/")) return type;
+  return ({
+    avif: "image/avif",
+    bmp: "image/bmp",
+    gif: "image/gif",
+    heic: "image/heic",
+    heif: "image/heif",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp"
+  })[imageExtension(file)] ?? "image/jpeg";
 }
 
 function isLocalId(id) {
@@ -250,6 +297,22 @@ export class SyncEngine extends EventTarget {
             Object.assign(record, { content, dirty: false, localUpdatedAt: normalized.modifiedTime });
           });
         }
+      } else if (normalized.kind === "attachment") {
+        const unchanged = existing?.blob != null && String(existing.remoteVersion) === String(normalized.remoteVersion);
+        if (existing?.dirty) {
+          record = {
+            ...existing,
+            name: normalized.name,
+            parentId: normalized.parentId,
+            modifiedTime: normalized.modifiedTime,
+            remoteCurrentVersion: normalized.remoteVersion
+          };
+        } else if (isImageFile(normalized) && !unchanged) {
+          downloads.push(async () => {
+            const blob = await this.drive.downloadBlob(metadata.id);
+            Object.assign(record, { blob, dirty: false, localUpdatedAt: normalized.modifiedTime });
+          });
+        }
       }
       records.push(record);
     }
@@ -310,6 +373,24 @@ export class SyncEngine extends EventTarget {
     }
 
     if (operation.type === "createFile") {
+      if (operation.kind === "attachment" || operation.blob) {
+        const blob = operation.blob instanceof Blob
+          ? operation.blob
+          : new Blob([operation.content ?? ""], { type: operation.mimeType || "application/octet-stream" });
+        const mimeType = operation.mimeType || blob.type || "application/octet-stream";
+        const metadata = await this.drive.createFile(operation.name, operation.parentId, blob, mimeType, {
+          notesAppManaged: "v1",
+          ...(operation.appProperties ?? {})
+        });
+        await this.db.replaceLocalId(operation.fileId, normalizeDriveFile(metadata, {
+          blob,
+          dirty: false,
+          localUpdatedAt: nowIso()
+        }));
+        await this.db.deleteOutbox(operation.opId);
+        return;
+      }
+
       const metadata = await this.drive.createMarkdownFile(operation.name, operation.parentId, operation.content ?? "", {
         notesAppManaged: "v1"
       });
@@ -459,6 +540,59 @@ export class SyncEngine extends EventTarget {
     });
     await this.#rebuildPaths();
     this.emit("changed", { reason: "create-note", fileId: record.id });
+    return this.db.getFile(record.id);
+  }
+
+  async createImageAttachment(parentId, imageFile, { relatedNoteId = null } = {}) {
+    if (!parentId) throw new Error("No se encontró la carpeta de la nota");
+    if (!imageFile || !isImageFile(imageFile)) throw new Error("Selecciona un archivo de imagen válido");
+    if (Number(imageFile.size) > MAX_IMAGE_ATTACHMENT_BYTES) {
+      throw new Error(`La imagen supera el límite de ${humanFileSize(MAX_IMAGE_ATTACHMENT_BYTES)}`);
+    }
+
+    const mimeType = imageMimeType(imageFile);
+    const blob = imageFile.slice
+      ? imageFile.slice(0, imageFile.size, mimeType)
+      : new Blob([imageFile], { type: mimeType });
+    const files = await this.getLocalFiles();
+    const requestedName = `foto-${compactTimestamp()}.${imageExtension(imageFile)}`;
+    const name = createUniqueName(files, parentId, requestedName, { preserveExtension: true });
+    const time = nowIso();
+    const record = {
+      id: createId(),
+      name,
+      mimeType,
+      kind: "attachment",
+      parentId,
+      blob,
+      size: blob.size,
+      createdTime: time,
+      modifiedTime: time,
+      localUpdatedAt: time,
+      dirty: true,
+      isLocalOnly: true,
+      trashed: false,
+      appProperties: {
+        notesAppManaged: "v1",
+        notesAttachment: "image"
+      }
+    };
+
+    await this.db.putFile(record);
+    await this.db.putOutbox({
+      opId: createId("op"),
+      type: "createFile",
+      kind: "attachment",
+      fileId: record.id,
+      parentId,
+      name,
+      mimeType,
+      blob,
+      appProperties: record.appProperties,
+      createdAt: time
+    });
+    await this.#rebuildPaths();
+    this.emit("changed", { reason: "create-attachment", fileId: record.id, noteId: relatedNoteId });
     return this.db.getFile(record.id);
   }
 

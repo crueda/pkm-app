@@ -249,6 +249,11 @@ svg {
   background: var(--accent-strong);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .secondary-button {
   border: 1px solid var(--border-strong);
   background: var(--surface);
@@ -776,6 +781,16 @@ svg {
 .markdown-body a,
 .wiki-link,
 .wiki-embed { color: var(--accent); }
+
+.markdown-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.2em 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
 
 .wiki-link,
 .wiki-embed {

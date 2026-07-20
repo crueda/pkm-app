@@ -2,10 +2,10 @@ import { GoogleOAuthClient, isGoogleClientIdConfigured } from "./auth.js";
 import { LocalDatabase } from "./db.js";
 import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { renderMarkdown } from "./markdown.js";
-import { noteDisplayName, sortFilesForTree } from "./path-utils.js";
+import { joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { createSnippet, searchNotes } from "./search.js";
 import { SyncEngine } from "./sync-engine.js";
-import { MIME_FOLDER, debounce, formatDateTime, formatRelativeTime } from "./utils.js";
+import { debounce, formatDateTime, formatRelativeTime, isImageFile } from "./utils.js";
 
 const config = Object.freeze({
   googleClientId: window.NOTES_APP_CONFIG?.googleClientId ?? "",
@@ -22,7 +22,8 @@ const elements = Object.fromEntries([
   "note-list", "list-heading", "list-count", "last-sync-label", "settings-button",
   "welcome-view", "welcome-description", "configuration-warning", "install-help-button",
   "editor-view", "note-path", "note-title-input", "note-save-state", "note-modified",
-  "editor-panes", "markdown-editor", "markdown-preview", "delete-note-button",
+  "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
+  "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "settings-auth-state", "settings-account", "settings-vault-name", "settings-pending-count", "settings-last-sync",
@@ -48,6 +49,7 @@ const state = {
   query: "",
   viewMode: localStorage.getItem("notes-view-mode") || "edit",
   collapsedFolders: new Set(),
+  attachmentUrls: new Map(),
   authReady: false,
   connected: false,
   syncState: "local",
@@ -141,7 +143,7 @@ function createTreeIcon(file, expanded) {
 function renderTree() {
   const container = elements["note-list"];
   container.replaceChildren();
-  const visible = state.files.filter(file => !file.trashed && !file.isRoot);
+  const visible = state.files.filter(file => !file.trashed && !file.isRoot && ["folder", "note"].includes(file.kind));
   const children = new Map();
   for (const file of visible) {
     const group = children.get(file.parentId) ?? [];
@@ -240,8 +242,67 @@ function renderSidebar() {
   else renderTree();
 }
 
+function normalizeMarkdownResourcePath(value = "") {
+  const withoutFragment = String(value).split("#")[0].split("?")[0].trim();
+  try {
+    return decodeURIComponent(withoutFragment).replace(/^\.\/+/, "").replace(/^\/+/, "");
+  } catch {
+    return withoutFragment.replace(/^\.\/+/, "").replace(/^\/+/, "");
+  }
+}
+
+function findAttachmentForMarkdownPath(rawPath) {
+  const note = currentNote();
+  if (!note) return null;
+  const resourcePath = normalizeMarkdownResourcePath(rawPath);
+  if (!resourcePath || /^[a-z][a-z0-9+.-]*:/i.test(resourcePath)) return null;
+
+  const noteFolderPath = note.path?.split("/").slice(0, -1).join("/") || "";
+  const targetPath = joinPath(noteFolderPath, resourcePath);
+  return state.files.find(file => (
+    file.kind === "attachment" &&
+    !file.trashed &&
+    isImageFile(file) &&
+    (
+      file.path === targetPath ||
+      (!resourcePath.includes("/") && file.parentId === note.parentId && file.name === resourcePath)
+    )
+  )) ?? null;
+}
+
+function attachmentUrlKey(file) {
+  return [file.id, file.remoteVersion, file.localUpdatedAt, file.size].filter(Boolean).join(":");
+}
+
+function resolveAttachmentImageUrl(rawPath) {
+  const attachment = findAttachmentForMarkdownPath(rawPath);
+  if (!attachment) return rawPath;
+  if (!attachment.blob) return null;
+
+  const cacheKey = attachmentUrlKey(attachment);
+  const cached = state.attachmentUrls.get(attachment.id);
+  if (cached?.cacheKey === cacheKey) return cached.url;
+  if (cached) URL.revokeObjectURL(cached.url);
+
+  const url = URL.createObjectURL(attachment.blob);
+  state.attachmentUrls.set(attachment.id, { cacheKey, url });
+  return url;
+}
+
+function pruneAttachmentUrls() {
+  const liveIds = new Set(state.files.filter(file => file.kind === "attachment" && !file.trashed).map(file => file.id));
+  for (const [id, cached] of state.attachmentUrls) {
+    if (!liveIds.has(id)) {
+      URL.revokeObjectURL(cached.url);
+      state.attachmentUrls.delete(id);
+    }
+  }
+}
+
 function updatePreview(content) {
-  elements["markdown-preview"].innerHTML = renderMarkdown(content);
+  elements["markdown-preview"].innerHTML = renderMarkdown(content, {
+    resolveImageUrl: resolveAttachmentImageUrl
+  });
 }
 
 function renderEditor({ preserveTextarea = false } = {}) {
@@ -292,6 +353,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   if (sequence !== state.refreshSequence) return;
   state.files = files;
   state.rootId = rootId;
+  pruneAttachmentUrls();
 
   const selectedExists = state.files.some(file => file.id === state.selectedId && file.kind === "note" && !file.trashed);
   if (!selectedExists) {
@@ -490,6 +552,62 @@ async function handleImport(fileList) {
   }
 }
 
+function markdownResourceUrl(name) {
+  return encodeURI(name).replace(/[()]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
+function imageAltText(name) {
+  return String(name).replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim() || "Foto";
+}
+
+function insertMarkdownAtCursor(markdown) {
+  const editor = elements["markdown-editor"];
+  const start = editor.selectionStart ?? editor.value.length;
+  const end = editor.selectionEnd ?? start;
+  const before = editor.value.slice(0, start);
+  const after = editor.value.slice(end);
+  const prefix = !before ? "" : before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n";
+  const suffix = !after ? "\n" : after.startsWith("\n\n") ? "" : after.startsWith("\n") ? "\n" : "\n\n";
+  const insertion = `${prefix}${markdown}${suffix}`;
+  editor.value = `${before}${insertion}${after}`;
+  const cursor = before.length + insertion.length;
+  editor.setSelectionRange(cursor, cursor);
+  editor.focus({ preventScroll: true });
+}
+
+async function handleAttachPhoto(file) {
+  if (!file) return;
+  const note = currentNote();
+  if (!note) {
+    showToast("Abre una nota antes de adjuntar una foto", "error");
+    return;
+  }
+  if (!isImageFile(file)) {
+    showToast("Selecciona un archivo de imagen", "error");
+    return;
+  }
+
+  elements["attach-photo-button"].disabled = true;
+  elements["note-save-state"].textContent = "Adjuntando foto…";
+  try {
+    await saveCurrentNote.flush();
+    const attachment = await syncEngine.createImageAttachment(note.parentId, file, { relatedNoteId: note.id });
+    insertMarkdownAtCursor(`![${imageAltText(attachment.name)}](${markdownResourceUrl(attachment.name)})`);
+    updatePreview(elements["markdown-editor"].value);
+    await saveCurrentNote.flush();
+    await refreshLocalFiles({ preserveTextarea: true });
+    updatePreview(elements["markdown-editor"].value);
+    requestSyncSoon();
+    showToast("Foto adjuntada a la nota");
+  } catch (error) {
+    elements["note-save-state"].textContent = "Error al adjuntar";
+    showToast(error.message || "No se pudo adjuntar la foto", "error");
+  } finally {
+    elements["attach-photo-input"].value = "";
+    elements["attach-photo-button"].disabled = false;
+  }
+}
+
 function resolveWikiLink(rawTarget) {
   const target = String(rawTarget).split("#")[0].trim().replace(/\.md$/i, "");
   if (!target) return null;
@@ -510,6 +628,7 @@ async function clearLocalData() {
   state.rootId = null;
   state.selectedId = null;
   state.selectedFolderId = null;
+  pruneAttachmentUrls();
   elements["settings-dialog"].close();
   await refreshLocalFiles();
   if (state.connected) {
@@ -539,6 +658,8 @@ function bindEvents() {
   elements["new-folder-button"].addEventListener("click", () => openCreateDialog("folder"));
   elements["import-button"].addEventListener("click", () => elements["import-input"].click());
   elements["import-input"].addEventListener("change", event => handleImport(event.target.files));
+  elements["attach-photo-button"].addEventListener("click", () => elements["attach-photo-input"].click());
+  elements["attach-photo-input"].addEventListener("change", event => handleAttachPhoto(event.target.files?.[0]));
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["delete-note-button"].addEventListener("click", openDeleteDialog);
   elements["delete-form"].addEventListener("submit", confirmDelete);
@@ -644,7 +765,9 @@ function bindEvents() {
 
   syncEngine.addEventListener("status", event => setSyncStatus(event.detail));
   syncEngine.addEventListener("changed", async event => {
-    const preserve = event.detail.reason === "update-note" && event.detail.fileId === state.selectedId;
+    const preserve =
+      (event.detail.reason === "update-note" && event.detail.fileId === state.selectedId) ||
+      (event.detail.reason === "create-attachment" && event.detail.noteId === state.selectedId);
     await refreshLocalFiles({ preserveTextarea: preserve });
   });
   syncEngine.addEventListener("authrequired", () => {

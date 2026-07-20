@@ -29,6 +29,18 @@ Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra latera
 
 El HTML crudo no se ejecuta.
 
+## Adjuntar fotos
+
+Abre una nota y pulsa el icono de imagen. En móvil, el selector del navegador permite elegir una foto existente o abrir la cámara cuando esté disponible.
+
+La app guarda la foto como adjunto en la misma carpeta de Drive que la nota e inserta una línea Markdown:
+
+```text
+![foto](foto-20260720-153000.jpg)
+```
+
+El adjunto queda disponible sin conexión en este dispositivo y se sincroniza con Drive junto con la nota.
+
 ## Enlaces wiki
 
 ```text

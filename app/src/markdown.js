@@ -1,4 +1,4 @@
-import { escapeAttribute, escapeHtml, normalizeLineEndings, safeUrl } from "./utils.js";
+import { escapeAttribute, escapeHtml, normalizeLineEndings, safeImageUrl, safeUrl } from "./utils.js";
 
 function tokenStore() {
   const values = [];
@@ -13,7 +13,7 @@ function tokenStore() {
   };
 }
 
-export function renderInlineMarkdown(input = "") {
+export function renderInlineMarkdown(input = "", options = {}) {
   const tokens = tokenStore();
   let text = String(input);
 
@@ -34,6 +34,16 @@ export function renderInlineMarkdown(input = "") {
     const visible = label || target;
     return tokens.put(
       `<button type="button" class="wiki-link" data-wiki-target="${escapeAttribute(target)}">${escapeHtml(visible)}</button>`
+    );
+  });
+
+  text = text.replace(/!\[([^\]\n]*)\]\(([^\s)]+)(?:\s+"([^"]*)")?\)/g, (_, label, rawSrc, title) => {
+    const resolved = typeof options.resolveImageUrl === "function" ? options.resolveImageUrl(rawSrc) : rawSrc;
+    const src = safeImageUrl(resolved ?? "");
+    if (!src) return `${label} (${rawSrc})`;
+    const titleAttribute = title ? ` title="${escapeAttribute(title)}"` : "";
+    return tokens.put(
+      `<img class="markdown-image" src="${escapeAttribute(src)}" alt="${escapeAttribute(label)}" loading="lazy" decoding="async"${titleAttribute}>`
     );
   });
 
@@ -86,7 +96,7 @@ function startsBlock(lines, index) {
   );
 }
 
-export function renderMarkdown(markdown = "") {
+export function renderMarkdown(markdown = "", options = {}) {
   const normalized = normalizeLineEndings(markdown);
   const lines = normalized.split("\n");
   const output = [];
@@ -129,7 +139,7 @@ export function renderMarkdown(markdown = "") {
     const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
     if (heading) {
       const level = heading[1].length;
-      output.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      output.push(`<h${level}>${renderInlineMarkdown(heading[2], options)}</h${level}>`);
       index += 1;
       continue;
     }
@@ -157,9 +167,9 @@ export function renderMarkdown(markdown = "") {
       }
       output.push(
         `<div class="table-scroll"><table><thead><tr>${headers
-          .map((cell, column) => `<th class="align-${alignments[column] || "left"}">${renderInlineMarkdown(cell)}</th>`)
+          .map((cell, column) => `<th class="align-${alignments[column] || "left"}">${renderInlineMarkdown(cell, options)}</th>`)
           .join("")}</tr></thead><tbody>${rows
-          .map(row => `<tr>${headers.map((_, column) => `<td class="align-${alignments[column] || "left"}">${renderInlineMarkdown(row[column] || "")}</td>`).join("")}</tr>`)
+          .map(row => `<tr>${headers.map((_, column) => `<td class="align-${alignments[column] || "left"}">${renderInlineMarkdown(row[column] || "", options)}</td>`).join("")}</tr>`)
           .join("")}</tbody></table></div>`
       );
       continue;
@@ -171,7 +181,7 @@ export function renderMarkdown(markdown = "") {
         quoted.push(lines[index].replace(/^\s{0,3}>\s?/, ""));
         index += 1;
       }
-      output.push(`<blockquote>${renderMarkdown(quoted.join("\n"))}</blockquote>`);
+      output.push(`<blockquote>${renderMarkdown(quoted.join("\n"), options)}</blockquote>`);
       continue;
     }
 
@@ -187,9 +197,9 @@ export function renderMarkdown(markdown = "") {
         const checkbox = body.match(/^\[([ xX])\]\s*(.*)$/);
         if (checkbox) {
           const checked = checkbox[1].toLocaleLowerCase("es") === "x";
-          body = `<label class="task-item"><input type="checkbox" disabled ${checked ? "checked" : ""}> <span>${renderInlineMarkdown(checkbox[2])}</span></label>`;
+          body = `<label class="task-item"><input type="checkbox" disabled ${checked ? "checked" : ""}> <span>${renderInlineMarkdown(checkbox[2], options)}</span></label>`;
         } else {
-          body = renderInlineMarkdown(body);
+          body = renderInlineMarkdown(body, options);
         }
         items.push(`<li>${body}</li>`);
         index += 1;
@@ -204,7 +214,7 @@ export function renderMarkdown(markdown = "") {
       paragraph.push(lines[index].trim());
       index += 1;
     }
-    output.push(`<p>${renderInlineMarkdown(paragraph.join("\n"))}</p>`);
+    output.push(`<p>${renderInlineMarkdown(paragraph.join("\n"), options)}</p>`);
   }
 
   return output.join("\n") || '<p class="empty-preview">Esta nota está vacía.</p>';
@@ -214,6 +224,7 @@ export function markdownToPlainText(markdown = "") {
   return normalizeLineEndings(markdown)
     .replace(/^---\n[\s\S]*?\n---\n?/, "")
     .replace(/```[\s\S]*?```/g, " ")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/!\[\[([^\]]+)\]\]/g, "$1")
     .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, target, label) => label || target)
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")

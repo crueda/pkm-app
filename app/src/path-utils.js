@@ -64,7 +64,7 @@ export function sortFilesForTree(files) {
   });
 }
 
-export function createUniqueName(existingFiles, parentId, requestedName, { markdown = false } = {}) {
+export function createUniqueName(existingFiles, parentId, requestedName, { markdown = false, preserveExtension = false } = {}) {
   const sanitized = sanitizeName(requestedName, { markdown });
   const names = new Set(
     existingFiles
@@ -73,8 +73,15 @@ export function createUniqueName(existingFiles, parentId, requestedName, { markd
   );
   if (!names.has(sanitized.toLocaleLowerCase("es"))) return sanitized;
 
-  const extension = markdown ? ".md" : "";
-  const stem = markdown ? basenameWithoutExtension(sanitized) : sanitized;
+  let extension = markdown ? ".md" : "";
+  let stem = markdown ? basenameWithoutExtension(sanitized) : sanitized;
+  if (!markdown && preserveExtension) {
+    const dotIndex = sanitized.lastIndexOf(".");
+    if (dotIndex > 0 && dotIndex < sanitized.length - 1) {
+      stem = sanitized.slice(0, dotIndex);
+      extension = sanitized.slice(dotIndex);
+    }
+  }
   let counter = 2;
   while (names.has(`${stem} ${counter}${extension}`.toLocaleLowerCase("es"))) counter += 1;
   return `${stem} ${counter}${extension}`;

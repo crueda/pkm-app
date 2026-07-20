@@ -122,6 +122,26 @@ class MemoryDrive {
     return structuredClone(metadata);
   }
 
+  async createFile(name, parentId, blob, mimeType = "application/octet-stream", appProperties = {}) {
+    const id = this.nextId();
+    const time = this.timestamp();
+    const metadata = {
+      id,
+      name,
+      mimeType,
+      parents: [parentId],
+      createdTime: time,
+      modifiedTime: time,
+      version: "1",
+      size: String(blob.size ?? 0),
+      trashed: false,
+      appProperties
+    };
+    this.files.set(id, metadata);
+    this.contents.set(id, blob);
+    return structuredClone(metadata);
+  }
+
   async updateMetadata(id, patch) {
     const current = this.metadata(id);
     const next = {
@@ -148,6 +168,7 @@ class MemoryDrive {
   }
 
   async downloadText(id) { return this.contents.get(id) ?? ""; }
+  async downloadBlob(id) { return this.contents.get(id) ?? new Blob([]); }
 
   async listTree(rootId) {
     const result = [];
@@ -191,6 +212,29 @@ test("sincroniza una carpeta y una nota creadas offline respetando dependencias"
   assert.equal(note.parentId, folder.id);
   assert.equal(note.content, "# Aplicación\n\nPrimer borrador");
   assert.equal(note.path, "Proyectos/Aplicación.md");
+});
+
+test("sincroniza adjuntos de imagen creados offline", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const image = new Blob(["imagen"], { type: "image/png" });
+  const localAttachment = await engine.createImageAttachment(root.id, image);
+
+  assert.equal(localAttachment.kind, "attachment");
+  assert.equal(localAttachment.mimeType, "image/png");
+  assert.equal((await db.getOutbox()).length, 1);
+
+  await engine.sync();
+  const attachments = (await engine.getLocalFiles()).filter(file => file.kind === "attachment");
+
+  assert.equal((await db.getOutbox()).length, 0);
+  assert.equal(attachments.length, 1);
+  assert.equal(attachments[0].mimeType, "image/png");
+  assert.equal(attachments[0].blob.size, image.size);
+  assert.equal(drive.contents.get(attachments[0].id).size, image.size);
 });
 
 test("conserva la versión remota y crea una copia cuando hay conflicto", async () => {
