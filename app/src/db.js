@@ -1,3 +1,5 @@
+import { replaceFavoriteId } from "./favorites.js";
+
 const DATABASE_NAME = "notas-drive-pwa";
 const DATABASE_VERSION = 1;
 
@@ -163,8 +165,12 @@ export class LocalDatabase {
   }
 
   async replaceLocalId(localId, remoteFile) {
-    const files = await this.getAllFiles();
-    const operations = await this.getOutbox();
+    const [files, operations, favoriteIds, lastSelectedId] = await Promise.all([
+      this.getAllFiles(),
+      this.getOutbox(),
+      this.getSetting("favoriteIds", []),
+      this.getSetting("lastSelectedId", null)
+    ]);
     const current = files.find(file => file.id === localId);
     if (!current) return;
 
@@ -187,12 +193,27 @@ export class LocalDatabase {
     }));
 
     const database = await this.open();
-    const transaction = database.transaction(["files", "outbox"], "readwrite");
+    const transaction = database.transaction(["files", "outbox", "settings"], "readwrite");
     const filesStore = transaction.objectStore("files");
     const outboxStore = transaction.objectStore("outbox");
+    const settingsStore = transaction.objectStore("settings");
     filesStore.delete(localId);
     for (const file of updatedFiles) filesStore.put(file);
     for (const operation of updatedOperations) outboxStore.put(operation);
+    if (Array.isArray(favoriteIds) && favoriteIds.includes(localId)) {
+      settingsStore.put({
+        key: "favoriteIds",
+        value: replaceFavoriteId(favoriteIds, localId, remoteFile.id),
+        updatedAt: new Date().toISOString()
+      });
+    }
+    if (lastSelectedId === localId) {
+      settingsStore.put({
+        key: "lastSelectedId",
+        value: remoteFile.id,
+        updatedAt: new Date().toISOString()
+      });
+    }
     await transactionDone(transaction);
   }
 
