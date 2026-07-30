@@ -21,6 +21,16 @@ El editor guarda localmente después de una pausa. Un punto de estado indica que
 
 Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra lateral, pulsa una carpeta para expandirla o contraerla y convertirla en destino predeterminado de nuevas notas.
 
+## Favoritos
+
+Pulsa la estrella de una carpeta en el árbol o la estrella de la cabecera de una nota para añadirla a favoritos. La estrella situada arriba a la izquierda abre el cajón de accesos rápidos.
+
+- Al elegir una nota favorita se abre directamente en el editor.
+- Al elegir una carpeta favorita se revela y expande en el árbol.
+- La selección se guarda en este dispositivo, funciona sin conexión y no modifica los archivos de Drive.
+
+Vuelve a pulsar una estrella activa para retirar el elemento. Borrar la caché local también borra esta selección.
+
 ## Vista previa
 
 - **Editar:** solo textarea Markdown.

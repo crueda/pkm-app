@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./src/auth.js",
   "./src/db.js",
   "./src/drive-api.js",
+  "./src/favorites.js",
   "./src/markdown.js",
   "./src/path-utils.js",
   "./src/search.js",

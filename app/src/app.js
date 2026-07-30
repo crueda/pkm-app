@@ -1,6 +1,7 @@
 import { GoogleOAuthClient, isGoogleClientIdConfigured } from "./auth.js";
 import { LocalDatabase } from "./db.js";
 import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
+import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { createSnippet, searchNotes } from "./search.js";
@@ -17,13 +18,14 @@ const config = Object.freeze({
 
 const elements = Object.fromEntries([
   "app-shell", "menu-button", "sidebar", "sidebar-scrim", "brand-name", "connect-button",
+  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
   "note-list", "list-heading", "list-count", "last-sync-label", "settings-button",
   "welcome-view", "welcome-description", "configuration-warning", "install-help-button",
   "editor-view", "note-path", "note-title-input", "note-save-state", "note-modified",
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
-  "delete-note-button",
+  "favorite-note-button", "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "settings-auth-state", "settings-account", "settings-vault-name", "settings-pending-count", "settings-last-sync",
@@ -49,6 +51,7 @@ const state = {
   query: "",
   viewMode: localStorage.getItem("notes-view-mode") || "edit",
   collapsedFolders: new Set(),
+  favoriteIds: new Set(),
   attachmentUrls: new Map(),
   authReady: false,
   connected: false,
@@ -77,6 +80,153 @@ function currentParentId() {
 function setSidebarOpen(open) {
   elements["app-shell"].classList.toggle("sidebar-open", open);
   elements["menu-button"].setAttribute("aria-expanded", String(open));
+}
+
+function isFavorite(fileId) {
+  return state.favoriteIds.has(fileId);
+}
+
+function createStarIcon(filled = false) {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  if (filled) svg.classList.add("filled-star");
+  const path = document.createElementNS(namespace, "path");
+  path.setAttribute("d", "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z");
+  svg.append(path);
+  return svg;
+}
+
+function setFavoritesOpen(open, { restoreFocus = true } = {}) {
+  elements["app-shell"].classList.toggle("favorites-open", open);
+  elements["favorites-button"].setAttribute("aria-expanded", String(open));
+  elements["favorites-drawer"].setAttribute("aria-hidden", String(!open));
+  elements["favorites-scrim"].tabIndex = open ? 0 : -1;
+  if (open) {
+    renderFavorites();
+    requestAnimationFrame(() => {
+      const target = elements["favorites-list"].querySelector("button") || elements["favorites-close-button"];
+      target.focus({ preventScroll: true });
+    });
+  } else if (restoreFocus) {
+    elements["favorites-button"].focus({ preventScroll: true });
+  }
+}
+
+function updateFavoriteNoteButton() {
+  const note = currentNote();
+  const active = Boolean(note && isFavorite(note.id));
+  const label = active ? "Quitar nota de favoritos" : "Añadir nota a favoritos";
+  elements["favorite-note-button"].setAttribute("aria-pressed", String(active));
+  elements["favorite-note-button"].setAttribute("aria-label", label);
+  elements["favorite-note-button"].title = active ? "Quitar de favoritos" : "Añadir a favoritos";
+  elements["favorite-note-button"].classList.toggle("active", active);
+  elements["favorite-note-button"].replaceChildren(createStarIcon(active));
+}
+
+async function toggleFavorite(fileId) {
+  const file = state.files.find(candidate => candidate.id === fileId && !candidate.trashed);
+  if (!file || file.isRoot || !["folder", "note"].includes(file.kind)) return;
+  const previousIds = [...state.favoriteIds];
+  const nextIds = toggleFavoriteId(previousIds, fileId);
+  state.favoriteIds = new Set(nextIds);
+  renderSidebar();
+  renderFavorites();
+  updateFavoriteNoteButton();
+  try {
+    await db.setSetting("favoriteIds", nextIds);
+  } catch (error) {
+    state.favoriteIds = new Set(previousIds);
+    renderSidebar();
+    renderFavorites();
+    updateFavoriteNoteButton();
+    showToast(error.message || "No se pudo guardar el favorito", "error");
+  }
+}
+
+function createFavoriteToggleButton(file, className = "row-favorite-button") {
+  const active = isFavorite(file.id);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `${className} ${active ? "active" : ""}`;
+  button.setAttribute("aria-label", active ? `Quitar ${file.name} de favoritos` : `Añadir ${file.name} a favoritos`);
+  button.setAttribute("aria-pressed", String(active));
+  button.title = active ? "Quitar de favoritos" : "Añadir a favoritos";
+  button.append(createStarIcon(active));
+  button.addEventListener("click", () => toggleFavorite(file.id));
+  return button;
+}
+
+function revealFavoriteFolder(file) {
+  state.query = "";
+  elements["search-input"].value = "";
+  state.selectedFolderId = file.id;
+  let current = file;
+  const fileMap = new Map(state.files.map(candidate => [candidate.id, candidate]));
+  while (current && current.id !== state.rootId) {
+    state.collapsedFolders.delete(current.id);
+    current = fileMap.get(current.parentId);
+  }
+  renderSidebar();
+  setFavoritesOpen(false, { restoreFocus: false });
+  if (matchMedia("(max-width: 820px)").matches) setSidebarOpen(true);
+  requestAnimationFrame(() => {
+    const row = [...elements["note-list"].querySelectorAll("[data-file-id]")]
+      .find(candidate => candidate.dataset.fileId === file.id);
+    row?.scrollIntoView({ block: "nearest" });
+    row?.focus({ preventScroll: true });
+  });
+}
+
+function renderFavorites() {
+  const container = elements["favorites-list"];
+  container.replaceChildren();
+  const files = favoriteFiles(state.files, [...state.favoriteIds]);
+  if (!files.length) {
+    const empty = document.createElement("div");
+    empty.className = "favorites-empty";
+    const star = document.createElement("span");
+    star.className = "favorites-empty-icon";
+    star.append(createStarIcon());
+    const title = document.createElement("strong");
+    title.textContent = "Aún no hay favoritos";
+    const description = document.createElement("span");
+    description.textContent = "Usa la estrella de una carpeta o nota para verla aquí.";
+    empty.append(star, title, description);
+    container.append(empty);
+    return;
+  }
+
+  for (const file of files) {
+    const item = document.createElement("div");
+    item.className = "favorite-item";
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.className = "favorite-link";
+    openButton.addEventListener("click", async () => {
+      if (file.kind === "folder") revealFavoriteFolder(file);
+      else {
+        setFavoritesOpen(false, { restoreFocus: false });
+        await selectNote(file.id);
+      }
+    });
+
+    const kindIcon = document.createElement("span");
+    kindIcon.className = "favorite-kind-icon";
+    kindIcon.setAttribute("aria-hidden", "true");
+    kindIcon.textContent = file.kind === "folder" ? "▸" : "·";
+    const copy = document.createElement("span");
+    copy.className = "favorite-copy";
+    const name = document.createElement("strong");
+    name.textContent = file.kind === "note" ? noteDisplayName(file) : file.name;
+    const path = document.createElement("span");
+    path.textContent = file.path || (file.kind === "folder" ? file.name : "");
+    copy.append(name, path);
+    openButton.append(kindIcon, copy);
+    item.append(openButton, createFavoriteToggleButton(file, "favorite-remove-button"));
+    container.append(item);
+  }
 }
 
 function setSyncStatus({ state: nextState = "local", message = "Solo local", completedAt } = {}) {
@@ -158,6 +308,8 @@ function renderTree() {
   const appendChildren = (parentId, depth = 0) => {
     for (const file of children.get(parentId) ?? []) {
       const expanded = file.kind === "folder" && !state.collapsedFolders.has(file.id);
+      const row = document.createElement("div");
+      row.className = `tree-entry ${isFavorite(file.id) ? "favorite" : ""}`;
       const button = document.createElement("button");
       button.type = "button";
       button.className = `tree-row ${file.id === state.selectedId ? "selected" : ""} ${file.dirty ? "dirty" : ""}`;
@@ -185,7 +337,8 @@ function renderTree() {
           await selectNote(file.id);
         }
       });
-      container.append(button);
+      row.append(button, createFavoriteToggleButton(file));
+      container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
     }
   };
@@ -324,6 +477,7 @@ function renderEditor({ preserveTextarea = false } = {}) {
   }
   updatePreview(editor.value);
   setViewMode(state.viewMode, { persist: false });
+  updateFavoriteNoteButton();
 }
 
 async function updateSettings() {
@@ -345,14 +499,16 @@ async function updateSettings() {
 
 async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false } = {}) {
   const sequence = ++state.refreshSequence;
-  const [files, rootId, lastSelectedId] = await Promise.all([
+  const [files, rootId, lastSelectedId, favoriteIds] = await Promise.all([
     syncEngine.getLocalFiles(),
     syncEngine.getRootId(),
-    db.getSetting("lastSelectedId", null)
+    db.getSetting("lastSelectedId", null),
+    db.getSetting("favoriteIds", [])
   ]);
   if (sequence !== state.refreshSequence) return;
   state.files = files;
   state.rootId = rootId;
+  state.favoriteIds = new Set(normalizeFavoriteIds(favoriteIds));
   pruneAttachmentUrls();
 
   const selectedExists = state.files.some(file => file.id === state.selectedId && file.kind === "note" && !file.trashed);
@@ -368,6 +524,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   }
   renderSidebar();
   renderEditor({ preserveTextarea });
+  renderFavorites();
   await updateSettings();
 }
 
@@ -379,6 +536,7 @@ async function selectNote(fileId) {
   await db.setSetting("lastSelectedId", fileId);
   renderSidebar();
   renderEditor();
+  setFavoritesOpen(false, { restoreFocus: false });
   setSidebarOpen(false);
   requestAnimationFrame(() => elements["markdown-editor"].focus({ preventScroll: true }));
 }
@@ -650,6 +808,12 @@ function closeDialogFromButton(button) {
 function bindEvents() {
   elements["menu-button"].addEventListener("click", () => setSidebarOpen(!elements["app-shell"].classList.contains("sidebar-open")));
   elements["sidebar-scrim"].addEventListener("click", () => setSidebarOpen(false));
+  elements["favorites-button"].addEventListener("click", () => {
+    const open = !elements["app-shell"].classList.contains("favorites-open");
+    setFavoritesOpen(open);
+  });
+  elements["favorites-close-button"].addEventListener("click", () => setFavoritesOpen(false));
+  elements["favorites-scrim"].addEventListener("click", () => setFavoritesOpen(false));
   elements["theme-button"].addEventListener("click", cycleTheme);
   elements["connect-button"].addEventListener("click", connectOrSync);
   elements["welcome-connect-button"].addEventListener("click", connectOrSync);
@@ -664,6 +828,10 @@ function bindEvents() {
     elements["attach-photo-input"].click();
   });
   elements["attach-photo-input"].addEventListener("change", event => handleAttachPhoto(event.target.files?.[0]));
+  elements["favorite-note-button"].addEventListener("click", () => {
+    const note = currentNote();
+    if (note) toggleFavorite(note.id);
+  });
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["delete-note-button"].addEventListener("click", openDeleteDialog);
   elements["delete-form"].addEventListener("submit", confirmDelete);
@@ -758,7 +926,10 @@ function bindEvents() {
       event.preventDefault();
       saveCurrentNote.flush().then(() => state.connected && connectOrSync());
     }
-    if (event.key === "Escape") setSidebarOpen(false);
+    if (event.key === "Escape") {
+      if (elements["app-shell"].classList.contains("favorites-open")) setFavoritesOpen(false);
+      else setSidebarOpen(false);
+    }
   });
 
   auth.addEventListener("authchange", event => {
