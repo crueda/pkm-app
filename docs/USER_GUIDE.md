@@ -13,13 +13,15 @@
 1. Pulsa **Nueva nota**.
 2. Escribe el nombre.
 3. Elige una carpeta.
-4. Empieza a escribir.
+4. La nota se abre en **Vista**. Pulsa **Editar** para empezar a escribir.
 
 El editor guarda localmente después de una pausa. Un punto de estado indica que el cambio todavía está pendiente de Drive.
 
 ## Crear carpetas
 
 Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra lateral, pulsa una carpeta para expandirla o contraerla y convertirla en destino predeterminado de nuevas notas.
+
+Para mover una carpeta, pulsa el icono de movimiento que aparece junto a su estrella, elige la carpeta de destino y confirma. Se mueve la carpeta completa, incluidas todas sus subcarpetas, notas y adjuntos. La propia carpeta y sus descendientes no aparecen como destinos para evitar ciclos.
 
 ## Favoritos
 
@@ -31,13 +33,16 @@ Pulsa la estrella de una carpeta en el árbol o la estrella de la cabecera de un
 
 Vuelve a pulsar una estrella activa para retirar el elemento. Borrar la caché local también borra esta selección.
 
-## Vista previa
+## Visualizar y editar
 
-- **Editar:** solo textarea Markdown.
-- **Vista:** solo documento renderizado.
-- **Ambos:** editor y vista lado a lado en escritorio.
+- **Vista:** es el modo predeterminado al abrir una nota y muestra el Markdown con títulos, listas, enlaces, tablas, imágenes y demás formato aplicado.
+- **Editar:** muestra el texto `.md` y una barra de ayuda para insertar títulos H1-H3, negrita, cursiva, código, listas con viñetas, listas numeradas, tareas, citas y enlaces.
+
+Selecciona texto antes de pulsar un formato para aplicarlo a la selección. Sin selección, los controles insertan un texto de ejemplo listo para reemplazar. También puedes usar `Ctrl/Cmd+B` para negrita, `Ctrl/Cmd+I` para cursiva y `Ctrl/Cmd+K` para enlaces.
 
 El HTML crudo no se ejecuta.
+
+Los enlaces escritos con `[texto](https://ejemplo.com)` y las URLs `http://` o `https://` pegadas directamente son clicables y se abren fuera de la PWA. Los enlaces de Google Maps se reconocen para que iOS o Android abran Google Maps cuando la aplicación esté instalada; si no lo está, se abren en el navegador.
 
 ## Adjuntar fotos
 

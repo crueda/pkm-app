@@ -226,6 +226,19 @@ export class GoogleDriveApi {
     });
   }
 
+  async moveFile(fileId, previousParentId, parentId) {
+    const parameters = new URLSearchParams({
+      fields: FILE_FIELDS,
+      addParents: parentId
+    });
+    if (previousParentId) parameters.set("removeParents", previousParentId);
+    return this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?${parameters}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json; charset=UTF-8" },
+      body: "{}"
+    });
+  }
+
   async trash(fileId) {
     return this.updateMetadata(fileId, { trashed: true });
   }

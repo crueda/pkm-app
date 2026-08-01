@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { markdownToPlainText, renderInlineMarkdown, renderMarkdown } from "../app/src/markdown.js";
+import { isGoogleMapsUrl, markdownToPlainText, renderInlineMarkdown, renderMarkdown } from "../app/src/markdown.js";
 
 test("el Markdown escapa HTML crudo", () => {
   const html = renderMarkdown("# Seguro\n\n<script>alert('x')</script>");
@@ -19,6 +19,26 @@ test("los enlaces https son seguros y las wiki links conservan el destino", () =
   assert.ok(html.includes('rel="noopener noreferrer"'));
   assert.ok(html.includes('data-wiki-target="Proyecto"'));
   assert.ok(html.includes("Mi proyecto"));
+});
+
+test("convierte URLs escritas directamente en enlaces externos", () => {
+  const html = renderInlineMarkdown("Consulta https://example.com/guia.");
+  assert.ok(html.includes('href="https://example.com/guia"'));
+  assert.ok(html.includes('target="_blank"'));
+  assert.ok(html.endsWith("</a>."));
+});
+
+test("identifica enlaces de Google Maps y los marca para abrir la aplicación", () => {
+  assert.equal(isGoogleMapsUrl("https://maps.app.goo.gl/AbCd"), true);
+  assert.equal(isGoogleMapsUrl("https://www.google.es/maps/place/Madrid"), true);
+  assert.equal(isGoogleMapsUrl("https://maps.google.com/?q=Madrid"), true);
+  assert.equal(isGoogleMapsUrl("https://google.com/search?q=maps"), false);
+  assert.equal(isGoogleMapsUrl("https://google.com.evil.test/maps"), false);
+
+  const html = renderInlineMarkdown("[Cómo llegar](https://maps.app.goo.gl/AbCd)");
+  assert.ok(html.includes('class="external-link google-maps-link"'));
+  assert.ok(html.includes('data-google-maps-link="true"'));
+  assert.ok(html.includes('title="Abrir en Google Maps"'));
 });
 
 test("renderiza frontmatter, listas de tareas y tablas", () => {

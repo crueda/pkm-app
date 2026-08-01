@@ -59,7 +59,7 @@ function isLocalId(id) {
 }
 
 function operationPriority(operation) {
-  return ({ createFolder: 10, createFile: 20, updateFile: 30, rename: 40, trash: 50 })[operation.type] ?? 99;
+  return ({ createFolder: 10, createFile: 20, updateFile: 30, rename: 40, move: 40, trash: 50 })[operation.type] ?? 99;
 }
 
 function prepareRecords(files, rootId) {
@@ -352,6 +352,9 @@ export class SyncEngine extends EventTarget {
         if (candidate.type === "createFolder" || candidate.type === "createFile") {
           return !candidate.parentId || !isLocalId(candidate.parentId);
         }
+        if (candidate.type === "move") {
+          return !isLocalId(candidate.fileId) && !isLocalId(candidate.parentId);
+        }
         return !isLocalId(candidate.fileId);
       });
       if (!operation) {
@@ -457,14 +460,47 @@ export class SyncEngine extends EventTarget {
       const local = await this.db.getFile(operation.fileId);
       const metadata = await this.drive.updateMetadata(operation.fileId, { name: operation.name });
       if (local) {
+        const hasOtherPending = (await this.db.getOutbox()).some(candidate => (
+          candidate.opId !== operation.opId && candidate.fileId === operation.fileId
+        ));
         await this.db.putFile({
           ...local,
           ...normalizeDriveFile(metadata),
+          name: operation.name,
+          parentId: local.parentId,
           content: local.content,
-          dirty: false,
+          dirty: hasOtherPending,
           localUpdatedAt: nowIso()
         });
       }
+      await this.db.deleteOutbox(operation.opId);
+      return;
+    }
+
+    if (operation.type === "move") {
+      const local = await this.db.getFile(operation.fileId);
+      if (!local) {
+        await this.db.deleteOutbox(operation.opId);
+        return;
+      }
+      const metadata = await this.drive.moveFile(
+        operation.fileId,
+        operation.previousParentId,
+        operation.parentId
+      );
+      const hasOtherPending = (await this.db.getOutbox()).some(candidate => (
+        candidate.opId !== operation.opId && candidate.fileId === operation.fileId
+      ));
+      await this.db.putFile({
+        ...local,
+        ...normalizeDriveFile(metadata),
+        name: local.name,
+        parentId: operation.parentId,
+        content: local.content,
+        blob: local.blob,
+        dirty: hasOtherPending,
+        localUpdatedAt: nowIso()
+      });
       await this.db.deleteOutbox(operation.opId);
       return;
     }
@@ -663,6 +699,76 @@ export class SyncEngine extends EventTarget {
     }
     await this.#rebuildPaths();
     this.emit("changed", { reason: "rename", fileId });
+    return this.db.getFile(fileId);
+  }
+
+  async moveFolder(fileId, parentId) {
+    const [file, target, files, rootId, operations] = await Promise.all([
+      this.db.getFile(fileId),
+      this.db.getFile(parentId),
+      this.getLocalFiles(),
+      this.getRootId(),
+      this.db.getOutbox()
+    ]);
+    if (!file || file.kind !== "folder" || file.trashed) throw new Error("La carpeta ya no existe");
+    if (file.isRoot || file.id === rootId) throw new Error("La carpeta raíz no se puede mover");
+    if (!target || target.kind !== "folder" || target.trashed) throw new Error("La carpeta de destino ya no existe");
+    if (file.parentId === parentId) return file;
+
+    const fileMap = new Map(files.map(candidate => [candidate.id, candidate]));
+    let ancestor = target;
+    const visited = new Set();
+    while (ancestor) {
+      if (ancestor.id === fileId) throw new Error("Una carpeta no se puede mover dentro de sí misma");
+      if (visited.has(ancestor.id)) throw new Error("La jerarquía de carpetas contiene un ciclo");
+      visited.add(ancestor.id);
+      ancestor = fileMap.get(ancestor.parentId);
+    }
+
+    const duplicate = files.some(candidate => (
+      candidate.id !== fileId &&
+      candidate.parentId === parentId &&
+      !candidate.trashed &&
+      String(candidate.name).localeCompare(file.name, "es", { sensitivity: "base" }) === 0
+    ));
+    if (duplicate) throw new Error(`Ya existe un elemento llamado “${file.name}” en la carpeta de destino`);
+
+    let dirty = true;
+    if (isLocalId(fileId)) {
+      const createOperation = operations.find(operation => operation.type === "createFolder" && operation.fileId === fileId);
+      if (!createOperation) throw new Error("No se encontró la creación pendiente de la carpeta");
+      await this.db.putOutbox({ ...createOperation, parentId, updatedAt: nowIso() });
+    } else {
+      const existing = operations.find(operation => operation.type === "move" && operation.fileId === fileId);
+      const previousParentId = existing?.previousParentId ?? file.parentId;
+      if (parentId === previousParentId && existing) {
+        await this.db.deleteOutbox(existing.opId);
+        dirty = operations.some(operation => operation.opId !== existing.opId && operation.fileId === fileId);
+      } else {
+        await this.db.putOutbox(existing ? {
+          ...existing,
+          parentId,
+          updatedAt: nowIso()
+        } : {
+          opId: createId("op"),
+          type: "move",
+          fileId,
+          previousParentId,
+          parentId,
+          createdAt: nowIso()
+        });
+      }
+    }
+
+    await this.db.putFile({
+      ...file,
+      parentId,
+      dirty,
+      modifiedTime: nowIso(),
+      localUpdatedAt: nowIso()
+    });
+    await this.#rebuildPaths();
+    this.emit("changed", { reason: "move-folder", fileId, parentId });
     return this.db.getFile(fileId);
   }
 

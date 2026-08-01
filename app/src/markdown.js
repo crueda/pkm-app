@@ -13,6 +13,46 @@ function tokenStore() {
   };
 }
 
+export function isGoogleMapsUrl(rawUrl = "") {
+  try {
+    const url = new URL(String(rawUrl));
+    if (!["https:", "http:"].includes(url.protocol)) return false;
+    const hostname = url.hostname.toLocaleLowerCase("en");
+    const googleDomain = "(?:[a-z]{2,3}|com\\.[a-z]{2}|co\\.[a-z]{2})";
+    if (hostname === "maps.app.goo.gl") return true;
+    if (hostname === "goo.gl" && url.pathname.toLocaleLowerCase("en").startsWith("/maps")) return true;
+    if (new RegExp(`^maps\\.google\\.${googleDomain}$`).test(hostname)) return true;
+    return new RegExp(`^(?:www\\.)?google\\.${googleDomain}$`).test(hostname) && url.pathname.toLocaleLowerCase("en").startsWith("/maps");
+  } catch {
+    return false;
+  }
+}
+
+function externalLinkHtml(href, label, title = "") {
+  const mapsLink = isGoogleMapsUrl(href);
+  const classes = mapsLink ? ' class="external-link google-maps-link" data-google-maps-link="true"' : ' class="external-link"';
+  const resolvedTitle = title || (mapsLink ? "Abrir en Google Maps" : "Abrir en el navegador");
+  return (
+    `<a${classes} href="${escapeAttribute(href)}" target="_blank" rel="noopener noreferrer" title="${escapeAttribute(resolvedTitle)}">` +
+      `${escapeHtml(label)}` +
+    `</a>`
+  );
+}
+
+function splitTrailingUrlPunctuation(rawUrl) {
+  let url = rawUrl;
+  let trailing = "";
+  while (/[.,;:!?]$/.test(url)) {
+    trailing = `${url.at(-1)}${trailing}`;
+    url = url.slice(0, -1);
+  }
+  while (url.endsWith(")") && (url.match(/\)/g)?.length ?? 0) > (url.match(/\(/g)?.length ?? 0)) {
+    trailing = `)${trailing}`;
+    url = url.slice(0, -1);
+  }
+  return { url, trailing };
+}
+
 export function renderInlineMarkdown(input = "", options = {}) {
   const tokens = tokenStore();
   let text = String(input);
@@ -50,17 +90,20 @@ export function renderInlineMarkdown(input = "", options = {}) {
   text = text.replace(/\[([^\]]+)\]\(([^\s)]+)(?:\s+"([^"]*)")?\)/g, (_, label, rawHref, title) => {
     const href = safeUrl(rawHref);
     if (!href) return `${label} (${rawHref})`;
-    const titleAttribute = title ? ` title="${escapeAttribute(title)}"` : "";
-    return tokens.put(
-      `<a href="${escapeAttribute(href)}" target="_blank" rel="noopener noreferrer"${titleAttribute}>${escapeHtml(label)}</a>`
-    );
+    return tokens.put(externalLinkHtml(href, label, title));
   });
 
   text = text.replace(/<(https?:\/\/[^>\s]+)>/g, (_, rawHref) => {
     const href = safeUrl(rawHref);
     return href
-      ? tokens.put(`<a href="${escapeAttribute(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(rawHref)}</a>`)
+      ? tokens.put(externalLinkHtml(href, rawHref))
       : rawHref;
+  });
+
+  text = text.replace(/https?:\/\/[^\s<>]+/gi, rawMatch => {
+    const { url: rawHref, trailing } = splitTrailingUrlPunctuation(rawMatch);
+    const href = safeUrl(rawHref);
+    return href ? `${tokens.put(externalLinkHtml(href, rawHref))}${trailing}` : rawMatch;
   });
 
   text = escapeHtml(text);

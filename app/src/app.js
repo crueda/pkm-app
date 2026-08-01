@@ -1,6 +1,7 @@
 import { GoogleOAuthClient, isGoogleClientIdConfigured } from "./auth.js";
 import { LocalDatabase } from "./db.js";
 import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
+import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
@@ -28,6 +29,7 @@ const elements = Object.fromEntries([
   "favorite-note-button", "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
+  "move-dialog", "move-form", "move-description", "move-parent",
   "settings-auth-state", "settings-account", "settings-vault-name", "settings-pending-count", "settings-last-sync",
   "settings-sync-button", "disconnect-button", "clear-local-data-button", "settings-version",
   "settings-network", "settings-install-button", "toast-region"
@@ -49,7 +51,7 @@ const state = {
   selectedId: null,
   selectedFolderId: null,
   query: "",
-  viewMode: localStorage.getItem("notes-view-mode") || "edit",
+  viewMode: "preview",
   collapsedFolders: new Set(),
   favoriteIds: new Set(),
   attachmentUrls: new Map(),
@@ -57,7 +59,8 @@ const state = {
   connected: false,
   syncState: "local",
   refreshSequence: 0,
-  installPrompt: null
+  installPrompt: null,
+  movingFolderId: null
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -155,6 +158,23 @@ function createFavoriteToggleButton(file, className = "row-favorite-button") {
   button.title = active ? "Quitar de favoritos" : "Añadir a favoritos";
   button.append(createStarIcon(active));
   button.addEventListener("click", () => toggleFavorite(file.id));
+  return button;
+}
+
+function createMoveFolderButton(file) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-move-button";
+  button.setAttribute("aria-label", `Mover carpeta ${file.name}`);
+  button.title = "Mover carpeta";
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M4 6.5h6l2 2h8v9H4Z M9 13h7m-3-3 3 3-3 3");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openMoveFolderDialog(file.id));
   return button;
 }
 
@@ -337,7 +357,9 @@ function renderTree() {
           await selectNote(file.id);
         }
       });
-      row.append(button, createFavoriteToggleButton(file));
+      row.append(button);
+      if (file.kind === "folder") row.append(createMoveFolderButton(file));
+      row.append(createFavoriteToggleButton(file));
       container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
     }
@@ -476,7 +498,7 @@ function renderEditor({ preserveTextarea = false } = {}) {
     editor.dataset.fileId = note.id;
   }
   updatePreview(editor.value);
-  setViewMode(state.viewMode, { persist: false });
+  setViewMode(state.viewMode);
   updateFavoriteNoteButton();
 }
 
@@ -528,9 +550,10 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   await updateSettings();
 }
 
-async function selectNote(fileId) {
+async function selectNote(fileId, { mode = "preview" } = {}) {
   await saveCurrentNote.flush();
   state.selectedId = fileId;
+  state.viewMode = mode === "edit" ? "edit" : "preview";
   const note = currentNote();
   state.selectedFolderId = note?.parentId || state.rootId;
   await db.setSetting("lastSelectedId", fileId);
@@ -538,19 +561,32 @@ async function selectNote(fileId) {
   renderEditor();
   setFavoritesOpen(false, { restoreFocus: false });
   setSidebarOpen(false);
-  requestAnimationFrame(() => elements["markdown-editor"].focus({ preventScroll: true }));
+  if (state.viewMode === "edit") {
+    requestAnimationFrame(() => elements["markdown-editor"].focus({ preventScroll: true }));
+  }
 }
 
-function setViewMode(mode, { persist = true } = {}) {
-  if (!["edit", "preview", "split"].includes(mode)) mode = "edit";
-  if (matchMedia("(max-width: 820px)").matches && mode === "split") mode = "edit";
+function setViewMode(mode) {
+  if (!["edit", "preview"].includes(mode)) mode = "preview";
   state.viewMode = mode;
-  if (persist) localStorage.setItem("notes-view-mode", mode);
   elements["editor-panes"].className = `editor-panes mode-${mode}`;
+  elements["editor-view"].dataset.viewMode = mode;
+  elements["note-title-input"].readOnly = mode !== "edit";
+  elements["note-title-input"].setAttribute("aria-label", mode === "edit" ? "Título de la nota" : "Título de la nota (solo lectura)");
   for (const button of document.querySelectorAll(".view-mode-button")) {
     button.classList.toggle("active", button.dataset.viewMode === mode);
+    button.setAttribute("aria-pressed", String(button.dataset.viewMode === mode));
   }
-  if (mode !== "edit") updatePreview(elements["markdown-editor"].value);
+  if (mode === "preview") updatePreview(elements["markdown-editor"].value);
+}
+
+function applyMarkdownFormatting(action) {
+  const editor = elements["markdown-editor"];
+  const result = formatMarkdown(editor.value, editor.selectionStart, editor.selectionEnd, action);
+  editor.value = result.value;
+  editor.focus({ preventScroll: true });
+  editor.setSelectionRange(result.selectionStart, result.selectionEnd);
+  editor.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 const refreshPreview = debounce(() => updatePreview(elements["markdown-editor"].value), 160);
@@ -648,6 +684,7 @@ async function submitCreate(event) {
 }
 
 async function renameCurrentNote() {
+  if (state.viewMode !== "edit") return;
   const note = currentNote();
   if (!note) return;
   const requested = elements["note-title-input"].value.trim();
@@ -663,6 +700,72 @@ async function renameCurrentNote() {
   } catch (error) {
     elements["note-title-input"].value = noteDisplayName(note);
     showToast(error.message || "No se pudo renombrar", "error");
+  }
+}
+
+function moveDestinationOptions(folder) {
+  const excludedIds = new Set([folder.id]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const file of state.files) {
+      if (file.kind === "folder" && excludedIds.has(file.parentId) && !excludedIds.has(file.id)) {
+        excludedIds.add(file.id);
+        changed = true;
+      }
+    }
+  }
+  return folderOptions().filter(candidate => !excludedIds.has(candidate.id) && candidate.id !== folder.parentId);
+}
+
+function openMoveFolderDialog(fileId) {
+  const folder = state.files.find(file => file.id === fileId && file.kind === "folder" && !file.trashed && !file.isRoot);
+  if (!folder) return;
+  const destinations = moveDestinationOptions(folder);
+  if (!destinations.length) {
+    showToast("No hay otra carpeta disponible como destino", "error");
+    return;
+  }
+
+  state.movingFolderId = folder.id;
+  elements["move-description"].textContent = `“${folder.name}” y todo su contenido conservarán su estructura.`;
+  elements["move-parent"].replaceChildren();
+  for (const destination of destinations) {
+    const option = document.createElement("option");
+    option.value = destination.id;
+    option.textContent = destination.isRoot ? `/${config.vaultName}` : `/${destination.path}`;
+    option.selected = destination.id === state.selectedFolderId;
+    elements["move-parent"].append(option);
+  }
+  elements["move-dialog"].showModal();
+  requestAnimationFrame(() => elements["move-parent"].focus());
+}
+
+function expandFolderAncestors(folderId) {
+  const fileMap = new Map(state.files.map(file => [file.id, file]));
+  let current = fileMap.get(folderId);
+  while (current) {
+    state.collapsedFolders.delete(current.id);
+    current = fileMap.get(current.parentId);
+  }
+}
+
+async function submitMoveFolder(event) {
+  event.preventDefault();
+  const fileId = state.movingFolderId;
+  const parentId = elements["move-parent"].value;
+  if (!fileId || !parentId) return;
+  try {
+    const folder = await syncEngine.moveFolder(fileId, parentId);
+    state.selectedFolderId = folder.id;
+    expandFolderAncestors(parentId);
+    elements["move-dialog"].close();
+    state.movingFolderId = null;
+    await refreshLocalFiles();
+    requestSyncSoon();
+    showToast("Carpeta movida con todo su contenido");
+  } catch (error) {
+    showToast(error.message || "No se pudo mover la carpeta", "error");
   }
 }
 
@@ -833,6 +936,7 @@ function bindEvents() {
     if (note) toggleFavorite(note.id);
   });
   elements["create-form"].addEventListener("submit", submitCreate);
+  elements["move-form"].addEventListener("submit", submitMoveFolder);
   elements["delete-note-button"].addEventListener("click", openDeleteDialog);
   elements["delete-form"].addEventListener("submit", confirmDelete);
 
@@ -846,6 +950,15 @@ function bindEvents() {
     refreshPreview();
     saveCurrentNote();
   });
+  elements["markdown-editor"].addEventListener("keydown", event => {
+    const modifier = event.metaKey || event.ctrlKey;
+    if (!modifier) return;
+    const action = ({ b: "bold", i: "italic", k: "link" })[event.key.toLocaleLowerCase("es")];
+    if (!action) return;
+    event.preventDefault();
+    event.stopPropagation();
+    applyMarkdownFormatting(action);
+  });
 
   elements["note-title-input"].addEventListener("blur", renameCurrentNote);
   elements["note-title-input"].addEventListener("keydown", event => {
@@ -856,7 +969,17 @@ function bindEvents() {
   });
 
   for (const button of document.querySelectorAll(".view-mode-button")) {
-    button.addEventListener("click", () => setViewMode(button.dataset.viewMode));
+    button.addEventListener("click", async () => {
+      const mode = button.dataset.viewMode;
+      if (mode === "preview") await saveCurrentNote.flush();
+      setViewMode(mode);
+      if (mode === "edit") requestAnimationFrame(() => elements["markdown-editor"].focus({ preventScroll: true }));
+    });
+  }
+
+  for (const button of document.querySelectorAll("[data-markdown-action]")) {
+    button.addEventListener("mousedown", event => event.preventDefault());
+    button.addEventListener("click", () => applyMarkdownFormatting(button.dataset.markdownAction));
   }
 
   elements["markdown-preview"].addEventListener("click", event => {

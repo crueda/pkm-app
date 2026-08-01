@@ -130,14 +130,13 @@
                 <button id="favorite-note-button" class="icon-button favorite-note-button" type="button" aria-label="Añadir nota a favoritos" aria-pressed="false" title="Añadir a favoritos">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg>
                 </button>
-                <label id="attach-photo-button" class="icon-button attach-photo-control" for="attach-photo-input" role="button" tabindex="0" aria-label="Adjuntar foto" title="Adjuntar foto">
+                <label id="attach-photo-button" class="icon-button attach-photo-control edit-only-action" for="attach-photo-input" role="button" tabindex="0" aria-label="Adjuntar foto" title="Adjuntar foto">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-4.5-4.5L9 18"/></svg>
                 </label>
                 <input id="attach-photo-input" class="visually-hidden" type="file" accept="image/*">
                 <div class="segmented-control" aria-label="Modo de visualización">
-                  <button class="view-mode-button active" type="button" data-view-mode="edit">Editar</button>
-                  <button class="view-mode-button" type="button" data-view-mode="preview">Vista</button>
-                  <button class="view-mode-button desktop-only" type="button" data-view-mode="split">Ambos</button>
+                  <button class="view-mode-button active" type="button" data-view-mode="preview">Vista</button>
+                  <button class="view-mode-button" type="button" data-view-mode="edit">Editar</button>
                 </div>
                 <button id="delete-note-button" class="icon-button danger-hover" type="button" aria-label="Mover a la papelera" title="Mover a la papelera">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 3h6l1 4H8l1-4Z"/><path d="m7 7 1 14h8l1-14M10 11v6M14 11v6"/></svg>
@@ -145,11 +144,27 @@
               </div>
             </header>
 
-            <div id="editor-panes" class="editor-panes mode-edit">
+            <div id="editor-panes" class="editor-panes mode-preview">
               <section class="editor-pane" aria-label="Editor Markdown">
+                <div id="markdown-toolbar" class="markdown-toolbar" role="toolbar" aria-label="Formato Markdown">
+                  <button class="markdown-tool" type="button" data-markdown-action="heading-1" aria-label="Título principal" title="Título principal">H1</button>
+                  <button class="markdown-tool" type="button" data-markdown-action="heading-2" aria-label="Título secundario" title="Título secundario">H2</button>
+                  <button class="markdown-tool" type="button" data-markdown-action="heading-3" aria-label="Título de tercer nivel" title="Título de tercer nivel">H3</button>
+                  <span class="toolbar-divider" aria-hidden="true"></span>
+                  <button class="markdown-tool" type="button" data-markdown-action="bold" aria-label="Negrita" title="Negrita (Ctrl+B)"><strong>B</strong></button>
+                  <button class="markdown-tool" type="button" data-markdown-action="italic" aria-label="Cursiva" title="Cursiva (Ctrl+I)"><em>I</em></button>
+                  <button class="markdown-tool" type="button" data-markdown-action="inline-code" aria-label="Código en línea" title="Código en línea">&lt;/&gt;</button>
+                  <span class="toolbar-divider" aria-hidden="true"></span>
+                  <button class="markdown-tool markdown-tool-wide" type="button" data-markdown-action="bulleted-list" aria-label="Lista con viñetas" title="Lista con viñetas">• Lista</button>
+                  <button class="markdown-tool markdown-tool-wide" type="button" data-markdown-action="numbered-list" aria-label="Lista numerada" title="Lista numerada">1. Lista</button>
+                  <button class="markdown-tool markdown-tool-wide" type="button" data-markdown-action="task-list" aria-label="Lista de tareas" title="Lista de tareas">☐ Tarea</button>
+                  <button class="markdown-tool" type="button" data-markdown-action="quote" aria-label="Cita" title="Cita">❯</button>
+                  <button class="markdown-tool" type="button" data-markdown-action="link" aria-label="Enlace" title="Enlace (Ctrl+K)">↗</button>
+                  <button class="markdown-tool" type="button" data-markdown-action="code-block" aria-label="Bloque de código" title="Bloque de código">{ }</button>
+                </div>
                 <textarea id="markdown-editor" spellcheck="true" autocomplete="off" placeholder="# Empieza a escribir…"></textarea>
               </section>
-              <section id="markdown-preview" class="preview-pane markdown-body" aria-label="Vista previa Markdown"></section>
+              <section id="markdown-preview" class="preview-pane markdown-body" aria-label="Nota con formato" tabindex="0"></section>
             </div>
           </section>
         </main>
@@ -189,6 +204,25 @@
         <div class="dialog-actions">
           <button class="secondary-button" type="button" data-close-dialog>Cancelar</button>
           <button class="danger-button" type="submit">Mover a la papelera</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="move-dialog" class="app-dialog compact-dialog">
+      <form id="move-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Organización</p>
+            <h2>Mover carpeta</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <p id="move-description" class="dialog-description"></p>
+        <label class="field-label" for="move-parent">Mover dentro de</label>
+        <select id="move-parent" class="text-field" required></select>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" data-close-dialog>Cancelar</button>
+          <button class="primary-button" type="submit">Mover carpeta</button>
         </div>
       </form>
     </dialog>

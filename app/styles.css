@@ -290,7 +290,8 @@ svg {
 }
 
 .favorite-remove-button,
-.row-favorite-button {
+.row-favorite-button,
+.row-move-button {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -312,7 +313,8 @@ svg {
 }
 
 .favorite-remove-button svg,
-.row-favorite-button svg {
+.row-favorite-button svg,
+.row-move-button svg {
   width: 17px;
   height: 17px;
 }
@@ -619,7 +621,7 @@ button:disabled,
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 38px 5px 9px;
+  padding: 5px 72px 5px 9px;
 }
 
 .tree-row[data-depth="0"] { padding-left: 9px; }
@@ -681,13 +683,32 @@ button:disabled,
   opacity: 0;
 }
 
+.row-move-button {
+  position: absolute;
+  right: 37px;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
 .tree-entry:hover .row-favorite-button,
 .tree-entry:focus-within .row-favorite-button,
-.row-favorite-button.active {
+.row-favorite-button.active,
+.tree-entry:hover .row-move-button,
+.tree-entry:focus-within .row-move-button {
   opacity: 1;
 }
 
 .row-favorite-button:hover,
+.row-move-button:hover,
+.row-move-button:focus-visible,
 .row-favorite-button.active,
 .favorite-note-button.active {
   background: var(--accent-soft);
@@ -893,6 +914,10 @@ button:disabled,
   letter-spacing: -0.035em;
 }
 
+.note-title-input[readonly] {
+  cursor: default;
+}
+
 .note-meta-line {
   display: flex;
   gap: 6px;
@@ -947,12 +972,63 @@ button:disabled,
 }
 
 .editor-pane {
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.markdown-toolbar {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 7px clamp(10px, 2vw, 18px);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  scrollbar-width: thin;
+}
+
+.markdown-tool {
+  min-width: 36px;
+  height: 34px;
+  flex: 0 0 auto;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.markdown-tool-wide {
+  min-width: auto;
+}
+
+.markdown-tool:hover,
+.markdown-tool:focus-visible {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--accent-strong);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 22px;
+  flex: 0 0 1px;
+  margin: 0 3px;
+  background: var(--border-strong);
 }
 
 #markdown-editor {
   width: 100%;
-  min-height: 100%;
+  min-height: 0;
+  flex: 1;
   resize: none;
   border: 0;
   outline: 0;
@@ -963,6 +1039,10 @@ button:disabled,
   font-size: 15px;
   line-height: 1.75;
   tab-size: 2;
+}
+
+.editor-view[data-view-mode="preview"] .edit-only-action {
+  display: none;
 }
 
 .preview-pane {
@@ -1013,6 +1093,20 @@ button:disabled,
 .markdown-body a,
 .wiki-link,
 .wiki-embed { color: var(--accent); }
+
+.markdown-body .external-link {
+  overflow-wrap: anywhere;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
+.markdown-body .google-maps-link::after {
+  content: " ↗";
+  display: inline;
+  font-family: var(--font-ui);
+  font-size: 0.78em;
+  font-weight: 700;
+}
 
 .markdown-image {
   display: block;
@@ -1213,6 +1307,13 @@ button:disabled,
   margin-top: 24px;
 }
 
+.dialog-description {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .settings-section {
   padding: 18px 0;
   border-top: 1px solid var(--border);
@@ -1300,7 +1401,8 @@ button:disabled,
   .sync-chip { max-width: 145px; }
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
-  .row-favorite-button { opacity: 1; }
+  .row-favorite-button,
+  .row-move-button { opacity: 1; }
 
   .app-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1364,14 +1466,6 @@ button:disabled,
   .editor-panes {
     grid-template-columns: minmax(0, 1fr);
     padding-bottom: calc(55px + env(safe-area-inset-bottom));
-  }
-
-  .editor-panes.mode-split {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .editor-panes.mode-split .preview-pane {
-    display: none;
   }
 
   #markdown-editor,

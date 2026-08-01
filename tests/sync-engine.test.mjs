@@ -170,6 +170,12 @@ class MemoryDrive {
   async downloadText(id) { return this.contents.get(id) ?? ""; }
   async downloadBlob(id) { return this.contents.get(id) ?? new Blob([]); }
 
+  async moveFile(id, previousParentId, parentId) {
+    const current = this.metadata(id);
+    assert.equal(current.parents?.[0] ?? null, previousParentId);
+    return this.updateMetadata(id, { parents: [parentId] });
+  }
+
   async listTree(rootId) {
     const result = [];
     const queue = [rootId];
@@ -212,6 +218,73 @@ test("sincroniza una carpeta y una nota creadas offline respetando dependencias"
   assert.equal(note.parentId, folder.id);
   assert.equal(note.content, "# Aplicación\n\nPrimer borrador");
   assert.equal(note.path, "Proyectos/Aplicación.md");
+});
+
+test("mueve una carpeta local con todo su contenido y respeta dependencias al sincronizar", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const destination = await engine.createFolder(root.id, "Archivo");
+  const source = await engine.createFolder(root.id, "Proyecto");
+  const child = await engine.createFolder(source.id, "Material");
+  await engine.createNote(child.id, "Plan", "# Plan");
+
+  await engine.moveFolder(source.id, destination.id);
+  const beforeSync = await engine.getLocalFiles();
+  assert.equal(beforeSync.find(file => file.id === source.id).path, "Archivo/Proyecto");
+  assert.equal(beforeSync.find(file => file.name === "Plan.md").path, "Archivo/Proyecto/Material/Plan.md");
+  assert.equal((await db.getOutbox()).find(operation => operation.fileId === source.id).parentId, destination.id);
+
+  await engine.sync();
+  const afterSync = await engine.getLocalFiles();
+  const remoteDestination = afterSync.find(file => file.kind === "folder" && file.name === "Archivo");
+  const remoteSource = afterSync.find(file => file.kind === "folder" && file.name === "Proyecto");
+  const remoteNote = afterSync.find(file => file.kind === "note" && file.name === "Plan.md");
+
+  assert.equal(drive.files.get(remoteSource.id).parents[0], remoteDestination.id);
+  assert.equal(remoteNote.path, "Archivo/Proyecto/Material/Plan.md");
+  assert.equal(remoteNote.content, "# Plan");
+  assert.equal((await db.getOutbox()).length, 0);
+});
+
+test("mueve en Drive una carpeta ya sincronizada", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const source = await drive.createFolder("Proyecto", root.id, { notesAppManaged: "v1" });
+  const destination = await drive.createFolder("Archivo", root.id, { notesAppManaged: "v1" });
+  await drive.createMarkdownFile("Plan.md", source.id, "# Plan", { notesAppManaged: "v1" });
+  await engine.pullRemoteTree(root.id);
+
+  await engine.moveFolder(source.id, destination.id);
+  const pending = await db.getOutbox();
+  assert.equal(pending.length, 1);
+  assert.deepEqual(
+    { type: pending[0].type, previousParentId: pending[0].previousParentId, parentId: pending[0].parentId },
+    { type: "move", previousParentId: root.id, parentId: destination.id }
+  );
+  assert.equal((await engine.getLocalFiles()).find(file => file.name === "Plan.md").path, "Archivo/Proyecto/Plan.md");
+
+  await engine.sync();
+  assert.equal(drive.files.get(source.id).parents[0], destination.id);
+  assert.equal((await engine.getLocalFiles()).find(file => file.name === "Plan.md").path, "Archivo/Proyecto/Plan.md");
+});
+
+test("impide mover una carpeta dentro de uno de sus descendientes", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const parent = await engine.createFolder(root.id, "Padre");
+  const child = await engine.createFolder(parent.id, "Hija");
+
+  await assert.rejects(() => engine.moveFolder(parent.id, child.id), /sí misma/);
+  assert.equal((await db.getFile(parent.id)).parentId, root.id);
 });
 
 test("sincroniza adjuntos de imagen creados offline", async () => {
