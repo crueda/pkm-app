@@ -291,7 +291,8 @@ svg {
 
 .favorite-remove-button,
 .row-favorite-button,
-.row-move-button {
+.row-move-button,
+.row-delete-button {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -314,7 +315,8 @@ svg {
 
 .favorite-remove-button svg,
 .row-favorite-button svg,
-.row-move-button svg {
+.row-move-button svg,
+.row-delete-button svg {
   width: 17px;
   height: 17px;
 }
@@ -624,6 +626,10 @@ button:disabled,
   padding: 5px 72px 5px 9px;
 }
 
+.tree-entry.folder-entry .tree-row {
+  padding-right: 106px;
+}
+
 .tree-row[data-depth="0"] { padding-left: 9px; }
 .tree-row[data-depth="1"] { padding-left: 26px; }
 .tree-row[data-depth="2"] { padding-left: 43px; }
@@ -674,6 +680,15 @@ button:disabled,
   background: #d29631;
 }
 
+.tree-meta[data-state="local"] {
+  background: #d29631;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #d29631 18%, transparent);
+}
+
+.tree-meta[data-state="synced"] {
+  background: #45995d;
+}
+
 .row-favorite-button {
   position: absolute;
   right: 3px;
@@ -684,6 +699,21 @@ button:disabled,
 }
 
 .row-move-button {
+  position: absolute;
+  right: 71px;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.row-delete-button {
   position: absolute;
   right: 37px;
   display: inline-grid;
@@ -702,13 +732,17 @@ button:disabled,
 .tree-entry:focus-within .row-favorite-button,
 .row-favorite-button.active,
 .tree-entry:hover .row-move-button,
-.tree-entry:focus-within .row-move-button {
+.tree-entry:focus-within .row-move-button,
+.tree-entry:hover .row-delete-button,
+.tree-entry:focus-within .row-delete-button {
   opacity: 1;
 }
 
 .row-favorite-button:hover,
 .row-move-button:hover,
 .row-move-button:focus-visible,
+.row-delete-button:hover,
+.row-delete-button:focus-visible,
 .row-favorite-button.active,
 .favorite-note-button.active {
   background: var(--accent-soft);
@@ -920,16 +954,79 @@ button:disabled,
 
 .note-meta-line {
   display: flex;
+  align-items: center;
   gap: 6px;
   margin-top: 5px;
   color: var(--text-muted);
   font-size: 11px;
 }
 
+.note-sync-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.note-sync-state::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d29631;
+  content: "";
+}
+
+.note-sync-state[data-state="synced"]::before {
+  background: #45995d;
+}
+
+.note-sync-state[data-state="none"]::before {
+  display: none;
+}
+
 .note-actions {
   display: flex;
   align-items: center;
   gap: 9px;
+}
+
+.note-sync-button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.note-sync-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.note-sync-button[data-state="local"],
+.note-sync-button[data-state="pending"] {
+  border-color: color-mix(in srgb, #d29631 55%, var(--border));
+  background: color-mix(in srgb, #d29631 10%, var(--surface));
+  color: var(--text);
+}
+
+.note-sync-button[data-state="local"]:hover,
+.note-sync-button[data-state="pending"]:hover {
+  border-color: #d29631;
+}
+
+.note-sync-button:disabled[data-state="synced"] {
+  border-color: color-mix(in srgb, #45995d 45%, var(--border));
+  color: #45995d;
+  cursor: default;
+  opacity: 1;
 }
 
 .segmented-control {
@@ -1402,7 +1499,8 @@ button:disabled,
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
   .row-favorite-button,
-  .row-move-button { opacity: 1; }
+  .row-move-button,
+  .row-delete-button { opacity: 1; }
 
   .app-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1452,6 +1550,16 @@ button:disabled,
 
   .note-actions {
     gap: 4px;
+  }
+
+  .note-sync-button {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  #note-sync-button-label {
+    display: none;
   }
 
   .segmented-control {

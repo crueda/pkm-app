@@ -39,6 +39,14 @@ La aplicación SHALL guardar el contenido editado en IndexedDB tras una pausa br
 - **THEN** los cambios quedan disponibles después de cerrar y reabrir la PWA
 - **AND** la interfaz indica que están pendientes.
 
+#### Scenario: Estado y subida manual de una nota local
+
+- **GIVEN** una nota fue creada o editada sin una sesión válida de Google Drive
+- **WHEN** el usuario abre la nota
+- **THEN** la aplicación indica si está solo en el dispositivo o tiene cambios pendientes
+- **AND** ofrece una acción para conectar o reconectar y subirla inmediatamente
+- **AND** tras completar la sincronización indica que la nota está guardada en Drive.
+
 ### Requirement: Modos de edición y vista previa
 
 La aplicación SHALL proporcionar modos Editar, Vista y Ambos en escritorio, y SHALL mantener modos Editar y Vista en móvil.

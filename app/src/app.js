@@ -25,6 +25,7 @@ const elements = Object.fromEntries([
   "note-list", "list-heading", "list-count", "last-sync-label", "settings-button",
   "welcome-view", "welcome-description", "configuration-warning", "install-help-button",
   "editor-view", "note-path", "note-title-input", "note-save-state", "note-modified",
+  "note-sync-button", "note-sync-button-label",
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
   "favorite-note-button", "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -60,7 +61,8 @@ const state = {
   syncState: "local",
   refreshSequence: 0,
   installPrompt: null,
-  movingFolderId: null
+  movingFolderId: null,
+  deletingItemId: null
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -178,6 +180,23 @@ function createMoveFolderButton(file) {
   return button;
 }
 
+function createDeleteFolderButton(file) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-delete-button";
+  button.setAttribute("aria-label", `Eliminar carpeta ${file.name}`);
+  button.title = "Mover carpeta a la papelera";
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M5 7h14m-9-3h4l1 3H9Zm-3 3 1 13h8l1-13M10 10v7m4-7v7");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openDeleteDialog(file.id));
+  return button;
+}
+
 function revealFavoriteFolder(file) {
   state.query = "";
   elements["search-input"].value = "";
@@ -254,6 +273,49 @@ function setSyncStatus({ state: nextState = "local", message = "Solo local", com
   elements["sync-status-button"].dataset.state = nextState;
   elements["sync-label"].textContent = message;
   if (completedAt) elements["last-sync-label"].textContent = `Sincronizado ${formatRelativeTime(completedAt)}`;
+  updateNoteSyncControl();
+}
+
+function noteSyncState(note) {
+  if (!note) return "none";
+  if (note.isLocalOnly || String(note.id).startsWith("local:")) return "local";
+  return note.dirty ? "pending" : "synced";
+}
+
+function updateNoteSyncControl(note = currentNote()) {
+  const syncState = noteSyncState(note);
+  const syncing = state.syncState === "syncing";
+  const labels = {
+    local: "Solo en este dispositivo",
+    pending: "Cambios pendientes de Drive",
+    synced: "Guardada en Drive"
+  };
+  elements["note-save-state"].dataset.state = syncState;
+  const transientLabels = ["Editando…", "Guardando localmente…", "Error al guardar"];
+  if (note && !transientLabels.includes(elements["note-save-state"].textContent)) {
+    elements["note-save-state"].textContent = labels[syncState];
+  }
+
+  const button = elements["note-sync-button"];
+  const needsSync = ["local", "pending"].includes(syncState);
+  button.dataset.state = syncing ? "syncing" : syncState;
+  elements["note-sync-button-label"].textContent = syncing
+    ? "Subiendo…"
+    : syncState === "local"
+      ? "Subir a Drive"
+      : syncState === "pending"
+        ? "Sincronizar"
+        : "En Drive";
+  button.disabled = !note || !needsSync || syncing || !navigator.onLine ||
+    !isGoogleClientIdConfigured(config.googleClientId) || !state.authReady;
+  button.setAttribute("aria-label", needsSync ? "Subir nota a Google Drive ahora" : "Nota sincronizada con Google Drive");
+  button.title = !navigator.onLine
+    ? "Conéctate a Internet para subir la nota"
+    : needsSync && !auth.hasValidToken()
+      ? "Conectar Google Drive y subir esta nota"
+      : needsSync
+        ? "Subir esta nota a Google Drive ahora"
+        : "Esta nota ya está sincronizada con Google Drive";
 }
 
 function updateConnectButtons() {
@@ -267,6 +329,7 @@ function updateConnectButtons() {
   elements["welcome-description"].textContent = configured
     ? "Conecta Google Drive para crear tu bóveda privada, o continúa leyendo las notas guardadas en este dispositivo."
     : "Configura el Client ID de Google para activar la sincronización. La aplicación local y la documentación ya están disponibles.";
+  updateNoteSyncControl();
 }
 
 function applyTheme(mode) {
@@ -329,7 +392,7 @@ function renderTree() {
     for (const file of children.get(parentId) ?? []) {
       const expanded = file.kind === "folder" && !state.collapsedFolders.has(file.id);
       const row = document.createElement("div");
-      row.className = `tree-entry ${isFavorite(file.id) ? "favorite" : ""}`;
+      row.className = `tree-entry ${file.kind === "folder" ? "folder-entry" : ""} ${isFavorite(file.id) ? "favorite" : ""}`;
       const button = document.createElement("button");
       button.type = "button";
       button.className = `tree-row ${file.id === state.selectedId ? "selected" : ""} ${file.dirty ? "dirty" : ""}`;
@@ -344,7 +407,12 @@ function renderTree() {
 
       const meta = document.createElement("span");
       meta.className = "tree-meta";
-      meta.title = file.dirty ? "Pendiente de sincronizar" : "";
+      meta.dataset.state = noteSyncState(file);
+      meta.title = noteSyncState(file) === "local"
+        ? "Solo en este dispositivo"
+        : file.dirty
+          ? "Pendiente de sincronizar con Drive"
+          : "Sincronizado con Drive";
       button.append(meta);
 
       button.addEventListener("click", async () => {
@@ -358,7 +426,7 @@ function renderTree() {
         }
       });
       row.append(button);
-      if (file.kind === "folder") row.append(createMoveFolderButton(file));
+      if (file.kind === "folder") row.append(createMoveFolderButton(file), createDeleteFolderButton(file));
       row.append(createFavoriteToggleButton(file));
       container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
@@ -489,7 +557,8 @@ function renderEditor({ preserveTextarea = false } = {}) {
   elements["note-title-input"].value = noteDisplayName(note);
   const parentPath = note.path?.split("/").slice(0, -1).join("/") || config.vaultName;
   elements["note-path"].textContent = parentPath;
-  elements["note-save-state"].textContent = note.dirty ? "Guardado localmente · pendiente" : "Sincronizado";
+  elements["note-save-state"].textContent = note.dirty ? "Cambios pendientes de Drive" : "Guardada en Drive";
+  updateNoteSyncControl(note);
   elements["note-modified"].textContent = formatRelativeTime(note.localUpdatedAt || note.modifiedTime);
 
   const editor = elements["markdown-editor"];
@@ -541,7 +610,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
       .sort((a, b) => new Date(b.localUpdatedAt || b.modifiedTime || 0) - new Date(a.localUpdatedAt || a.modifiedTime || 0))[0];
     state.selectedId = preferred?.id ?? (selectRecent ? recent?.id : null) ?? null;
   }
-  if (!state.selectedFolderId || !state.files.some(file => file.id === state.selectedFolderId && file.kind === "folder")) {
+  if (!state.selectedFolderId || !state.files.some(file => file.id === state.selectedFolderId && file.kind === "folder" && !file.trashed)) {
     state.selectedFolderId = currentNote()?.parentId || rootId;
   }
   renderSidebar();
@@ -600,7 +669,8 @@ const saveCurrentNote = debounce(async () => {
   try {
     const updated = await syncEngine.updateNote(note.id, content);
     state.files = state.files.map(file => file.id === updated.id ? updated : file);
-    elements["note-save-state"].textContent = "Guardado localmente · pendiente";
+    elements["note-save-state"].textContent = "Cambios pendientes de Drive";
+    updateNoteSyncControl(updated);
     renderSidebar();
     requestSyncSoon();
     await updateSettings();
@@ -611,7 +681,18 @@ const saveCurrentNote = debounce(async () => {
 }, 650);
 
 const requestSyncSoon = debounce(async () => {
-  if (!state.connected || !navigator.onLine || !auth.hasValidToken()) return;
+  const pending = await syncEngine.pendingCount();
+  if (!pending) return;
+  if (!navigator.onLine) {
+    setSyncStatus({ state: "offline", message: `${pending} ${pending === 1 ? "cambio pendiente" : "cambios pendientes"} · sin conexión` });
+    return;
+  }
+  if (!auth.hasValidToken()) {
+    state.connected = false;
+    updateConnectButtons();
+    setSyncStatus({ state: "auth", message: `${pending} ${pending === 1 ? "cambio pendiente" : "cambios pendientes"} · conecta Drive` });
+    return;
+  }
   try {
     await syncEngine.sync();
   } catch {
@@ -619,7 +700,7 @@ const requestSyncSoon = debounce(async () => {
   }
 }, 1600);
 
-async function connectOrSync() {
+async function connectOrSync({ successMessage = "Google Drive está sincronizado" } = {}) {
   if (!isGoogleClientIdConfigured(config.googleClientId)) {
     showToast("Configura el Client ID de Google antes de conectar", "error");
     return;
@@ -633,7 +714,7 @@ async function connectOrSync() {
     await saveCurrentNote.flush();
     await syncEngine.sync();
     await refreshLocalFiles({ selectRecent: true });
-    showToast("Google Drive está sincronizado");
+    showToast(successMessage);
   } catch (error) {
     if (error?.code !== "popup_closed" && error?.code !== "popup_failed_to_open") {
       showToast(error.message || "No se pudo conectar con Google", "error");
@@ -750,6 +831,17 @@ function expandFolderAncestors(folderId) {
   }
 }
 
+async function syncCurrentNote() {
+  await saveCurrentNote.flush();
+  const note = currentNote();
+  if (!note) return;
+  if (noteSyncState(note) === "synced") {
+    showToast("La nota ya está sincronizada con Google Drive");
+    return;
+  }
+  await connectOrSync({ successMessage: `“${noteDisplayName(note)}” se ha subido a Google Drive` });
+}
+
 async function submitMoveFolder(event) {
   event.preventDefault();
   const fileId = state.movingFolderId;
@@ -769,27 +861,49 @@ async function submitMoveFolder(event) {
   }
 }
 
-function openDeleteDialog() {
-  const note = currentNote();
-  if (!note) return;
-  elements["delete-description"].textContent = `“${noteDisplayName(note)}” se moverá a la papelera de Google Drive en la próxima sincronización.`;
+function openDeleteDialog(fileId = currentNote()?.id) {
+  const item = state.files.find(file => file.id === fileId && !file.trashed && !file.isRoot && ["folder", "note"].includes(file.kind));
+  if (!item) return;
+  state.deletingItemId = item.id;
+  const name = item.kind === "note" ? noteDisplayName(item) : item.name;
+  elements["delete-description"].textContent = item.kind === "folder"
+    ? `“${name}” y todo su contenido se moverán a la papelera de Google Drive en la próxima sincronización.`
+    : `“${name}” se moverá a la papelera de Google Drive en la próxima sincronización.`;
   elements["delete-dialog"].showModal();
 }
 
 async function confirmDelete(event) {
   event.preventDefault();
-  const note = currentNote();
-  if (!note) return;
+  const item = state.files.find(file => file.id === state.deletingItemId && !file.trashed && !file.isRoot);
+  if (!item) return;
+  const filesById = new Map(state.files.map(file => [file.id, file]));
+  const belongsToItem = fileId => {
+    let current = filesById.get(fileId);
+    const visited = new Set();
+    while (current && !visited.has(current.id)) {
+      if (current.id === item.id) return true;
+      visited.add(current.id);
+      current = filesById.get(current.parentId);
+    }
+    return false;
+  };
+  const clearsSelectedNote = belongsToItem(state.selectedId);
+  const clearsSelectedFolder = belongsToItem(state.selectedFolderId);
   try {
-    await syncEngine.trashItem(note.id);
-    state.selectedId = null;
-    await db.deleteSetting("lastSelectedId");
+    if (clearsSelectedNote) await saveCurrentNote.flush();
+    await syncEngine.trashItem(item.id);
+    if (clearsSelectedNote) {
+      state.selectedId = null;
+      await db.deleteSetting("lastSelectedId");
+    }
+    if (clearsSelectedFolder) state.selectedFolderId = item.parentId || state.rootId;
     elements["delete-dialog"].close();
+    state.deletingItemId = null;
     await refreshLocalFiles({ selectRecent: true });
     requestSyncSoon();
-    showToast("Nota movida a la papelera");
+    showToast(`${item.kind === "folder" ? "Carpeta" : "Nota"} movida a la papelera`);
   } catch (error) {
-    showToast(error.message || "No se pudo eliminar la nota", "error");
+    showToast(error.message || `No se pudo eliminar ${item.kind === "folder" ? "la carpeta" : "la nota"}`, "error");
   }
 }
 
@@ -935,9 +1049,10 @@ function bindEvents() {
     const note = currentNote();
     if (note) toggleFavorite(note.id);
   });
+  elements["note-sync-button"].addEventListener("click", syncCurrentNote);
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["move-form"].addEventListener("submit", submitMoveFolder);
-  elements["delete-note-button"].addEventListener("click", openDeleteDialog);
+  elements["delete-note-button"].addEventListener("click", () => openDeleteDialog());
   elements["delete-form"].addEventListener("submit", confirmDelete);
 
   elements["search-input"].addEventListener("input", event => {

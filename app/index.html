@@ -121,12 +121,16 @@
                 <div id="note-path" class="note-path"></div>
                 <input id="note-title-input" class="note-title-input" type="text" autocomplete="off" aria-label="Título de la nota">
                 <div class="note-meta-line">
-                  <span id="note-save-state">Guardado localmente</span>
+                  <span id="note-save-state" class="note-sync-state" data-state="local">Solo local</span>
                   <span aria-hidden="true">·</span>
                   <span id="note-modified"></span>
                 </div>
               </div>
               <div class="note-actions">
+                <button id="note-sync-button" class="note-sync-button" type="button" aria-label="Subir nota a Google Drive" title="Subir nota a Google Drive">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18H5.5a3.5 3.5 0 0 1-.4-7A6 6 0 0 1 16.7 9 4.5 4.5 0 1 1 18 18h-1M12 19V9m-4 4 4-4 4 4"/></svg>
+                  <span id="note-sync-button-label">Subir a Drive</span>
+                </button>
                 <button id="favorite-note-button" class="icon-button favorite-note-button" type="button" aria-label="Añadir nota a favoritos" aria-pressed="false" title="Añadir a favoritos">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg>
                 </button>

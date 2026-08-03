@@ -49,6 +49,14 @@ La aplicación SHALL listar carpetas, descargar notas, crear carpetas y notas, a
 - **AND** en la siguiente sincronización el archivo se establece como `trashed = true`
 - **AND** no se ejecuta una eliminación permanente.
 
+#### Scenario: Eliminación recuperable de una carpeta
+
+- **GIVEN** una carpeta sincronizada que contiene subcarpetas, notas o adjuntos
+- **WHEN** el usuario confirma su eliminación desde el árbol
+- **THEN** la carpeta y todo su contenido se ocultan localmente
+- **AND** en la siguiente sincronización la carpeta se establece como `trashed = true`
+- **AND** no se ejecuta una eliminación permanente sobre ningún elemento.
+
 ### Requirement: Descarga incremental por versión
 
 La aplicación SHALL reutilizar el contenido local cuando la versión remota no haya cambiado y SHALL descargar el contenido cuando detecte una versión diferente.

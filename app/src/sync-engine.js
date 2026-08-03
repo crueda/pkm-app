@@ -62,6 +62,21 @@ function operationPriority(operation) {
   return ({ createFolder: 10, createFile: 20, updateFile: 30, rename: 40, move: 40, trash: 50 })[operation.type] ?? 99;
 }
 
+function collectTreeIds(files, rootFileId) {
+  const ids = new Set([rootFileId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const file of files) {
+      if (file.parentId && ids.has(file.parentId) && !ids.has(file.id)) {
+        ids.add(file.id);
+        changed = true;
+      }
+    }
+  }
+  return ids;
+}
+
 function prepareRecords(files, rootId) {
   const pathMap = buildPathMap(files, rootId);
   return files.map(file => {
@@ -773,18 +788,26 @@ export class SyncEngine extends EventTarget {
   }
 
   async trashItem(fileId) {
-    const file = await this.db.getFile(fileId);
+    const [file, files, rootId, operations] = await Promise.all([
+      this.db.getFile(fileId),
+      this.db.getAllFiles(),
+      this.getRootId(),
+      this.db.getOutbox()
+    ]);
     if (!file) return;
+    if (file.isRoot || file.id === rootId) throw new Error("La carpeta raíz no se puede eliminar");
     if (isLocalId(fileId)) {
       await this.#deleteLocalTree(fileId);
       this.emit("changed", { reason: "delete-local", fileId });
       return;
     }
 
-    const operations = await this.db.getOutbox();
+    const treeIds = collectTreeIds(files, fileId);
     await this.db.deleteOutboxMany(
       operations
-        .filter(operation => operation.fileId === fileId && operation.type !== "trash")
+        .filter(operation => (
+          treeIds.has(operation.fileId) || treeIds.has(operation.parentId)
+        ) && !(operation.type === "trash" && operation.fileId === fileId))
         .map(operation => operation.opId)
     );
     const existingTrash = operations.find(operation => operation.type === "trash" && operation.fileId === fileId);
@@ -796,7 +819,15 @@ export class SyncEngine extends EventTarget {
         createdAt: nowIso()
       });
     }
-    await this.db.putFile({ ...file, trashed: true, dirty: true, localUpdatedAt: nowIso() });
+    const timestamp = nowIso();
+    await this.db.putFiles(files
+      .filter(candidate => treeIds.has(candidate.id))
+      .map(candidate => ({
+        ...candidate,
+        trashed: true,
+        dirty: candidate.id === fileId,
+        localUpdatedAt: timestamp
+      })));
     this.emit("changed", { reason: "trash", fileId });
   }
 
@@ -845,17 +876,7 @@ export class SyncEngine extends EventTarget {
 
   async #deleteLocalTree(rootFileId) {
     const files = await this.db.getAllFiles();
-    const ids = new Set([rootFileId]);
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const file of files) {
-        if (file.parentId && ids.has(file.parentId) && !ids.has(file.id)) {
-          ids.add(file.id);
-          changed = true;
-        }
-      }
-    }
+    const ids = collectTreeIds(files, rootFileId);
     const operations = await this.db.getOutbox();
     await Promise.all([
       this.db.deleteFiles([...ids]),

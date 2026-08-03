@@ -17,11 +17,15 @@
 
 El editor guarda localmente después de una pausa. Un punto de estado indica que el cambio todavía está pendiente de Drive.
 
+La cabecera de cada nota distingue entre **Solo en este dispositivo**, **Cambios pendientes de Drive** y **Guardada en Drive**. Si la nota aún no está subida, pulsa **Subir a Drive** o **Sincronizar**; la aplicación pedirá conectar Google si hace falta y procesará inmediatamente los cambios pendientes.
+
 ## Crear carpetas
 
 Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra lateral, pulsa una carpeta para expandirla o contraerla y convertirla en destino predeterminado de nuevas notas.
 
 Para mover una carpeta, pulsa el icono de movimiento que aparece junto a su estrella, elige la carpeta de destino y confirma. Se mueve la carpeta completa, incluidas todas sus subcarpetas, notas y adjuntos. La propia carpeta y sus descendientes no aparecen como destinos para evitar ciclos.
+
+Para borrar una carpeta, pulsa el icono de papelera que aparece al lado. Tras confirmar, la carpeta y todo su contenido se ocultan localmente y se mueven a la papelera de Google Drive en la siguiente sincronización, desde donde todavía se pueden recuperar.
 
 ## Favoritos
 

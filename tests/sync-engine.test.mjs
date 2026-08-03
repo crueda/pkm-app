@@ -220,6 +220,29 @@ test("sincroniza una carpeta y una nota creadas offline respetando dependencias"
   assert.equal(note.path, "Proyectos/Aplicación.md");
 });
 
+test("sube la última versión de una nota creada y editada antes de conectar", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const localNote = await engine.createNote(root.id, "Idea", "# Idea");
+  await engine.updateNote(localNote.id, "# Idea\n\nTexto escrito sin conexión");
+
+  const beforeSync = await db.getOutbox();
+  assert.equal(beforeSync.length, 1);
+  assert.equal(beforeSync[0].type, "createFile");
+  assert.equal(beforeSync[0].content, "# Idea\n\nTexto escrito sin conexión");
+
+  await engine.sync();
+  const syncedNote = (await engine.getLocalFiles()).find(file => file.kind === "note" && file.name === "Idea.md");
+
+  assert.equal(syncedNote.isLocalOnly, false);
+  assert.equal(syncedNote.dirty, false);
+  assert.equal(drive.contents.get(syncedNote.id), "# Idea\n\nTexto escrito sin conexión");
+  assert.equal((await db.getOutbox()).length, 0);
+});
+
 test("mueve una carpeta local con todo su contenido y respeta dependencias al sincronizar", async () => {
   const db = new MemoryDb();
   const drive = new MemoryDrive();
@@ -285,6 +308,52 @@ test("impide mover una carpeta dentro de uno de sus descendientes", async () => 
 
   await assert.rejects(() => engine.moveFolder(parent.id, child.id), /sí misma/);
   assert.equal((await db.getFile(parent.id)).parentId, root.id);
+});
+
+test("elimina localmente una carpeta nueva junto con todo su contenido", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const folder = await engine.createFolder(root.id, "Proyecto");
+  const child = await engine.createFolder(folder.id, "Material");
+  const note = await engine.createNote(child.id, "Plan", "# Plan");
+
+  await engine.trashItem(folder.id);
+
+  assert.equal(await db.getFile(folder.id), undefined);
+  assert.equal(await db.getFile(child.id), undefined);
+  assert.equal(await db.getFile(note.id), undefined);
+  assert.equal((await db.getOutbox()).length, 0);
+});
+
+test("mueve una carpeta sincronizada a la papelera y descarta cambios pendientes de sus descendientes", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const folder = await drive.createFolder("Proyecto", root.id, { notesAppManaged: "v1" });
+  const child = await drive.createFolder("Material", folder.id, { notesAppManaged: "v1" });
+  const note = await drive.createMarkdownFile("Plan.md", child.id, "# Plan", { notesAppManaged: "v1" });
+  await engine.pullRemoteTree(root.id);
+  await engine.updateNote(note.id, "# Plan\n\nCambio pendiente");
+
+  await engine.trashItem(folder.id);
+  const localTree = (await engine.getLocalFiles()).filter(file => [folder.id, child.id, note.id].includes(file.id));
+  const pending = await db.getOutbox();
+
+  assert.equal(localTree.every(file => file.trashed), true);
+  assert.deepEqual(pending.map(operation => ({ type: operation.type, fileId: operation.fileId })), [
+    { type: "trash", fileId: folder.id }
+  ]);
+
+  await engine.sync();
+  assert.equal(drive.files.get(folder.id).trashed, true);
+  assert.equal(await db.getFile(folder.id), undefined);
+  assert.equal(await db.getFile(child.id), undefined);
+  assert.equal(await db.getFile(note.id), undefined);
 });
 
 test("sincroniza adjuntos de imagen creados offline", async () => {
