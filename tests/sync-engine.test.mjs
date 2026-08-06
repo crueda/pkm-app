@@ -341,6 +341,31 @@ test("mueve una carpeta local con todo su contenido y respeta dependencias al si
   assert.equal((await db.getOutbox()).length, 0);
 });
 
+test("renombra una carpeta y actualiza las rutas de todo su contenido", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const folder = await engine.createFolder(root.id, "Proyecto");
+  const child = await engine.createFolder(folder.id, "Material");
+  await engine.createNote(child.id, "Plan", "# Plan");
+
+  const renamed = await engine.renameItem(folder.id, "Trabajo");
+  const beforeSync = await engine.getLocalFiles();
+  assert.equal(renamed.name, "Trabajo");
+  assert.equal(beforeSync.find(file => file.id === child.id).path, "Trabajo/Material");
+  assert.equal(beforeSync.find(file => file.name === "Plan.md").path, "Trabajo/Material/Plan.md");
+  assert.equal((await db.getOutbox()).find(operation => operation.fileId === folder.id).name, "Trabajo");
+
+  await engine.sync();
+  const localFiles = await engine.getLocalFiles();
+  const remoteFolder = localFiles.find(file => file.kind === "folder" && file.name === "Trabajo");
+  assert.ok(remoteFolder);
+  assert.equal(drive.files.get(remoteFolder.id).name, "Trabajo");
+  assert.equal(localFiles.find(file => file.name === "Plan.md").path, "Trabajo/Material/Plan.md");
+});
+
 test("mueve en Drive una carpeta ya sincronizada", async () => {
   const db = new MemoryDb();
   const drive = new MemoryDrive();

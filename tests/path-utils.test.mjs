@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildPathMap, createUniqueName, sanitizeName } from "../app/src/path-utils.js";
+import { buildPathMap, createUniqueName, initialCollapsedFolderIds, sanitizeName } from "../app/src/path-utils.js";
 import { MIME_FOLDER, MIME_MARKDOWN } from "../app/src/utils.js";
 
 test("sanitizeName elimina separadores y añade .md", () => {
@@ -27,4 +27,16 @@ test("buildPathMap construye rutas de carpetas y notas", () => {
   const paths = buildPathMap(files, "root");
   assert.equal(paths.get("folder"), "Proyectos");
   assert.equal(paths.get("note"), "Proyectos/App.md");
+});
+
+test("initialCollapsedFolderIds deja visible solo el primer nivel del árbol", () => {
+  const files = [
+    { id: "root", kind: "folder", trashed: false },
+    { id: "projects", kind: "folder", parentId: "root", trashed: false },
+    { id: "archive", kind: "folder", parentId: "projects", trashed: false },
+    { id: "note", kind: "note", parentId: "projects", trashed: false },
+    { id: "deleted", kind: "folder", parentId: "root", trashed: true }
+  ];
+
+  assert.deepEqual(initialCollapsedFolderIds(files, "root"), ["projects", "archive"]);
 });

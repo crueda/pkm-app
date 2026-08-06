@@ -64,6 +64,12 @@ export function sortFilesForTree(files) {
   });
 }
 
+export function initialCollapsedFolderIds(files, rootId) {
+  return files
+    .filter(file => file.id !== rootId && !file.trashed && (file.kind === "folder" || file.mimeType === MIME_FOLDER))
+    .map(file => file.id);
+}
+
 export function createUniqueName(existingFiles, parentId, requestedName, { markdown = false, preserveExtension = false } = {}) {
   const sanitized = sanitizeName(requestedName, { markdown });
   const names = new Set(
