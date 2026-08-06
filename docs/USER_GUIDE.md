@@ -25,6 +25,8 @@ Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra latera
 
 Para mover una carpeta, pulsa el icono de movimiento que aparece junto a su estrella, elige la carpeta de destino y confirma. Se mueve la carpeta completa, incluidas todas sus subcarpetas, notas y adjuntos. La propia carpeta y sus descendientes no aparecen como destinos para evitar ciclos.
 
+Para renombrar una carpeta, pulsa el icono de lápiz que aparece en su fila, escribe el nombre nuevo y confirma. Las rutas de todas sus subcarpetas y notas se actualizan automáticamente, también cuando trabajas sin conexión.
+
 Para borrar una carpeta, pulsa el icono de papelera que aparece al lado. Tras confirmar, la carpeta y todo su contenido se ocultan localmente y se mueven a la papelera de Google Drive en la siguiente sincronización, desde donde todavía se pueden recuperar.
 
 ## Favoritos

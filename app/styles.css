@@ -291,6 +291,7 @@ svg {
 
 .favorite-remove-button,
 .row-favorite-button,
+.row-rename-button,
 .row-move-button,
 .row-delete-button {
   display: inline-grid;
@@ -315,6 +316,7 @@ svg {
 
 .favorite-remove-button svg,
 .row-favorite-button svg,
+.row-rename-button svg,
 .row-move-button svg,
 .row-delete-button svg {
   width: 17px;
@@ -627,7 +629,7 @@ button:disabled,
 }
 
 .tree-entry.folder-entry .tree-row {
-  padding-right: 106px;
+  padding-right: 140px;
 }
 
 .tree-row[data-depth="0"] { padding-left: 9px; }
@@ -713,6 +715,15 @@ button:disabled,
   opacity: 0;
 }
 
+.row-rename-button {
+  position: absolute;
+  right: 105px;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  opacity: 0;
+}
+
 .row-delete-button {
   position: absolute;
   right: 37px;
@@ -731,6 +742,8 @@ button:disabled,
 .tree-entry:hover .row-favorite-button,
 .tree-entry:focus-within .row-favorite-button,
 .row-favorite-button.active,
+.tree-entry:hover .row-rename-button,
+.tree-entry:focus-within .row-rename-button,
 .tree-entry:hover .row-move-button,
 .tree-entry:focus-within .row-move-button,
 .tree-entry:hover .row-delete-button,
@@ -739,6 +752,8 @@ button:disabled,
 }
 
 .row-favorite-button:hover,
+.row-rename-button:hover,
+.row-rename-button:focus-visible,
 .row-move-button:hover,
 .row-move-button:focus-visible,
 .row-delete-button:hover,
@@ -1499,6 +1514,7 @@ button:disabled,
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
   .row-favorite-button,
+  .row-rename-button,
   .row-move-button,
   .row-delete-button { opacity: 1; }
 

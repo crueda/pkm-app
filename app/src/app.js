@@ -30,6 +30,7 @@ const elements = Object.fromEntries([
   "favorite-note-button", "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
+  "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
   "move-dialog", "move-form", "move-description", "move-parent",
   "settings-auth-state", "settings-account", "settings-vault-name", "settings-pending-count", "settings-last-sync",
   "settings-sync-button", "disconnect-button", "clear-local-data-button", "settings-version",
@@ -61,6 +62,7 @@ const state = {
   syncState: "local",
   refreshSequence: 0,
   installPrompt: null,
+  renamingFolderId: null,
   movingFolderId: null,
   deletingItemId: null
 };
@@ -177,6 +179,23 @@ function createMoveFolderButton(file) {
   icon.append(path);
   button.append(icon);
   button.addEventListener("click", () => openMoveFolderDialog(file.id));
+  return button;
+}
+
+function createRenameFolderButton(file) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-rename-button";
+  button.setAttribute("aria-label", `Renombrar carpeta ${file.name}`);
+  button.title = "Renombrar carpeta";
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "m4 16-.8 4.8L8 20l10.5-10.5-4-4Zm8.5-8.5 4 4M3 21h18");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openRenameFolderDialog(file.id));
   return button;
 }
 
@@ -426,7 +445,9 @@ function renderTree() {
         }
       });
       row.append(button);
-      if (file.kind === "folder") row.append(createMoveFolderButton(file), createDeleteFolderButton(file));
+      if (file.kind === "folder") {
+        row.append(createRenameFolderButton(file), createMoveFolderButton(file), createDeleteFolderButton(file));
+      }
       row.append(createFavoriteToggleButton(file));
       container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
@@ -791,8 +812,43 @@ async function renameCurrentNote() {
   }
 }
 
+function openRenameFolderDialog(fileId) {
+  const folder = state.files.find(file => file.id === fileId && file.kind === "folder" && !file.trashed && !file.isRoot);
+  if (!folder) return;
+  state.renamingFolderId = folder.id;
+  elements["rename-folder-name"].value = folder.name;
+  elements["rename-folder-dialog"].showModal();
+  requestAnimationFrame(() => {
+    elements["rename-folder-name"].focus();
+    elements["rename-folder-name"].select();
+  });
+}
+
+async function submitRenameFolder(event) {
+  event.preventDefault();
+  const folder = state.files.find(file => file.id === state.renamingFolderId && file.kind === "folder" && !file.trashed);
+  const requested = elements["rename-folder-name"].value.trim();
+  if (!folder || !requested) return;
+  if (requested === folder.name) {
+    elements["rename-folder-dialog"].close();
+    state.renamingFolderId = null;
+    return;
+  }
+  try {
+    const renamed = await syncEngine.renameItem(folder.id, requested);
+    elements["rename-folder-dialog"].close();
+    state.renamingFolderId = null;
+    await refreshLocalFiles();
+    requestSyncSoon();
+    showToast(`Carpeta renombrada como “${renamed.name}”`);
+  } catch (error) {
+    showToast(error.message || "No se pudo renombrar la carpeta", "error");
+  }
+}
+
 function moveDestinationOptions(folder) {
   const excludedIds = new Set([folder.id]);
+
   let changed = true;
   while (changed) {
     changed = false;
@@ -1060,6 +1116,7 @@ function bindEvents() {
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["move-form"].addEventListener("submit", submitMoveFolder);
   elements["delete-note-button"].addEventListener("click", () => openDeleteDialog());
+  elements["rename-folder-form"].addEventListener("submit", submitRenameFolder);
   elements["delete-form"].addEventListener("submit", confirmDelete);
 
   elements["search-input"].addEventListener("input", event => {

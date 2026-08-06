@@ -196,8 +196,27 @@
       </form>
     </dialog>
 
+    <dialog id="rename-folder-dialog" class="app-dialog compact-dialog">
+      <form id="rename-folder-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Organización</p>
+            <h2>Renombrar carpeta</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <label class="field-label" for="rename-folder-name">Nombre</label>
+        <input id="rename-folder-name" class="text-field" type="text" required maxlength="120" autocomplete="off">
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" data-close-dialog>Cancelar</button>
+          <button class="primary-button" type="submit">Guardar nombre</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog id="delete-dialog" class="app-dialog compact-dialog">
       <form id="delete-form" method="dialog">
+
         <div class="dialog-header">
           <div>
             <p class="eyebrow">Papelera</p>
