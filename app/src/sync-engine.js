@@ -136,6 +136,28 @@ export class SyncEngine extends EventTarget {
     this.maxImportFiles = maxImportFiles;
     this.maxDownloadConcurrency = maxDownloadConcurrency;
     this.syncPromise = null;
+    this.localMutationTail = Promise.resolve();
+  }
+
+  async #withLocalMutation(callback) {
+    const previous = this.localMutationTail;
+    let release;
+    this.localMutationTail = new Promise(resolve => { release = resolve; });
+    await previous;
+    try {
+      return await callback();
+    } finally {
+      release();
+    }
+  }
+
+  async #currentOperation(opId) {
+    return (await this.db.getOutbox()).find(candidate => candidate.opId === opId) ?? null;
+  }
+
+  #operationChanged(current, sent) {
+    if (!current) return false;
+    return Number(current.revision ?? 1) !== Number(sent.revision ?? 1) || current.content !== sent.content;
   }
 
   emit(name, detail = {}) {
@@ -412,12 +434,41 @@ export class SyncEngine extends EventTarget {
       const metadata = await this.drive.createMarkdownFile(operation.name, operation.parentId, operation.content ?? "", {
         notesAppManaged: "v1"
       });
-      await this.db.replaceLocalId(operation.fileId, normalizeDriveFile(metadata, {
-        content: operation.content ?? "",
-        dirty: false,
-        localUpdatedAt: nowIso()
-      }));
-      await this.db.deleteOutbox(operation.opId);
+      await this.#withLocalMutation(async () => {
+        const [latestOperation, latestLocal] = await Promise.all([
+          this.#currentOperation(operation.opId),
+          this.db.getFile(operation.fileId)
+        ]);
+        const changedWhileUploading = this.#operationChanged(latestOperation, operation);
+        const content = changedWhileUploading
+          ? latestOperation.content ?? latestLocal?.content ?? ""
+          : operation.content ?? "";
+        const remoteRecord = normalizeDriveFile(metadata, {
+          content,
+          dirty: changedWhileUploading,
+          localUpdatedAt: nowIso()
+        });
+        await this.db.replaceLocalId(operation.fileId, remoteRecord);
+        if (changedWhileUploading) {
+          await this.db.putFile(enrichNoteRecord({
+            ...(await this.db.getFile(metadata.id)),
+            content,
+            dirty: true,
+            localUpdatedAt: latestLocal?.localUpdatedAt ?? nowIso()
+          }));
+          await this.db.putOutbox({
+            ...latestOperation,
+            type: "updateFile",
+            fileId: metadata.id,
+            baseVersion: metadata.version != null ? String(metadata.version) : remoteRecord.remoteVersion,
+            baseContent: operation.content ?? "",
+            content,
+            updatedAt: nowIso()
+          });
+        } else {
+          await this.db.deleteOutbox(operation.opId);
+        }
+      });
       return;
     }
 
@@ -460,14 +511,34 @@ export class SyncEngine extends EventTarget {
       }
 
       const metadata = await this.drive.updateMarkdownContent(operation.fileId, operation.content ?? "");
-      await this.db.putFile(enrichNoteRecord({
-        ...local,
-        ...normalizeDriveFile(metadata),
-        content: operation.content ?? "",
-        dirty: false,
-        localUpdatedAt: nowIso()
-      }));
-      await this.db.deleteOutbox(operation.opId);
+      await this.#withLocalMutation(async () => {
+        const [latestOperation, latestLocal] = await Promise.all([
+          this.#currentOperation(operation.opId),
+          this.db.getFile(operation.fileId)
+        ]);
+        const changedWhileUploading = this.#operationChanged(latestOperation, operation);
+        const content = changedWhileUploading
+          ? latestOperation.content ?? latestLocal?.content ?? ""
+          : operation.content ?? "";
+        await this.db.putFile(enrichNoteRecord({
+          ...local,
+          ...latestLocal,
+          ...normalizeDriveFile(metadata),
+          content,
+          dirty: changedWhileUploading,
+          localUpdatedAt: changedWhileUploading ? latestLocal?.localUpdatedAt ?? nowIso() : nowIso()
+        }));
+        if (changedWhileUploading) {
+          await this.db.putOutbox({
+            ...latestOperation,
+            baseVersion: metadata.version != null ? String(metadata.version) : null,
+            baseContent: operation.content ?? "",
+            updatedAt: nowIso()
+          });
+        } else {
+          await this.db.deleteOutbox(operation.opId);
+        }
+      });
       return;
     }
 
@@ -587,6 +658,7 @@ export class SyncEngine extends EventTarget {
       parentId,
       name,
       content: record.content,
+      revision: 1,
       createdAt: nowIso()
     });
     await this.#rebuildPaths();
@@ -648,38 +720,48 @@ export class SyncEngine extends EventTarget {
   }
 
   async updateNote(fileId, content) {
-    const file = await this.db.getFile(fileId);
-    if (!file || file.kind !== "note") throw new Error("La nota ya no existe");
-    const updated = enrichNoteRecord({
-      ...file,
-      content: String(content),
-      dirty: true,
-      modifiedTime: nowIso(),
-      localUpdatedAt: nowIso()
-    });
-    await this.db.putFile(updated);
-
-    const operations = await this.db.getOutbox();
-    if (isLocalId(fileId)) {
-      const createOperation = operations.find(operation => operation.type === "createFile" && operation.fileId === fileId);
-      if (createOperation) await this.db.putOutbox({ ...createOperation, content: updated.content });
-    } else {
-      const existing = operations.find(operation => operation.type === "updateFile" && operation.fileId === fileId);
-      await this.db.putOutbox(existing ? {
-        ...existing,
-        content: updated.content,
-        updatedAt: nowIso()
-      } : {
-        opId: createId("op"),
-        type: "updateFile",
-        fileId,
-        content: updated.content,
-        baseVersion: file.remoteVersion,
-        createdAt: nowIso()
+    return this.#withLocalMutation(async () => {
+      const file = await this.db.getFile(fileId);
+      if (!file || file.kind !== "note") throw new Error("La nota ya no existe");
+      const updated = enrichNoteRecord({
+        ...file,
+        content: String(content),
+        dirty: true,
+        modifiedTime: nowIso(),
+        localUpdatedAt: nowIso()
       });
-    }
-    this.emit("changed", { reason: "update-note", fileId });
-    return updated;
+      await this.db.putFile(updated);
+
+      const operations = await this.db.getOutbox();
+      if (isLocalId(fileId)) {
+        const createOperation = operations.find(operation => operation.type === "createFile" && operation.fileId === fileId);
+        if (createOperation) await this.db.putOutbox({
+          ...createOperation,
+          content: updated.content,
+          revision: Number(createOperation.revision ?? 1) + 1,
+          updatedAt: nowIso()
+        });
+      } else {
+        const existing = operations.find(operation => operation.type === "updateFile" && operation.fileId === fileId);
+        await this.db.putOutbox(existing ? {
+          ...existing,
+          content: updated.content,
+          revision: Number(existing.revision ?? 1) + 1,
+          updatedAt: nowIso()
+        } : {
+          opId: createId("op"),
+          type: "updateFile",
+          fileId,
+          content: updated.content,
+          baseContent: file.content ?? "",
+          baseVersion: file.remoteVersion,
+          revision: 1,
+          createdAt: nowIso()
+        });
+      }
+      this.emit("changed", { reason: "update-note", fileId });
+      return updated;
+    });
   }
 
   async renameItem(fileId, requestedName) {

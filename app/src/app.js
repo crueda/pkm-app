@@ -589,6 +589,13 @@ async function updateSettings() {
 }
 
 async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false } = {}) {
+  const previousNote = currentNote();
+  const editor = elements["markdown-editor"];
+  const hasUnsavedEditorText = Boolean(
+    previousNote &&
+    editor.dataset.fileId === previousNote.id &&
+    editor.value !== (previousNote.content ?? "")
+  );
   const sequence = ++state.refreshSequence;
   const [files, rootId, lastSelectedId, favoriteIds] = await Promise.all([
     syncEngine.getLocalFiles(),
@@ -614,7 +621,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
     state.selectedFolderId = currentNote()?.parentId || rootId;
   }
   renderSidebar();
-  renderEditor({ preserveTextarea });
+  renderEditor({ preserveTextarea: preserveTextarea || hasUnsavedEditorText });
   renderFavorites();
   await updateSettings();
 }

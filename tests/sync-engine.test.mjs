@@ -243,6 +243,75 @@ test("sube la última versión de una nota creada y editada antes de conectar", 
   assert.equal((await db.getOutbox()).length, 0);
 });
 
+test("conserva una edición hecha mientras se está subiendo una nota existente", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const remote = await drive.createMarkdownFile("Diario.md", root.id, "Primera versión", { notesAppManaged: "v1" });
+  await engine.pullRemoteTree(root.id);
+  await engine.updateNote(remote.id, "Cambio que empieza a subir");
+
+  const originalUpdate = drive.updateMarkdownContent.bind(drive);
+  let releaseUpload;
+  let notifyStarted;
+  const uploadStarted = new Promise(resolve => { notifyStarted = resolve; });
+  const continueUpload = new Promise(resolve => { releaseUpload = resolve; });
+  let delayed = true;
+  drive.updateMarkdownContent = async (...args) => {
+    if (delayed) {
+      delayed = false;
+      notifyStarted();
+      await continueUpload;
+    }
+    return originalUpdate(...args);
+  };
+
+  const syncing = engine.sync();
+  await uploadStarted;
+  await engine.updateNote(remote.id, "Texto final escrito durante la subida");
+  releaseUpload();
+  await syncing;
+
+  const notes = (await engine.getLocalFiles()).filter(file => file.kind === "note");
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].content, "Texto final escrito durante la subida");
+  assert.equal(drive.contents.get(remote.id), "Texto final escrito durante la subida");
+  assert.equal((await db.getOutbox()).length, 0);
+});
+
+test("conserva una edición hecha mientras se está creando una nota remota", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+
+  const root = await engine.ensureVault();
+  const local = await engine.createNote(root.id, "Idea", "Borrador inicial");
+  const originalCreate = drive.createMarkdownFile.bind(drive);
+  let releaseUpload;
+  let notifyStarted;
+  const uploadStarted = new Promise(resolve => { notifyStarted = resolve; });
+  const continueUpload = new Promise(resolve => { releaseUpload = resolve; });
+  drive.createMarkdownFile = async (...args) => {
+    notifyStarted();
+    await continueUpload;
+    return originalCreate(...args);
+  };
+
+  const syncing = engine.sync();
+  await uploadStarted;
+  await engine.updateNote(local.id, "Texto final escrito durante la creación");
+  releaseUpload();
+  await syncing;
+
+  const notes = (await engine.getLocalFiles()).filter(file => file.kind === "note");
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].content, "Texto final escrito durante la creación");
+  assert.equal(drive.contents.get(notes[0].id), "Texto final escrito durante la creación");
+  assert.equal((await db.getOutbox()).length, 0);
+});
+
 test("mueve una carpeta local con todo su contenido y respeta dependencias al sincronizar", async () => {
   const db = new MemoryDb();
   const drive = new MemoryDrive();
