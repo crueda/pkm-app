@@ -754,7 +754,7 @@ async function submitCreate(event) {
   if (!name) return;
   try {
     if (kind === "note") {
-      const note = await syncEngine.createNote(parentId, name, `# ${name.replace(/\.md$/i, "")}\n\n`);
+      const note = await syncEngine.createNote(parentId, name);
       elements["create-dialog"].close();
       await refreshLocalFiles();
       await selectNote(note.id);
