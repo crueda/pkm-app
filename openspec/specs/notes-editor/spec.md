@@ -17,6 +17,13 @@ La aplicación SHALL mostrar una barra lateral persistente en escritorio y un pa
 - **THEN** la nota se abre en el área principal
 - **AND** la barra lateral se cierra para maximizar el espacio de edición.
 
+#### Scenario: Estado inicial del árbol
+
+- **GIVEN** la bóveda contiene carpetas anidadas
+- **WHEN** la aplicación termina de arrancar
+- **THEN** el árbol muestra las carpetas del primer nivel
+- **AND** todas ellas aparecen contraídas hasta que el usuario decida expandirlas.
+
 ### Requirement: Creación y organización
 
 La aplicación SHALL permitir crear notas y carpetas en la carpeta raíz o en cualquier carpeta accesible y SHALL evitar nombres duplicados entre hermanos.

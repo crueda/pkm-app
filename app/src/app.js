@@ -4,7 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
-import { joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
+import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { createSnippet, searchNotes } from "./search.js";
 import { SyncEngine } from "./sync-engine.js";
 import { debounce, formatDateTime, formatRelativeTime, isImageFile } from "./utils.js";
@@ -609,7 +609,7 @@ async function updateSettings() {
   elements["last-sync-label"].textContent = lastSync ? `Sincronizado ${formatRelativeTime(lastSync)}` : "Sin sincronizar";
 }
 
-async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false } = {}) {
+async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false, collapseFolders = false } = {}) {
   const previousNote = currentNote();
   const editor = elements["markdown-editor"];
   const hasUnsavedEditorText = Boolean(
@@ -627,6 +627,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   if (sequence !== state.refreshSequence) return;
   state.files = files;
   state.rootId = rootId;
+  if (collapseFolders) state.collapsedFolders = new Set(initialCollapsedFolderIds(files, rootId));
   state.favoriteIds = new Set(normalizeFavoriteIds(favoriteIds));
   pruneAttachmentUrls();
 
@@ -1293,7 +1294,7 @@ async function initialize() {
   });
   bindEvents();
   await db.open();
-  await refreshLocalFiles({ selectRecent: true });
+  await refreshLocalFiles({ selectRecent: true, collapseFolders: true });
   if (location.hash === "#new-note") {
     history.replaceState(null, "", `${location.pathname}${location.search}`);
     queueMicrotask(() => openCreateDialog("note"));
