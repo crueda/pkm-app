@@ -28,16 +28,25 @@ La aplicación SHALL descubrir el ID de la bóveda y de los archivos después de
 - **THEN** los IDs se obtienen mediante Drive API
 - **AND** se guardan únicamente en la caché privada del origen para ese navegador.
 
-### Requirement: No compartir archivos
+### Requirement: Publicación explícita mediante copias
 
-La aplicación SHALL crear la bóveda en Mi unidad y SHALL abstenerse de invocar APIs de creación de permisos o generar enlaces públicos.
+La aplicación SHALL mantener privada la bóveda y SHALL crear permisos públicos únicamente sobre copias de publicación iniciadas explícitamente por el usuario.
 
-#### Scenario: Nota nueva
+#### Scenario: Publicar una nota
 
-- **GIVEN** la carpeta raíz no está compartida
-- **WHEN** la aplicación crea una nota
-- **THEN** la nota hereda el acceso privado correspondiente
-- **AND** la aplicación no añade un permiso de tipo `anyone`.
+- **GIVEN** una nota privada de la bóveda
+- **WHEN** el usuario ejecuta la acción de publicar
+- **THEN** se crea o actualiza una copia separada en Google Drive
+- **AND** solo la copia recibe un permiso `anyone` con rol `reader`
+- **AND** el archivo original y la bóveda conservan sus permisos privados.
+
+#### Scenario: Publicar una carpeta
+
+- **GIVEN** una carpeta privada con notas, subcarpetas y adjuntos
+- **WHEN** el usuario ejecuta la acción de publicar
+- **THEN** se crea o actualiza una copia separada que conserva la estructura
+- **AND** se comparte con cualquiera que tenga el enlace sin permitir descubrimiento público
+- **AND** una republicación conserva el mismo enlace y retira de la copia los elementos eliminados del origen.
 
 
 ### Requirement: Aislamiento entre cuentas de Google

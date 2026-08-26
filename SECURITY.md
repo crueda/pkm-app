@@ -38,9 +38,11 @@ El MVP solicita únicamente:
 https://www.googleapis.com/auth/drive.file
 ```
 
-No solicita acceso general `drive`. La app tampoco usa `permissions.create` ni crea permisos `anyone`.
+No solicita acceso general `drive`. La app usa `permissions.create` exclusivamente cuando el usuario publica una copia: concede lectura `anyone` sin descubrimiento público a esa copia, nunca a `NotesVault` ni al archivo original.
 
 La carpeta raíz debe crearse en Mi unidad y no dentro de una carpeta ya compartida. Revisa periódicamente el panel de compartición de `NotesVault`.
+
+Las copias publicadas aparecen fuera de `NotesVault` con el sufijo “publicado/a”. Cualquiera que conserve su enlace podrá acceder a ellas hasta que retires el permiso o las envíes a la papelera desde Google Drive.
 
 ## Protección frente a XSS
 

@@ -1,5 +1,17 @@
 # Guía de uso
 
+## Publicar una nota o carpeta
+
+La aplicación puede crear en Google Drive una copia separada que cualquiera con el enlace podrá ver. La bóveda y los archivos originales no cambian de permisos.
+
+- En una nota, pulsa **Publicar** en la cabecera.
+- En una carpeta, usa el botón **Publicar una copia con enlace** que aparece al pasar por su fila.
+- Pulsa **Publicar ahora**. La aplicación sincroniza primero los cambios pendientes y genera la copia pública.
+- Usa **Abrir** para comprobarla o **Copiar enlace** para enviarla por el medio que prefieras.
+- Si cambia el contenido, abre de nuevo la acción y pulsa **Actualizar publicación**. El enlace se conserva.
+
+Las carpetas publicadas incluyen sus subcarpetas, notas y adjuntos. Un elemento eliminado del origen se retira de la copia pública en la siguiente actualización. La publicación no se actualiza automáticamente: requiere volver a ejecutar la acción.
+
 ## Primera conexión
 
 1. Abre la PWA.

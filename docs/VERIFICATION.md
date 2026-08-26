@@ -15,7 +15,7 @@ Resultado:
 - comprobación sintáctica de 11 módulos JavaScript;
 - validación estructural de 6 especificaciones OpenSpec canónicas y sus deltas archivados;
 - comprobación de CSP, ausencia de scripts/eventos/estilos inline y patrones de persistencia de tokens;
-- comprobación de ausencia de llamadas a APIs de compartición de Drive;
+- pruebas de que la publicación reutiliza un permiso de lectura por enlace y se limita a copias gestionadas;
 - 15 pruebas automatizadas superadas;
 - build estático generado correctamente en `dist/`;
 - Client ID personal ausente del entregable y sustituido por un marcador configurable.
