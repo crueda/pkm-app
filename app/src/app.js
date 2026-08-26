@@ -4,7 +4,8 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
-import { joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
+import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
+import { DrivePublisher } from "./publisher.js";
 import { createSnippet, searchNotes } from "./search.js";
 import { SyncEngine } from "./sync-engine.js";
 import { debounce, formatDateTime, formatRelativeTime, isImageFile } from "./utils.js";
@@ -26,10 +27,13 @@ const elements = Object.fromEntries([
   "welcome-view", "welcome-description", "configuration-warning", "install-help-button",
   "editor-view", "note-path", "note-title-input", "note-save-state", "note-modified",
   "note-sync-button", "note-sync-button-label",
+  "publish-note-button", "publish-dialog", "publish-title", "publish-description", "publish-link",
+  "publish-status", "publish-open-button", "publish-copy-button", "publish-action-button",
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
   "favorite-note-button", "delete-note-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
+  "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
   "move-dialog", "move-form", "move-description", "move-parent",
   "settings-auth-state", "settings-account", "settings-vault-name", "settings-pending-count", "settings-last-sync",
   "settings-sync-button", "disconnect-button", "clear-local-data-button", "settings-version",
@@ -39,6 +43,7 @@ const elements = Object.fromEntries([
 const db = new LocalDatabase();
 const auth = new GoogleOAuthClient(config.googleClientId);
 const drive = new GoogleDriveApi(() => auth.getAccessToken());
+const publisher = new DrivePublisher(drive);
 const syncEngine = new SyncEngine({
   db,
   drive,
@@ -61,8 +66,11 @@ const state = {
   syncState: "local",
   refreshSequence: 0,
   installPrompt: null,
+  renamingFolderId: null,
   movingFolderId: null,
-  deletingItemId: null
+  deletingItemId: null,
+  publishingItemId: null,
+  publicationUrl: ""
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -180,6 +188,23 @@ function createMoveFolderButton(file) {
   return button;
 }
 
+function createRenameFolderButton(file) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-rename-button";
+  button.setAttribute("aria-label", `Renombrar carpeta ${file.name}`);
+  button.title = "Renombrar carpeta";
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "m4 16-.8 4.8L8 20l10.5-10.5-4-4Zm8.5-8.5 4 4M3 21h18");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openRenameFolderDialog(file.id));
+  return button;
+}
+
 function createDeleteFolderButton(file) {
   const button = document.createElement("button");
   button.type = "button";
@@ -194,6 +219,23 @@ function createDeleteFolderButton(file) {
   icon.append(path);
   button.append(icon);
   button.addEventListener("click", () => openDeleteDialog(file.id));
+  return button;
+}
+
+function createPublishFolderButton(file) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-publish-button";
+  button.setAttribute("aria-label", `Publicar carpeta ${file.name}`);
+  button.title = "Publicar una copia con enlace";
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M8.5 12h7M13 8.5l3.5 3.5-3.5 3.5M4 5h7l2 2h7v10H4Z");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openPublishDialog(file.id));
   return button;
 }
 
@@ -426,7 +468,9 @@ function renderTree() {
         }
       });
       row.append(button);
-      if (file.kind === "folder") row.append(createMoveFolderButton(file), createDeleteFolderButton(file));
+      if (file.kind === "folder") {
+        row.append(createPublishFolderButton(file), createRenameFolderButton(file), createMoveFolderButton(file), createDeleteFolderButton(file));
+      }
       row.append(createFavoriteToggleButton(file));
       container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
@@ -588,7 +632,7 @@ async function updateSettings() {
   elements["last-sync-label"].textContent = lastSync ? `Sincronizado ${formatRelativeTime(lastSync)}` : "Sin sincronizar";
 }
 
-async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false } = {}) {
+async function refreshLocalFiles({ preserveTextarea = false, selectRecent = false, collapseFolders = false } = {}) {
   const previousNote = currentNote();
   const editor = elements["markdown-editor"];
   const hasUnsavedEditorText = Boolean(
@@ -606,6 +650,7 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   if (sequence !== state.refreshSequence) return;
   state.files = files;
   state.rootId = rootId;
+  if (collapseFolders) state.collapsedFolders = new Set(initialCollapsedFolderIds(files, rootId));
   state.favoriteIds = new Set(normalizeFavoriteIds(favoriteIds));
   pruneAttachmentUrls();
 
@@ -791,8 +836,43 @@ async function renameCurrentNote() {
   }
 }
 
+function openRenameFolderDialog(fileId) {
+  const folder = state.files.find(file => file.id === fileId && file.kind === "folder" && !file.trashed && !file.isRoot);
+  if (!folder) return;
+  state.renamingFolderId = folder.id;
+  elements["rename-folder-name"].value = folder.name;
+  elements["rename-folder-dialog"].showModal();
+  requestAnimationFrame(() => {
+    elements["rename-folder-name"].focus();
+    elements["rename-folder-name"].select();
+  });
+}
+
+async function submitRenameFolder(event) {
+  event.preventDefault();
+  const folder = state.files.find(file => file.id === state.renamingFolderId && file.kind === "folder" && !file.trashed);
+  const requested = elements["rename-folder-name"].value.trim();
+  if (!folder || !requested) return;
+  if (requested === folder.name) {
+    elements["rename-folder-dialog"].close();
+    state.renamingFolderId = null;
+    return;
+  }
+  try {
+    const renamed = await syncEngine.renameItem(folder.id, requested);
+    elements["rename-folder-dialog"].close();
+    state.renamingFolderId = null;
+    await refreshLocalFiles();
+    requestSyncSoon();
+    showToast(`Carpeta renombrada como “${renamed.name}”`);
+  } catch (error) {
+    showToast(error.message || "No se pudo renombrar la carpeta", "error");
+  }
+}
+
 function moveDestinationOptions(folder) {
   const excludedIds = new Set([folder.id]);
+
   let changed = true;
   while (changed) {
     changed = false;
@@ -847,6 +927,100 @@ async function syncCurrentNote() {
     return;
   }
   await connectOrSync({ successMessage: `“${noteDisplayName(note)}” se ha subido a Google Drive` });
+}
+
+function publicationKey(item) {
+  return `${item.kind}:${item.path || item.name}`;
+}
+
+function setPublicationUrl(url = "") {
+  state.publicationUrl = url;
+  elements["publish-link"].value = url;
+  elements["publish-open-button"].disabled = !url;
+  elements["publish-copy-button"].disabled = !url;
+}
+
+async function openPublishDialog(fileId = currentNote()?.id) {
+  const item = state.files.find(file => file.id === fileId && !file.trashed && !file.isRoot && ["folder", "note"].includes(file.kind));
+  if (!item) return;
+  state.publishingItemId = item.id;
+  elements["publish-title"].textContent = item.kind === "folder" ? `Publicar “${item.name}”` : `Publicar “${noteDisplayName(item)}”`;
+  elements["publish-description"].textContent = item.kind === "folder"
+    ? "La copia pública conservará sus subcarpetas, notas y adjuntos. Vuelve a publicar para actualizarla."
+    : "La copia pública contendrá la versión más reciente de esta nota. Vuelve a publicar para actualizarla.";
+  const links = await db.getSetting("publicationLinks", {});
+  const url = links?.[publicationKey(item)] || "";
+  setPublicationUrl(url);
+  elements["publish-status"].textContent = url
+    ? "Ya existe una publicación. Puedes abrirla, copiar el enlace o actualizarla."
+    : "Aún no se ha publicado desde este dispositivo.";
+  elements["publish-action-button"].textContent = url ? "Actualizar publicación" : "Publicar ahora";
+  elements["publish-dialog"].showModal();
+}
+
+async function publishSelectedItem() {
+  const initial = state.files.find(file => file.id === state.publishingItemId && !file.trashed);
+  if (!initial) return;
+  if (!navigator.onLine) {
+    showToast("Necesitas conexión para publicar en Google Drive", "error");
+    return;
+  }
+  if (!isGoogleClientIdConfigured(config.googleClientId)) {
+    showToast("Configura el Client ID de Google antes de publicar", "error");
+    return;
+  }
+
+  const signature = { kind: initial.kind, path: initial.path, name: initial.name };
+  const button = elements["publish-action-button"];
+  button.disabled = true;
+  elements["publish-open-button"].disabled = true;
+  elements["publish-copy-button"].disabled = true;
+  elements["publish-status"].textContent = initial.kind === "folder" ? "Preparando y copiando la carpeta…" : "Preparando y copiando la nota…";
+  try {
+    if (!auth.hasValidToken()) await auth.requestAccessToken();
+    state.connected = true;
+    await saveCurrentNote.flush();
+    await syncEngine.sync();
+    await refreshLocalFiles({ preserveTextarea: true });
+    const source = state.files.find(file => !file.trashed && file.kind === signature.kind && (
+      (signature.path && file.path === signature.path) || (!signature.path && file.name === signature.name)
+    ));
+    if (!source || source.isLocalOnly || String(source.id).startsWith("local:")) {
+      throw new Error("No se pudo preparar el elemento en Google Drive");
+    }
+    state.publishingItemId = source.id;
+    const result = source.kind === "folder"
+      ? await publisher.publishFolder(source, state.files)
+      : await publisher.publishNote(source);
+    const links = await db.getSetting("publicationLinks", {});
+    links[publicationKey(source)] = result.url;
+    await db.setSetting("publicationLinks", links);
+    setPublicationUrl(result.url);
+    elements["publish-status"].textContent = source.kind === "folder"
+      ? `Publicación actualizada: ${result.publishedCount} archivos disponibles con el enlace.`
+      : "Publicación actualizada y disponible para cualquiera que tenga el enlace.";
+    elements["publish-action-button"].textContent = "Actualizar publicación";
+    showToast("Publicación lista en Google Drive");
+  } catch (error) {
+    elements["publish-status"].textContent = error.message || "No se pudo crear la publicación.";
+    showToast(error.message || "No se pudo publicar", "error");
+  } finally {
+    button.disabled = false;
+    elements["publish-open-button"].disabled = !state.publicationUrl;
+    elements["publish-copy-button"].disabled = !state.publicationUrl;
+    updateConnectButtons();
+  }
+}
+
+async function copyPublicationLink() {
+  if (!state.publicationUrl) return;
+  try {
+    await navigator.clipboard.writeText(state.publicationUrl);
+  } catch {
+    elements["publish-link"].select();
+    document.execCommand("copy");
+  }
+  showToast("Enlace copiado al portapapeles");
 }
 
 async function submitMoveFolder(event) {
@@ -1057,9 +1231,16 @@ function bindEvents() {
     if (note) toggleFavorite(note.id);
   });
   elements["note-sync-button"].addEventListener("click", syncCurrentNote);
+  elements["publish-note-button"].addEventListener("click", () => openPublishDialog());
+  elements["publish-action-button"].addEventListener("click", publishSelectedItem);
+  elements["publish-copy-button"].addEventListener("click", copyPublicationLink);
+  elements["publish-open-button"].addEventListener("click", () => {
+    if (state.publicationUrl) window.open(state.publicationUrl, "_blank", "noopener,noreferrer");
+  });
   elements["create-form"].addEventListener("submit", submitCreate);
   elements["move-form"].addEventListener("submit", submitMoveFolder);
   elements["delete-note-button"].addEventListener("click", () => openDeleteDialog());
+  elements["rename-folder-form"].addEventListener("submit", submitRenameFolder);
   elements["delete-form"].addEventListener("submit", confirmDelete);
 
   elements["search-input"].addEventListener("input", event => {
@@ -1236,7 +1417,7 @@ async function initialize() {
   });
   bindEvents();
   await db.open();
-  await refreshLocalFiles({ selectRecent: true });
+  await refreshLocalFiles({ selectRecent: true, collapseFolders: true });
   if (location.hash === "#new-note") {
     history.replaceState(null, "", `${location.pathname}${location.search}`);
     queueMicrotask(() => openCreateDialog("note"));

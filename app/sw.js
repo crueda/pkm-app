@@ -14,6 +14,7 @@ const APP_SHELL = [
   "./src/favorites.js",
   "./src/markdown.js",
   "./src/path-utils.js",
+  "./src/publisher.js",
   "./src/search.js",
   "./src/sync-engine.js",
   "./src/utils.js",

@@ -15,7 +15,7 @@ La aplicación SHALL localizar o crear una carpeta raíz denominada por defecto 
 - **GIVEN** no existe una carpeta accesible marcada como bóveda
 - **WHEN** finaliza la autorización
 - **THEN** la aplicación crea `NotesVault` en Mi unidad
-- **AND** no crea permisos públicos ni enlaces compartidos
+- **AND** no crea permisos públicos ni enlaces compartidos sobre la bóveda
 - **AND** guarda localmente su ID para accesos posteriores.
 
 #### Scenario: Nuevo dispositivo
@@ -104,3 +104,15 @@ La aplicación SHALL permitir importar hasta el límite configurado de archivos 
 - **THEN** la aplicación recrea las carpetas necesarias
 - **AND** crea cada nota con su contenido
 - **AND** añade las operaciones a la cola para su sincronización.
+
+### Requirement: Copias de publicación compartibles
+
+La aplicación SHALL permitir publicar una nota o carpeta mediante una copia gestionada fuera de la bóveda y SHALL devolver el enlace de Google Drive con acceso de lectura para cualquiera que lo posea.
+
+#### Scenario: Republicar contenido
+
+- **GIVEN** existe una copia pública gestionada de una nota o carpeta
+- **WHEN** el usuario vuelve a publicar el mismo elemento
+- **THEN** la aplicación actualiza la copia existente
+- **AND** conserva el enlace público anterior
+- **AND** permite abrirlo o copiarlo al portapapeles.

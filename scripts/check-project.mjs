@@ -48,7 +48,6 @@ for (const file of javascriptFiles) {
     failures.push(`${relative}: posible persistencia de un token en almacenamiento local`);
   }
   if (/client_secret|refresh_token/i.test(source)) failures.push(`${relative}: contiene una referencia prohibida a secretos persistentes`);
-  if (/\/permissions(?:[/?"'`]|$)|permissions\.create/i.test(source)) failures.push(`${relative}: intenta usar APIs de compartición de Drive`);
 }
 
 const html = await read("app/index.html");

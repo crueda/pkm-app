@@ -1,5 +1,17 @@
 # Guía de uso
 
+## Publicar una nota o carpeta
+
+La aplicación puede crear en Google Drive una copia separada que cualquiera con el enlace podrá ver. La bóveda y los archivos originales no cambian de permisos.
+
+- En una nota, pulsa **Publicar** en la cabecera.
+- En una carpeta, usa el botón **Publicar una copia con enlace** que aparece al pasar por su fila.
+- Pulsa **Publicar ahora**. La aplicación sincroniza primero los cambios pendientes y genera la copia pública.
+- Usa **Abrir** para comprobarla o **Copiar enlace** para enviarla por el medio que prefieras.
+- Si cambia el contenido, abre de nuevo la acción y pulsa **Actualizar publicación**. El enlace se conserva.
+
+Las carpetas publicadas incluyen sus subcarpetas, notas y adjuntos. Un elemento eliminado del origen se retira de la copia pública en la siguiente actualización. La publicación no se actualiza automáticamente: requiere volver a ejecutar la acción.
+
 ## Primera conexión
 
 1. Abre la PWA.
@@ -23,7 +35,11 @@ La cabecera de cada nota distingue entre **Solo en este dispositivo**, **Cambios
 
 Pulsa el icono de carpeta con `+`, elige el padre y confirma. En la barra lateral, pulsa una carpeta para expandirla o contraerla y convertirla en destino predeterminado de nuevas notas.
 
+Al arrancar la aplicación, el árbol muestra únicamente el primer nivel: todas las carpetas aparecen contraídas hasta que decidas abrirlas.
+
 Para mover una carpeta, pulsa el icono de movimiento que aparece junto a su estrella, elige la carpeta de destino y confirma. Se mueve la carpeta completa, incluidas todas sus subcarpetas, notas y adjuntos. La propia carpeta y sus descendientes no aparecen como destinos para evitar ciclos.
+
+Para renombrar una carpeta, pulsa el icono de lápiz que aparece en su fila, escribe el nombre nuevo y confirma. Las rutas de todas sus subcarpetas y notas se actualizan automáticamente, también cuando trabajas sin conexión.
 
 Para borrar una carpeta, pulsa el icono de papelera que aparece al lado. Tras confirmar, la carpeta y todo su contenido se ocultan localmente y se mueven a la papelera de Google Drive en la siguiente sincronización, desde donde todavía se pueden recuperar.
 

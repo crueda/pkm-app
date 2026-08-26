@@ -17,6 +17,7 @@ Este ZIP contiene un MVP funcional con:
 - bloqueo preventivo al autorizar una cuenta de Google distinta;
 - importación de carpetas Markdown desde escritorio;
 - renderizado seguro de Markdown y enlaces `[[wiki]]` básicos;
+- publicación explícita de copias de notas o carpetas con enlace de lectura, apertura y copia al portapapeles;
 - manifest, iconos y Service Worker para instalación como PWA;
 - despliegue automático en GitHub Pages;
 - especificación OpenSpec completa bajo `openspec/`;

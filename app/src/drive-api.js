@@ -2,7 +2,7 @@ import { MIME_FOLDER, MIME_MARKDOWN, isMarkdownFile } from "./utils.js";
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
-const FILE_FIELDS = "id,name,mimeType,parents,createdTime,modifiedTime,version,size,md5Checksum,trashed,appProperties,description";
+const FILE_FIELDS = "id,name,mimeType,parents,createdTime,modifiedTime,version,size,md5Checksum,trashed,appProperties,description,webViewLink";
 
 export class DriveApiError extends Error {
   constructor(message, { status = 0, code = "drive_error", details = null } = {}) {
@@ -45,6 +45,7 @@ export function normalizeDriveFile(metadata, extra = {}) {
     md5Checksum: metadata.md5Checksum ?? null,
     appProperties: metadata.appProperties ?? {},
     description: metadata.description ?? "",
+    webViewLink: metadata.webViewLink ?? "",
     trashed: Boolean(metadata.trashed),
     isLocalOnly: false,
     ...extra
@@ -215,6 +216,36 @@ export class GoogleDriveApi {
       headers: { "Content-Type": `${MIME_MARKDOWN}; charset=UTF-8` },
       body: String(content)
     });
+  }
+
+  async updateFileContent(fileId, blob, mimeType = "application/octet-stream") {
+    const parameters = new URLSearchParams({ uploadType: "media", fields: FILE_FIELDS });
+    return this.request(`${DRIVE_UPLOAD_API}/files/${encodeURIComponent(fileId)}?${parameters}`, {
+      method: "PATCH",
+      headers: { "Content-Type": mimeType },
+      body: blob
+    });
+  }
+
+  async listPermissions(fileId) {
+    const parameters = new URLSearchParams({ fields: "permissions(id,type,role,allowFileDiscovery)" });
+    const result = await this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}/permissions?${parameters}`);
+    return result.permissions ?? [];
+  }
+
+  async allowAnyoneWithLink(fileId) {
+    const permissions = await this.listPermissions(fileId);
+    const existing = permissions.find(permission => permission.type === "anyone" && permission.role === "reader");
+    if (!existing) {
+      const parameters = new URLSearchParams({ fields: "id,type,role,allowFileDiscovery" });
+      await this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}/permissions?${parameters}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=UTF-8" },
+        body: JSON.stringify({ type: "anyone", role: "reader", allowFileDiscovery: false })
+      });
+    }
+    const metadata = await this.getMetadata(fileId);
+    return metadata.webViewLink || `https://drive.google.com/open?id=${encodeURIComponent(fileId)}`;
   }
 
   async updateMetadata(fileId, metadata) {

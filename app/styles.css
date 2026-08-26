@@ -291,8 +291,10 @@ svg {
 
 .favorite-remove-button,
 .row-favorite-button,
+.row-rename-button,
 .row-move-button,
-.row-delete-button {
+.row-delete-button,
+.row-publish-button {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -315,8 +317,10 @@ svg {
 
 .favorite-remove-button svg,
 .row-favorite-button svg,
+.row-rename-button svg,
 .row-move-button svg,
-.row-delete-button svg {
+.row-delete-button svg,
+.row-publish-button svg {
   width: 17px;
   height: 17px;
 }
@@ -627,7 +631,7 @@ button:disabled,
 }
 
 .tree-entry.folder-entry .tree-row {
-  padding-right: 106px;
+  padding-right: 174px;
 }
 
 .tree-row[data-depth="0"] { padding-left: 9px; }
@@ -713,6 +717,24 @@ button:disabled,
   opacity: 0;
 }
 
+.row-rename-button {
+  position: absolute;
+  right: 105px;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  opacity: 0;
+}
+
+.row-publish-button {
+  position: absolute;
+  right: 139px;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  opacity: 0;
+}
+
 .row-delete-button {
   position: absolute;
   right: 37px;
@@ -731,18 +753,26 @@ button:disabled,
 .tree-entry:hover .row-favorite-button,
 .tree-entry:focus-within .row-favorite-button,
 .row-favorite-button.active,
+.tree-entry:hover .row-rename-button,
+.tree-entry:focus-within .row-rename-button,
 .tree-entry:hover .row-move-button,
 .tree-entry:focus-within .row-move-button,
 .tree-entry:hover .row-delete-button,
-.tree-entry:focus-within .row-delete-button {
+.tree-entry:focus-within .row-delete-button,
+.tree-entry:hover .row-publish-button,
+.tree-entry:focus-within .row-publish-button {
   opacity: 1;
 }
 
 .row-favorite-button:hover,
+.row-rename-button:hover,
+.row-rename-button:focus-visible,
 .row-move-button:hover,
 .row-move-button:focus-visible,
 .row-delete-button:hover,
 .row-delete-button:focus-visible,
+.row-publish-button:hover,
+.row-publish-button:focus-visible,
 .row-favorite-button.active,
 .favorite-note-button.active {
   background: var(--accent-soft);
@@ -1027,6 +1057,31 @@ button:disabled,
   color: #45995d;
   cursor: default;
   opacity: 1;
+}
+
+.publish-note-button {
+  color: var(--accent-strong);
+}
+
+.publication-notice {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #d29631 35%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, #d29631 9%, var(--surface));
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.publication-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.publication-actions {
+  flex-wrap: wrap;
 }
 
 .segmented-control {
@@ -1499,8 +1554,10 @@ button:disabled,
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
   .row-favorite-button,
+  .row-rename-button,
   .row-move-button,
-  .row-delete-button { opacity: 1; }
+  .row-delete-button,
+  .row-publish-button { opacity: 1; }
 
   .app-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1559,6 +1616,10 @@ button:disabled,
   }
 
   #note-sync-button-label {
+    display: none;
+  }
+
+  .publish-note-button span {
     display: none;
   }
 
