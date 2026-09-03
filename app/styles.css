@@ -130,6 +130,50 @@ svg {
   min-width: 0;
 }
 
+.recipes-view {
+  height: 100%;
+  overflow: auto;
+  padding: clamp(22px, 4vw, 48px);
+  background: var(--bg);
+}
+
+.recipes-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.recipes-header .eyebrow { margin-top: 0; }
+.recipes-header h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); letter-spacing: -0.04em; }
+.recipes-intro { margin: 8px 0 0; color: var(--text-muted); }
+.recipe-search-box { max-width: 1100px; margin: 0 auto 18px; display: flex; align-items: center; gap: 10px; padding: 0 13px; min-height: 44px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface); color: var(--text-muted); }
+.recipe-search-box svg { flex: 0 0 19px; }
+.recipe-search-box input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); }
+.recipes-layout { max-width: 1100px; min-height: 540px; margin: 0 auto; display: grid; grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr); gap: 18px; }
+.recipe-list, .recipe-form { border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.recipe-list { padding: 8px; align-self: start; }
+.recipe-list-item { width: 100%; display: grid; gap: 5px; padding: 13px; border: 0; border-radius: 10px; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.recipe-list-item:hover, .recipe-list-item.selected { background: var(--accent-soft); }
+.recipe-list-item span { overflow: hidden; color: var(--text-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-form { padding: clamp(20px, 3vw, 32px); }
+.recipe-form-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.recipe-form-heading .eyebrow { margin: 0; }
+.recipe-title-input { width: 100%; margin: 12px 0 18px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: clamp(25px, 4vw, 36px); font-weight: 760; letter-spacing: -0.035em; }
+.recipe-textarea { width: 100%; min-height: 125px; resize: vertical; padding: 12px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface-muted); color: var(--text); line-height: 1.55; }
+.preparation-textarea { min-height: 210px; }
+.recipe-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+@media (max-width: 700px) {
+  .recipes-view { padding: 18px 14px 80px; }
+  .recipes-header { align-items: flex-start; flex-direction: column; }
+  .recipes-header .primary-button { width: 100%; }
+  .recipes-layout { grid-template-columns: 1fr; min-height: 0; }
+  .recipe-list { max-height: 240px; overflow: auto; }
+}
+
 .welcome-icon {
   display: grid;
   place-items: center;
@@ -290,11 +334,7 @@ svg {
 }
 
 .favorite-remove-button,
-.row-favorite-button,
-.row-rename-button,
-.row-move-button,
-.row-delete-button,
-.row-publish-button {
+.row-favorite-button {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -316,11 +356,7 @@ svg {
 }
 
 .favorite-remove-button svg,
-.row-favorite-button svg,
-.row-rename-button svg,
-.row-move-button svg,
-.row-delete-button svg,
-.row-publish-button svg {
+.row-favorite-button svg {
   width: 17px;
   height: 17px;
 }
@@ -588,6 +624,62 @@ button:disabled,
   letter-spacing: 0.08em;
 }
 
+.folder-actions {
+  display: grid;
+  gap: 7px;
+  margin: 0 10px 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.selected-folder-label {
+  overflow: hidden;
+  padding: 0 3px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-action-buttons {
+  display: flex;
+  gap: 3px;
+}
+
+.folder-action-button {
+  min-width: 0;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.folder-action-button:hover,
+.folder-action-button:focus-visible,
+.folder-action-button.active {
+  background: var(--surface);
+  color: var(--accent-strong);
+}
+
+.folder-action-button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
 .count-badge {
   min-width: 22px;
   padding: 2px 6px;
@@ -627,11 +719,11 @@ button:disabled,
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 72px 5px 9px;
+  padding: 5px 9px;
 }
 
-.tree-entry.folder-entry .tree-row {
-  padding-right: 174px;
+.tree-entry.note-entry .tree-row {
+  padding-right: 44px;
 }
 
 .tree-row[data-depth="0"] { padding-left: 9px; }
@@ -702,77 +794,13 @@ button:disabled,
   opacity: 0;
 }
 
-.row-move-button {
-  position: absolute;
-  right: 71px;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  opacity: 0;
-}
-
-.row-rename-button {
-  position: absolute;
-  right: 105px;
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  opacity: 0;
-}
-
-.row-publish-button {
-  position: absolute;
-  right: 139px;
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  opacity: 0;
-}
-
-.row-delete-button {
-  position: absolute;
-  right: 37px;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  opacity: 0;
-}
-
 .tree-entry:hover .row-favorite-button,
 .tree-entry:focus-within .row-favorite-button,
-.row-favorite-button.active,
-.tree-entry:hover .row-rename-button,
-.tree-entry:focus-within .row-rename-button,
-.tree-entry:hover .row-move-button,
-.tree-entry:focus-within .row-move-button,
-.tree-entry:hover .row-delete-button,
-.tree-entry:focus-within .row-delete-button,
-.tree-entry:hover .row-publish-button,
-.tree-entry:focus-within .row-publish-button {
+.row-favorite-button.active {
   opacity: 1;
 }
 
 .row-favorite-button:hover,
-.row-rename-button:hover,
-.row-rename-button:focus-visible,
-.row-move-button:hover,
-.row-move-button:focus-visible,
-.row-delete-button:hover,
-.row-delete-button:focus-visible,
-.row-publish-button:hover,
-.row-publish-button:focus-visible,
 .row-favorite-button.active,
 .favorite-note-button.active {
   background: var(--accent-soft);
@@ -1553,11 +1581,7 @@ button:disabled,
   .sync-chip { max-width: 145px; }
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
-  .row-favorite-button,
-  .row-rename-button,
-  .row-move-button,
-  .row-delete-button,
-  .row-publish-button { opacity: 1; }
+  .row-favorite-button { opacity: 1; }
 
   .app-layout {
     grid-template-columns: minmax(0, 1fr);
