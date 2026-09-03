@@ -4,7 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
-import { parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
+import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
 import { createSnippet, searchNotes } from "./search.js";
@@ -32,7 +32,7 @@ const elements = Object.fromEntries([
   "publish-status", "publish-open-button", "publish-copy-button", "publish-action-button",
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
   "favorite-note-button", "delete-note-button",
-  "recipes-view", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
+  "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -1174,7 +1174,7 @@ function closeDialogFromButton(button) {
 }
 
 function recipeFolder() {
-  return state.files.find(file => file.kind === "folder" && !file.trashed && file.path === "300 - RECURSOS/302 - COCINA") ?? null;
+  return findRecipeFolder(state.files);
 }
 
 function recipeFiles() {
@@ -1207,6 +1207,8 @@ function renderRecipeForm() {
 
 function renderRecipes() {
   if (!state.recipeOpen) return;
+  const folder = recipeFolder();
+  elements["recipes-path-label"].textContent = folder?.path || "300 - RECURSOS / 302 - COCINA";
   const files = recipeFiles().filter(file => recipeMatches(parseRecipe(file.content, noteDisplayName(file)), state.recipeQuery));
   const list = elements["recipe-list"];
   list.replaceChildren();
@@ -1252,8 +1254,8 @@ async function ensureRecipeFolder() {
   if (!state.rootId) throw new Error("Conecta Google Drive una vez antes de crear recetas");
   let folder = recipeFolder();
   if (folder) return folder;
-  const resources = state.files.find(file => file.kind === "folder" && !file.trashed && file.parentId === state.rootId && file.name === "300 - RECURSOS")
-    ?? await syncEngine.createFolder(state.rootId, "300 - RECURSOS");
+  const resources = findRecipeResourcesFolder(state.files)
+    ?? await syncEngine.createFolder(findPkmFolder(state.files)?.id || state.rootId, "300 - RECURSOS");
   await refreshLocalFiles();
   folder = recipeFolder() || state.files.find(file => file.kind === "folder" && !file.trashed && file.parentId === resources.id && file.name === "302 - COCINA");
   if (!folder) {
