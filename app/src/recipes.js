@@ -10,17 +10,23 @@ function sectionKey(value) {
 
 export function parseRecipe(content = "", fallbackTitle = "Sin título") {
   const lines = String(content).replaceAll("\r\n", "\n").split("\n");
-  const titleLine = lines.find(line => /^#\s+/.test(line.trim()));
+  const titleIndex = lines.findIndex(line => /^#\s+/.test(line.trim()));
+  const titleLine = titleIndex >= 0 ? lines[titleIndex] : null;
   const title = titleLine ? titleLine.trim().replace(/^#\s+/, "").trim() : fallbackTitle;
   const sections = { ingredients: [], preparation: [] };
   let active = null;
+  let recognizedSections = 0;
   for (const line of lines) {
     const heading = line.match(/^##\s+(.+?)\s*#*$/);
     if (heading) {
       active = sectionKey(heading[1]);
+      if (active) recognizedSections += 1;
       continue;
     }
     if (active) sections[active].push(line);
+  }
+  if (!recognizedSections) {
+    sections.preparation = lines.filter((_line, index) => index !== titleIndex);
   }
   return {
     title,
