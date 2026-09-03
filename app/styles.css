@@ -334,11 +334,7 @@ svg {
 }
 
 .favorite-remove-button,
-.row-favorite-button,
-.row-rename-button,
-.row-move-button,
-.row-delete-button,
-.row-publish-button {
+.row-favorite-button {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -360,11 +356,7 @@ svg {
 }
 
 .favorite-remove-button svg,
-.row-favorite-button svg,
-.row-rename-button svg,
-.row-move-button svg,
-.row-delete-button svg,
-.row-publish-button svg {
+.row-favorite-button svg {
   width: 17px;
   height: 17px;
 }
@@ -632,6 +624,62 @@ button:disabled,
   letter-spacing: 0.08em;
 }
 
+.folder-actions {
+  display: grid;
+  gap: 7px;
+  margin: 0 10px 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.selected-folder-label {
+  overflow: hidden;
+  padding: 0 3px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-action-buttons {
+  display: flex;
+  gap: 3px;
+}
+
+.folder-action-button {
+  min-width: 0;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.folder-action-button:hover,
+.folder-action-button:focus-visible,
+.folder-action-button.active {
+  background: var(--surface);
+  color: var(--accent-strong);
+}
+
+.folder-action-button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
 .count-badge {
   min-width: 22px;
   padding: 2px 6px;
@@ -671,11 +719,11 @@ button:disabled,
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 72px 5px 9px;
+  padding: 5px 9px;
 }
 
-.tree-entry.folder-entry .tree-row {
-  padding-right: 174px;
+.tree-entry.note-entry .tree-row {
+  padding-right: 44px;
 }
 
 .tree-row[data-depth="0"] { padding-left: 9px; }
@@ -746,77 +794,13 @@ button:disabled,
   opacity: 0;
 }
 
-.row-move-button {
-  position: absolute;
-  right: 71px;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  opacity: 0;
-}
-
-.row-rename-button {
-  position: absolute;
-  right: 105px;
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  opacity: 0;
-}
-
-.row-publish-button {
-  position: absolute;
-  right: 139px;
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  opacity: 0;
-}
-
-.row-delete-button {
-  position: absolute;
-  right: 37px;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  opacity: 0;
-}
-
 .tree-entry:hover .row-favorite-button,
 .tree-entry:focus-within .row-favorite-button,
-.row-favorite-button.active,
-.tree-entry:hover .row-rename-button,
-.tree-entry:focus-within .row-rename-button,
-.tree-entry:hover .row-move-button,
-.tree-entry:focus-within .row-move-button,
-.tree-entry:hover .row-delete-button,
-.tree-entry:focus-within .row-delete-button,
-.tree-entry:hover .row-publish-button,
-.tree-entry:focus-within .row-publish-button {
+.row-favorite-button.active {
   opacity: 1;
 }
 
 .row-favorite-button:hover,
-.row-rename-button:hover,
-.row-rename-button:focus-visible,
-.row-move-button:hover,
-.row-move-button:focus-visible,
-.row-delete-button:hover,
-.row-delete-button:focus-visible,
-.row-publish-button:hover,
-.row-publish-button:focus-visible,
 .row-favorite-button.active,
 .favorite-note-button.active {
   background: var(--accent-soft);
@@ -1597,11 +1581,7 @@ button:disabled,
   .sync-chip { max-width: 145px; }
   .sync-chip span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .favorites-drawer { width: min(90vw, 360px); }
-  .row-favorite-button,
-  .row-rename-button,
-  .row-move-button,
-  .row-delete-button,
-  .row-publish-button { opacity: 1; }
+  .row-favorite-button { opacity: 1; }
 
   .app-layout {
     grid-template-columns: minmax(0, 1fr);

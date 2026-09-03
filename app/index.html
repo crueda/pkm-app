@@ -83,6 +83,16 @@
             <span id="list-heading">Notas</span>
             <span id="list-count" class="count-badge">0</span>
           </div>
+          <div id="folder-actions" class="folder-actions" hidden role="toolbar" aria-label="Acciones del directorio seleccionado">
+            <div id="selected-folder-label" class="selected-folder-label" title="Directorio seleccionado"></div>
+            <div class="folder-action-buttons">
+              <button id="folder-favorite-button" class="folder-action-button" type="button" aria-label="Añadir directorio a favoritos" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg><span>Favorito</span></button>
+              <button id="folder-publish-button" class="folder-action-button" type="button" title="Publicar directorio"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg><span>Publicar</span></button>
+              <button id="folder-rename-button" class="folder-action-button" type="button" title="Renombrar directorio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.8 4.8L8 20l10.5-10.5-4-4Zm8.5-8.5 4 4M3 21h18"/></svg><span>Renombrar</span></button>
+              <button id="folder-move-button" class="folder-action-button" type="button" title="Mover directorio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h6l2 2h8v9H4Z M9 13h7m-3-3 3 3-3 3"/></svg><span>Mover</span></button>
+              <button id="folder-delete-button" class="folder-action-button danger-hover" type="button" title="Mover directorio a la papelera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14m-9-3h4l1 3H9Zm-3 3 1 13h8l1-13M10 10v7m4-7v7"/></svg><span>Eliminar</span></button>
+            </div>
+          </div>
           <nav id="note-list" class="note-list" aria-live="polite"></nav>
 
           <footer class="sidebar-footer">

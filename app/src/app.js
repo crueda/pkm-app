@@ -24,7 +24,7 @@ const elements = Object.fromEntries([
   "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "recipes-button",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
-  "note-list", "list-heading", "list-count", "last-sync-label", "settings-button",
+  "note-list", "list-heading", "list-count", "folder-actions", "selected-folder-label", "folder-favorite-button", "folder-publish-button", "folder-rename-button", "folder-move-button", "folder-delete-button", "last-sync-label", "settings-button",
   "welcome-view", "welcome-description", "configuration-warning", "install-help-button",
   "editor-view", "note-path", "note-title-input", "note-save-state", "note-modified",
   "note-sync-button", "note-sync-button-label",
@@ -58,6 +58,7 @@ const state = {
   rootId: null,
   selectedId: null,
   selectedFolderId: null,
+  selectedDirectoryId: null,
   query: "",
   viewMode: "preview",
   collapsedFolders: new Set(),
@@ -183,78 +184,11 @@ function createFavoriteToggleButton(file, className = "row-favorite-button") {
   return button;
 }
 
-function createMoveFolderButton(file) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "row-move-button";
-  button.setAttribute("aria-label", `Mover carpeta ${file.name}`);
-  button.title = "Mover carpeta";
-  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  icon.setAttribute("viewBox", "0 0 24 24");
-  icon.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M4 6.5h6l2 2h8v9H4Z M9 13h7m-3-3 3 3-3 3");
-  icon.append(path);
-  button.append(icon);
-  button.addEventListener("click", () => openMoveFolderDialog(file.id));
-  return button;
-}
-
-function createRenameFolderButton(file) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "row-rename-button";
-  button.setAttribute("aria-label", `Renombrar carpeta ${file.name}`);
-  button.title = "Renombrar carpeta";
-  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  icon.setAttribute("viewBox", "0 0 24 24");
-  icon.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "m4 16-.8 4.8L8 20l10.5-10.5-4-4Zm8.5-8.5 4 4M3 21h18");
-  icon.append(path);
-  button.append(icon);
-  button.addEventListener("click", () => openRenameFolderDialog(file.id));
-  return button;
-}
-
-function createDeleteFolderButton(file) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "row-delete-button";
-  button.setAttribute("aria-label", `Eliminar carpeta ${file.name}`);
-  button.title = "Mover carpeta a la papelera";
-  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  icon.setAttribute("viewBox", "0 0 24 24");
-  icon.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M5 7h14m-9-3h4l1 3H9Zm-3 3 1 13h8l1-13M10 10v7m4-7v7");
-  icon.append(path);
-  button.append(icon);
-  button.addEventListener("click", () => openDeleteDialog(file.id));
-  return button;
-}
-
-function createPublishFolderButton(file) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "row-publish-button";
-  button.setAttribute("aria-label", `Publicar carpeta ${file.name}`);
-  button.title = "Publicar una copia con enlace";
-  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  icon.setAttribute("viewBox", "0 0 24 24");
-  icon.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M8.5 12h7M13 8.5l3.5 3.5-3.5 3.5M4 5h7l2 2h7v10H4Z");
-  icon.append(path);
-  button.append(icon);
-  button.addEventListener("click", () => openPublishDialog(file.id));
-  return button;
-}
-
 function revealFavoriteFolder(file) {
   state.query = "";
   elements["search-input"].value = "";
   state.selectedFolderId = file.id;
+  state.selectedDirectoryId = file.id;
   let current = file;
   const fileMap = new Map(state.files.map(candidate => [candidate.id, candidate]));
   while (current && current.id !== state.rootId) {
@@ -446,10 +380,10 @@ function renderTree() {
     for (const file of children.get(parentId) ?? []) {
       const expanded = file.kind === "folder" && !state.collapsedFolders.has(file.id);
       const row = document.createElement("div");
-      row.className = `tree-entry ${file.kind === "folder" ? "folder-entry" : ""} ${isFavorite(file.id) ? "favorite" : ""}`;
+      row.className = `tree-entry ${file.kind === "folder" ? "folder-entry" : "note-entry"} ${isFavorite(file.id) ? "favorite" : ""}`;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `tree-row ${file.id === state.selectedId ? "selected" : ""} ${file.dirty ? "dirty" : ""}`;
+      button.className = `tree-row ${file.id === state.selectedId || file.id === state.selectedFolderId ? "selected" : ""} ${file.dirty ? "dirty" : ""}`;
       button.dataset.depth = String(Math.min(depth, 12));
       button.dataset.fileId = file.id;
       button.append(createTreeIcon(file, expanded));
@@ -472,6 +406,7 @@ function renderTree() {
       button.addEventListener("click", async () => {
         if (file.kind === "folder") {
           state.selectedFolderId = file.id;
+          state.selectedDirectoryId = file.id;
           if (state.collapsedFolders.has(file.id)) state.collapsedFolders.delete(file.id);
           else state.collapsedFolders.add(file.id);
           renderSidebar();
@@ -480,10 +415,7 @@ function renderTree() {
         }
       });
       row.append(button);
-      if (file.kind === "folder") {
-        row.append(createPublishFolderButton(file), createRenameFolderButton(file), createMoveFolderButton(file), createDeleteFolderButton(file));
-      }
-      row.append(createFavoriteToggleButton(file));
+      if (file.kind === "note") row.append(createFavoriteToggleButton(file));
       container.append(row);
       if (file.kind === "folder" && expanded) appendChildren(file.id, depth + 1);
     }
@@ -539,6 +471,25 @@ function renderSearchResults() {
 function renderSidebar() {
   if (state.query.trim()) renderSearchResults();
   else renderTree();
+  renderFolderActions();
+}
+
+function selectedFolder() {
+  return state.files.find(file => file.id === state.selectedDirectoryId && file.kind === "folder" && !file.trashed && !file.isRoot) ?? null;
+}
+
+function renderFolderActions() {
+  const folder = selectedFolder();
+  const actions = elements["folder-actions"];
+  actions.hidden = !folder;
+  if (!folder) return;
+  const active = isFavorite(folder.id);
+  elements["selected-folder-label"].textContent = folder.name;
+  elements["selected-folder-label"].title = folder.path || folder.name;
+  elements["folder-favorite-button"].classList.toggle("active", active);
+  elements["folder-favorite-button"].setAttribute("aria-label", active ? `Quitar ${folder.name} de favoritos` : `Añadir ${folder.name} a favoritos`);
+  elements["folder-favorite-button"].setAttribute("aria-pressed", String(active));
+  elements["folder-favorite-button"].replaceChildren(createStarIcon(active), Object.assign(document.createElement("span"), { textContent: "Favorito" }));
 }
 
 function normalizeMarkdownResourcePath(value = "") {
@@ -677,6 +628,9 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   if (!state.selectedFolderId || !state.files.some(file => file.id === state.selectedFolderId && file.kind === "folder" && !file.trashed)) {
     state.selectedFolderId = currentNote()?.parentId || rootId;
   }
+  if (state.selectedDirectoryId && !state.files.some(file => file.id === state.selectedDirectoryId && file.kind === "folder" && !file.trashed && !file.isRoot)) {
+    state.selectedDirectoryId = null;
+  }
   renderSidebar();
   renderEditor({ preserveTextarea: preserveTextarea || hasUnsavedEditorText });
   renderFavorites();
@@ -689,6 +643,7 @@ async function selectNote(fileId, { mode = "preview" } = {}) {
   state.viewMode = mode === "edit" ? "edit" : "preview";
   const note = currentNote();
   state.selectedFolderId = note?.parentId || state.rootId;
+  state.selectedDirectoryId = null;
   await db.setSetting("lastSelectedId", fileId);
   renderSidebar();
   renderEditor();
@@ -1043,6 +998,7 @@ async function submitMoveFolder(event) {
   try {
     const folder = await syncEngine.moveFolder(fileId, parentId);
     state.selectedFolderId = folder.id;
+    state.selectedDirectoryId = folder.id;
     expandFolderAncestors(parentId);
     elements["move-dialog"].close();
     state.movingFolderId = null;
@@ -1090,6 +1046,7 @@ async function confirmDelete(event) {
       await db.deleteSetting("lastSelectedId");
     }
     if (clearsSelectedFolder) state.selectedFolderId = item.parentId || state.rootId;
+    if (belongsToItem(state.selectedDirectoryId)) state.selectedDirectoryId = null;
     elements["delete-dialog"].close();
     state.deletingItemId = null;
     await refreshLocalFiles({ selectRecent: true });
@@ -1196,6 +1153,7 @@ async function clearLocalData() {
   state.rootId = null;
   state.selectedId = null;
   state.selectedFolderId = null;
+  state.selectedDirectoryId = null;
   pruneAttachmentUrls();
   elements["settings-dialog"].close();
   await refreshLocalFiles();
@@ -1378,6 +1336,26 @@ function bindEvents() {
   elements["delete-note-button"].addEventListener("click", () => openDeleteDialog());
   elements["rename-folder-form"].addEventListener("submit", submitRenameFolder);
   elements["delete-form"].addEventListener("submit", confirmDelete);
+  elements["folder-favorite-button"].addEventListener("click", () => {
+    const folder = selectedFolder();
+    if (folder) toggleFavorite(folder.id);
+  });
+  elements["folder-publish-button"].addEventListener("click", () => {
+    const folder = selectedFolder();
+    if (folder) openPublishDialog(folder.id);
+  });
+  elements["folder-rename-button"].addEventListener("click", () => {
+    const folder = selectedFolder();
+    if (folder) openRenameFolderDialog(folder.id);
+  });
+  elements["folder-move-button"].addEventListener("click", () => {
+    const folder = selectedFolder();
+    if (folder) openMoveFolderDialog(folder.id);
+  });
+  elements["folder-delete-button"].addEventListener("click", () => {
+    const folder = selectedFolder();
+    if (folder) openDeleteDialog(folder.id);
+  });
   elements["new-recipe-button"].addEventListener("click", createRecipe);
   elements["recipe-form"].addEventListener("submit", saveRecipe);
   elements["delete-recipe-button"].addEventListener("click", deleteRecipe);
