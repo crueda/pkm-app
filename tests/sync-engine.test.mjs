@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { SyncEngine } from "../app/src/sync-engine.js";
+import { DriveApiError } from "../app/src/drive-api.js";
 import { MIME_FOLDER, MIME_MARKDOWN } from "../app/src/utils.js";
 
 class MemoryDb {
@@ -56,6 +57,9 @@ class MemoryDrive {
     this.contents = new Map();
     this.sequence = 0;
     this.clock = 0;
+    this.changeSequence = 0;
+    this.changes = [];
+    this.listTreeCalls = 0;
     this.currentUser = { permissionId: "account-a", displayName: "Cuenta A", emailAddress: "a@example.test" };
   }
 
@@ -73,6 +77,14 @@ class MemoryDrive {
     const file = this.files.get(id);
     if (!file) throw new Error(`Archivo remoto inexistente: ${id}`);
     return structuredClone(file);
+  }
+
+  recordChange(file) {
+    this.changeSequence += 1;
+    this.changes.push({
+      token: this.changeSequence,
+      change: { fileId: file.id, removed: false, file: structuredClone(file) }
+    });
   }
 
   async getMetadata(id) { return this.metadata(id); }
@@ -99,6 +111,7 @@ class MemoryDrive {
       appProperties
     };
     this.files.set(id, metadata);
+    this.recordChange(metadata);
     return structuredClone(metadata);
   }
 
@@ -119,6 +132,7 @@ class MemoryDrive {
     };
     this.files.set(id, metadata);
     this.contents.set(id, String(content));
+    this.recordChange(metadata);
     return structuredClone(metadata);
   }
 
@@ -139,6 +153,7 @@ class MemoryDrive {
     };
     this.files.set(id, metadata);
     this.contents.set(id, blob);
+    this.recordChange(metadata);
     return structuredClone(metadata);
   }
 
@@ -151,6 +166,7 @@ class MemoryDrive {
       version: String(Number(current.version || 0) + 1)
     };
     this.files.set(id, next);
+    this.recordChange(next);
     return structuredClone(next);
   }
 
@@ -164,6 +180,7 @@ class MemoryDrive {
       size: String(new TextEncoder().encode(content).byteLength)
     };
     this.files.set(id, next);
+    this.recordChange(next);
     return structuredClone(next);
   }
 
@@ -177,6 +194,7 @@ class MemoryDrive {
   }
 
   async listTree(rootId) {
+    this.listTreeCalls += 1;
     const result = [];
     const queue = [rootId];
     while (queue.length) {
@@ -188,6 +206,16 @@ class MemoryDrive {
       }
     }
     return result;
+  }
+
+  async getStartPageToken() { return String(this.changeSequence); }
+
+  async listChanges(pageToken) {
+    const from = Number(pageToken || 0);
+    return {
+      changes: this.changes.filter(entry => entry.token > from).map(entry => structuredClone(entry.change)),
+      newStartPageToken: String(this.changeSequence)
+    };
   }
 
   async trash(id) {
@@ -241,6 +269,65 @@ test("sube la última versión de una nota creada y editada antes de conectar", 
   assert.equal(syncedNote.dirty, false);
   assert.equal(drive.contents.get(syncedNote.id), "# Idea\n\nTexto escrito sin conexión");
   assert.equal((await db.getOutbox()).length, 0);
+});
+
+test("usa el registro incremental después de la primera sincronización", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+  const root = await engine.ensureVault();
+  const remote = await drive.createMarkdownFile("Diario.md", root.id, "Primera versión", { notesAppManaged: "v1" });
+
+  await engine.sync();
+  const initialTreeCalls = drive.listTreeCalls;
+  await drive.updateMarkdownContent(remote.id, "Segunda versión");
+  await engine.sync();
+
+  const note = (await engine.getLocalFiles()).find(file => file.id === remote.id);
+  assert.equal(note.content, "Segunda versión");
+  assert.equal(drive.listTreeCalls, initialTreeCalls);
+  assert.equal(await db.getSetting("driveChangePageToken"), String(drive.changeSequence));
+});
+
+test("aplica altas y borrados remotos mediante cambios incrementales", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+  const root = await engine.ensureVault();
+  await engine.sync();
+  const initialTreeCalls = drive.listTreeCalls;
+
+  const folder = await drive.createFolder("Remota", root.id, { notesAppManaged: "v1" });
+  const note = await drive.createMarkdownFile("Nueva.md", folder.id, "# Nueva", { notesAppManaged: "v1" });
+  await engine.sync();
+  assert.equal((await engine.getLocalFiles()).find(file => file.id === note.id).path, "Remota/Nueva.md");
+
+  await drive.trash(folder.id);
+  await engine.sync();
+  assert.equal(await db.getFile(folder.id), undefined);
+  assert.equal(await db.getFile(note.id), undefined);
+  assert.equal(drive.listTreeCalls, initialTreeCalls);
+});
+
+test("reconstruye el índice cuando Drive invalida el token incremental", async () => {
+  const db = new MemoryDb();
+  const drive = new MemoryDrive();
+  const engine = new SyncEngine({ db, drive, vaultName: "NotesVault" });
+  await engine.ensureVault();
+  await engine.sync();
+  const initialTreeCalls = drive.listTreeCalls;
+  const originalListChanges = drive.listChanges.bind(drive);
+  let expired = true;
+  drive.listChanges = async token => {
+    if (expired) {
+      expired = false;
+      throw new DriveApiError("Token caducado", { status: 410 });
+    }
+    return originalListChanges(token);
+  };
+
+  await engine.sync();
+  assert.equal(drive.listTreeCalls, initialTreeCalls + 1);
 });
 
 test("conserva una edición hecha mientras se está subiendo una nota existente", async () => {

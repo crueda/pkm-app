@@ -101,6 +101,8 @@ path:carpeta
 
 Puedes abrir notas cacheadas, buscar, crear y editar. Los cambios permanecen en la outbox. Al volver la conexión, pulsa **Conectar/Sincronizar** si el token caducó.
 
+La primera sincronización puede tardar más porque prepara la copia local completa. A partir de entonces la aplicación consulta únicamente los cambios recientes de Drive. Si Drive no responde, la petición termina y se reintenta automáticamente; ya no debe permanecer indefinidamente en **Sincronizando…**.
+
 ## Conflictos
 
 Cuando Drive cambió una nota después de empezar tu edición, la app:

@@ -1505,6 +1505,8 @@ function bindEvents() {
     if (detail.phase === "import") setSyncStatus({ state: "syncing", message: `Importando ${detail.current}/${detail.total}` });
     if (detail.phase === "upload") setSyncStatus({ state: "syncing", message: `Subiendo · ${detail.pending} pendientes` });
     if (detail.phase === "download") setSyncStatus({ state: "syncing", message: `Descargando ${detail.current}/${detail.total}` });
+    if (detail.phase === "scan") setSyncStatus({ state: "syncing", message: "Preparando la primera sincronización…" });
+    if (detail.phase === "changes") setSyncStatus({ state: "syncing", message: detail.total ? `Comprobando cambios ${detail.current}/${detail.total}` : "Comprobando cambios…" });
   });
 }
 

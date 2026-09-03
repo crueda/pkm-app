@@ -3,6 +3,20 @@ import { MIME_FOLDER, MIME_MARKDOWN, isMarkdownFile } from "./utils.js";
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
 const FILE_FIELDS = "id,name,mimeType,parents,createdTime,modifiedTime,version,size,md5Checksum,trashed,appProperties,description,webViewLink";
+const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+const DEFAULT_MAX_RETRIES = 2;
+
+function wait(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+export function isRetryableDriveError(error) {
+  if (error instanceof TypeError) return true;
+  if (!(error instanceof DriveApiError)) return false;
+  if (error.code === "request_timeout") return true;
+  if ([408, 429, 500, 502, 503, 504].includes(error.status)) return true;
+  return error.status === 403 && ["rateLimitExceeded", "userRateLimitExceeded"].includes(error.code);
+}
 
 export class DriveApiError extends Error {
   constructor(message, { status = 0, code = "drive_error", details = null } = {}) {
@@ -53,38 +67,65 @@ export function normalizeDriveFile(metadata, extra = {}) {
 }
 
 export class GoogleDriveApi {
-  constructor(accessTokenProvider) {
+  constructor(accessTokenProvider, { requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS, maxRetries = DEFAULT_MAX_RETRIES } = {}) {
     this.accessTokenProvider = accessTokenProvider;
+    this.requestTimeoutMs = requestTimeoutMs;
+    this.maxRetries = maxRetries;
   }
 
   async request(url, options = {}) {
-    const token = this.accessTokenProvider();
-    if (!token) throw new AuthExpiredError("Conecta Google Drive para continuar");
+    const {
+      timeoutMs = this.requestTimeoutMs,
+      maxRetries = this.maxRetries,
+      signal: callerSignal,
+      ...fetchOptions
+    } = options;
 
-    const headers = new Headers(options.headers ?? {});
-    headers.set("Authorization", `Bearer ${token}`);
-    const response = await fetch(url, { ...options, headers });
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      const token = this.accessTokenProvider();
+      if (!token) throw new AuthExpiredError("Conecta Google Drive para continuar");
+      const headers = new Headers(fetchOptions.headers ?? {});
+      headers.set("Authorization", `Bearer ${token}`);
+      const controller = new AbortController();
+      const abortFromCaller = () => controller.abort(callerSignal?.reason);
+      if (callerSignal?.aborted) abortFromCaller();
+      else callerSignal?.addEventListener("abort", abortFromCaller, { once: true });
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (response.status === 401) throw new AuthExpiredError();
-    if (!response.ok) {
-      let details = null;
       try {
-        details = await response.json();
-      } catch {
-        details = await response.text().catch(() => null);
+        const response = await fetch(url, { ...fetchOptions, headers, signal: controller.signal });
+        if (response.status === 401) throw new AuthExpiredError();
+        if (!response.ok) {
+          let details = null;
+          try {
+            details = await response.json();
+          } catch {
+            details = await response.text().catch(() => null);
+          }
+          const apiMessage = details?.error?.message || details?.message;
+          throw new DriveApiError(apiMessage || `Google Drive respondió con ${response.status}`, {
+            status: response.status,
+            code: details?.error?.errors?.[0]?.reason || details?.error?.status || "drive_error",
+            details
+          });
+        }
+        if (response.status === 204) return null;
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) return response.json();
+        return response;
+      } catch (error) {
+        if (callerSignal?.aborted || error instanceof AuthExpiredError) throw error;
+        const normalized = error?.name === "AbortError"
+          ? new DriveApiError("Google Drive no respondió a tiempo", { code: "request_timeout" })
+          : error;
+        if (attempt >= maxRetries || !isRetryableDriveError(normalized)) throw normalized;
+        await wait((2 ** attempt) * 500 + Math.floor(Math.random() * 250));
+      } finally {
+        clearTimeout(timer);
+        callerSignal?.removeEventListener("abort", abortFromCaller);
       }
-      const apiMessage = details?.error?.message || details?.message;
-      throw new DriveApiError(apiMessage || `Google Drive respondió con ${response.status}`, {
-        status: response.status,
-        code: details?.error?.status || details?.error?.errors?.[0]?.reason || "drive_error",
-        details
-      });
     }
-
-    if (response.status === 204) return null;
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) return response.json();
-    return response;
+    throw new DriveApiError("No se pudo completar la petición a Google Drive");
   }
 
   async getCurrentUser() {
@@ -148,6 +189,31 @@ export class GoogleDriveApi {
       }
     }
     return all;
+  }
+
+  async getStartPageToken() {
+    const result = await this.request(`${DRIVE_API}/changes/startPageToken?fields=startPageToken`);
+    return result.startPageToken;
+  }
+
+  async listChanges(pageToken) {
+    const changes = [];
+    let token = pageToken;
+    let newStartPageToken = "";
+    do {
+      const parameters = new URLSearchParams({
+        pageToken: token,
+        spaces: "drive",
+        includeRemoved: "true",
+        pageSize: "1000",
+        fields: `nextPageToken,newStartPageToken,changes(fileId,removed,file(${FILE_FIELDS}))`
+      });
+      const result = await this.request(`${DRIVE_API}/changes?${parameters}`);
+      changes.push(...(result.changes ?? []));
+      token = result.nextPageToken ?? "";
+      newStartPageToken = result.newStartPageToken ?? newStartPageToken;
+    } while (token);
+    return { changes, newStartPageToken: newStartPageToken || pageToken };
   }
 
   async getMetadata(fileId) {
