@@ -4,6 +4,8 @@ import { enrichNoteRecord } from "./search.js";
 import { MIME_FOLDER, MIME_MARKDOWN, createId, humanFileSize, isImageFile, isMarkdownFile } from "./utils.js";
 
 const MAX_IMAGE_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+const CHANGE_TOKEN_SETTING = "driveChangePageToken";
+const CHANGE_ROOT_SETTING = "driveChangeRootId";
 
 function nowIso() {
   return new Date().toISOString();
@@ -273,7 +275,22 @@ export class SyncEngine extends EventTarget {
       const account = await this.verifyAccount();
       const root = await this.ensureVault();
       await this.flushOutbox();
-      await this.pullRemoteTree(root.id);
+      const [savedRootId, pageToken] = await Promise.all([
+        this.db.getSetting(CHANGE_ROOT_SETTING, null),
+        this.db.getSetting(CHANGE_TOKEN_SETTING, null)
+      ]);
+      if (savedRootId === root.id && pageToken) {
+        this.emit("progress", { phase: "changes", current: 0, total: 0 });
+        try {
+          const nextToken = await this.pullRemoteChanges(root.id, pageToken);
+          await this.db.setSetting(CHANGE_TOKEN_SETTING, nextToken);
+        } catch (error) {
+          if (!(error instanceof DriveApiError) || error.status !== 410) throw error;
+          await this.#initializeChangeTracking(root.id);
+        }
+      } else {
+        await this.#initializeChangeTracking(root.id);
+      }
       const completedAt = nowIso();
       await this.db.setSetting("lastSyncAt", completedAt);
       this.emit("changed", { reason: "sync" });
@@ -291,6 +308,17 @@ export class SyncEngine extends EventTarget {
       }
       throw error;
     }
+  }
+
+  async #initializeChangeTracking(rootId) {
+    this.emit("progress", { phase: "scan" });
+    const startPageToken = await this.drive.getStartPageToken();
+    await this.pullRemoteTree(rootId);
+    const nextPageToken = await this.pullRemoteChanges(rootId, startPageToken);
+    await Promise.all([
+      this.db.setSetting(CHANGE_TOKEN_SETTING, nextPageToken),
+      this.db.setSetting(CHANGE_ROOT_SETTING, rootId)
+    ]);
   }
 
   async pullRemoteTree(rootId) {
@@ -374,6 +402,100 @@ export class SyncEngine extends EventTarget {
     const staleIds = localFiles.filter(file => !keepIds.has(file.id)).map(file => file.id);
     await this.db.putFiles(prepared);
     await this.db.deleteFiles(staleIds);
+  }
+
+  async pullRemoteChanges(rootId, pageToken) {
+    const [{ changes, newStartPageToken }, localFiles] = await Promise.all([
+      this.drive.listChanges(pageToken),
+      this.db.getAllFiles()
+    ]);
+    if (!changes.length) return newStartPageToken;
+
+    const records = new Map(localFiles.map(file => [file.id, file]));
+    const changedMetadata = new Map();
+    for (const change of changes) {
+      if (!change.file || change.removed || change.file.trashed) continue;
+      const normalized = normalizeDriveFile(change.file);
+      changedMetadata.set(change.fileId, { ...records.get(change.fileId), ...normalized });
+    }
+    const candidateFiles = new Map([...records, ...changedMetadata]);
+    const isInsideVault = fileId => {
+      let current = candidateFiles.get(fileId);
+      const visited = new Set();
+      while (current && !visited.has(current.id)) {
+        if (current.id === rootId || current.parentId === rootId) return true;
+        visited.add(current.id);
+        current = candidateFiles.get(current.parentId);
+      }
+      return false;
+    };
+
+    const downloads = [];
+    let completed = 0;
+    this.emit("progress", { phase: "changes", current: completed, total: changes.length });
+    for (const change of changes) {
+      const fileId = change.fileId;
+      if (!fileId || fileId === rootId) {
+        completed += 1;
+        this.emit("progress", { phase: "changes", current: completed, total: changes.length });
+        continue;
+      }
+      const existing = records.get(fileId);
+      const removed = change.removed || !change.file || change.file.trashed || !isInsideVault(fileId);
+      if (removed) {
+        if (existing) {
+          const treeIds = collectTreeIds([...records.values()], fileId);
+          const hasLocalChanges = [...treeIds].some(id => {
+            const file = records.get(id);
+            return file?.dirty || file?.isLocalOnly || isLocalId(id);
+          });
+          if (!hasLocalChanges) for (const id of treeIds) records.delete(id);
+        }
+      } else {
+        const normalized = normalizeDriveFile(change.file);
+        let record = { ...existing, ...normalized, dirty: existing?.dirty ?? false };
+        if (normalized.kind === "note") {
+          const unchanged = existing?.content != null && String(existing.remoteVersion) === String(normalized.remoteVersion);
+          if (existing?.dirty) {
+            record = { ...existing, name: normalized.name, parentId: normalized.parentId, modifiedTime: normalized.modifiedTime, remoteCurrentVersion: normalized.remoteVersion };
+          } else if (!unchanged) {
+            downloads.push(async () => {
+              const content = await this.drive.downloadText(fileId);
+              Object.assign(record, { content, dirty: false, localUpdatedAt: normalized.modifiedTime });
+            });
+          }
+        } else if (normalized.kind === "attachment") {
+          const unchanged = existing?.blob != null && String(existing.remoteVersion) === String(normalized.remoteVersion);
+          if (existing?.dirty) {
+            record = { ...existing, name: normalized.name, parentId: normalized.parentId, modifiedTime: normalized.modifiedTime, remoteCurrentVersion: normalized.remoteVersion };
+          } else if (isImageFile(normalized) && !unchanged) {
+            downloads.push(async () => {
+              const blob = await this.drive.downloadBlob(fileId);
+              Object.assign(record, { blob, dirty: false, localUpdatedAt: normalized.modifiedTime });
+            });
+          }
+        }
+        records.set(fileId, record);
+      }
+      completed += 1;
+      this.emit("progress", { phase: "changes", current: completed, total: changes.length });
+    }
+
+    if (downloads.length) {
+      let downloaded = 0;
+      this.emit("progress", { phase: "download", current: downloaded, total: downloads.length });
+      await runWithConcurrency(downloads.map(download => async () => {
+        await download();
+        downloaded += 1;
+        this.emit("progress", { phase: "download", current: downloaded, total: downloads.length });
+      }), this.maxDownloadConcurrency);
+    }
+
+    const prepared = prepareRecords([...records.values()], rootId);
+    const keepIds = new Set(prepared.map(file => file.id));
+    await this.db.putFiles(prepared);
+    await this.db.deleteFiles(localFiles.filter(file => !keepIds.has(file.id)).map(file => file.id));
+    return newStartPageToken;
   }
 
   async flushOutbox() {

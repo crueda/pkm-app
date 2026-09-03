@@ -47,11 +47,13 @@ Al subir la carpeta o nota, Drive devuelve su ID. `replaceLocalId` actualiza:
 
 ## Estrategia de lectura
 
-El motor recorre el árbol mediante consultas `'parentId' in parents`. Para cada nota:
+La primera sincronización recorre el árbol mediante consultas `'parentId' in parents` y guarda un token de la Drive Changes API. Las siguientes sincronizaciones consultan solo los elementos modificados desde ese token. Para cada nota:
 
 - si `remoteVersion` coincide con la caché, conserva el contenido local;
 - si cambia, descarga `alt=media`;
 - si hay una edición local pendiente, no reemplaza el contenido antes de procesar la outbox.
+
+Las peticiones a Drive tienen un límite de 15 segundos y hasta dos reintentos con espera exponencial para errores temporales. Un token incremental caducado provoca automáticamente una nueva exploración completa.
 
 ## Estrategia de escritura
 
@@ -69,7 +71,7 @@ El MVP carga los registros locales en memoria para construir el árbol y buscar.
 - paginación virtual de la lista;
 - búsqueda en Web Worker;
 - SQLite/WASM para bóvedas muy grandes;
-- Drive Changes API para sincronización incremental remota.
+- compactación periódica del historial local de operaciones.
 
 ## Evolución a desktop
 

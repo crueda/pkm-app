@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GoogleDriveApi, escapeDriveQuery, normalizeDriveFile } from "../app/src/drive-api.js";
+import { DriveApiError, GoogleDriveApi, escapeDriveQuery, isRetryableDriveError, normalizeDriveFile } from "../app/src/drive-api.js";
 import { MIME_FOLDER } from "../app/src/utils.js";
 
 test("escapeDriveQuery protege comillas y barras", () => {
@@ -34,4 +34,23 @@ test("allowAnyoneWithLink reutiliza un permiso público existente", async () => 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("cancela una petición de Drive que supera el tiempo límite", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, { signal }) => new Promise((_resolve, reject) => {
+    signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+  });
+  try {
+    const api = new GoogleDriveApi(() => "token", { requestTimeoutMs: 5, maxRetries: 0 });
+    await assert.rejects(() => api.getCurrentUser(), error => error?.code === "request_timeout");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("identifica los errores temporales que se pueden reintentar", () => {
+  assert.equal(isRetryableDriveError(new DriveApiError("ocupado", { status: 503 })), true);
+  assert.equal(isRetryableDriveError(new DriveApiError("límite", { status: 403, code: "rateLimitExceeded" })), true);
+  assert.equal(isRetryableDriveError(new DriveApiError("prohibido", { status: 403 })), false);
 });
