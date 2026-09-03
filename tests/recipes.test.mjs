@@ -8,6 +8,24 @@ test("parsea y serializa una receta Markdown", () => {
   assert.equal(serializeRecipe(recipe), "# Tortilla\n\n## Ingredientes\n- 3 huevos\n\n## Preparación\nBatir y cuajar.\n");
 });
 
+test("coloca en preparación el cuerpo de una receta antigua sin secciones", () => {
+  const recipe = parseRecipe("# Bizcocho\n\nMezclar harina y huevos.\n\nHornear durante 35 minutos.");
+  assert.deepEqual(recipe, {
+    title: "Bizcocho",
+    ingredients: "",
+    preparation: "Mezclar harina y huevos.\n\nHornear durante 35 minutos."
+  });
+});
+
+test("conserva todo el texto sin secciones cuando el título viene del archivo", () => {
+  const recipe = parseRecipe("Mezclar todos los ingredientes.\nServir frío.", "Gazpacho");
+  assert.deepEqual(recipe, {
+    title: "Gazpacho",
+    ingredients: "",
+    preparation: "Mezclar todos los ingredientes.\nServir frío."
+  });
+});
+
 test("la búsqueda contempla todos los campos", () => {
   assert.equal(recipeMatches({ title: "Tacos", ingredients: "pollo", preparation: "Hornear" }, "pollo"), true);
   assert.equal(recipeMatches({ title: "Tacos", ingredients: "pollo", preparation: "Hornear" }, "sopa"), false);
