@@ -489,7 +489,7 @@ function renderFolderActions() {
   elements["folder-favorite-button"].classList.toggle("active", active);
   elements["folder-favorite-button"].setAttribute("aria-label", active ? `Quitar ${folder.name} de favoritos` : `Añadir ${folder.name} a favoritos`);
   elements["folder-favorite-button"].setAttribute("aria-pressed", String(active));
-  elements["folder-favorite-button"].replaceChildren(createStarIcon(active), Object.assign(document.createElement("span"), { textContent: "Favorito" }));
+  elements["folder-favorite-button"].replaceChildren(createStarIcon(active));
 }
 
 function normalizeMarkdownResourcePath(value = "") {
