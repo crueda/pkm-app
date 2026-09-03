@@ -26,6 +26,9 @@
           <button id="favorites-button" class="icon-button favorites-button" type="button" aria-label="Abrir favoritos" aria-controls="favorites-drawer" aria-expanded="false" title="Favoritos">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg>
           </button>
+          <button id="recipes-button" class="icon-button" type="button" aria-label="Abrir recetas" title="Recetas">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg>
+          </button>
           <span id="brand-name" class="brand-name">Notas Drive</span>
         </div>
         <div class="topbar-spacer"></div>
@@ -173,6 +176,33 @@
                 <textarea id="markdown-editor" spellcheck="true" autocomplete="off" placeholder="# Empieza a escribir…"></textarea>
               </section>
               <section id="markdown-preview" class="preview-pane markdown-body" aria-label="Nota con formato" tabindex="0"></section>
+            </div>
+          </section>
+
+          <section id="recipes-view" class="recipes-view" hidden aria-labelledby="recipes-heading">
+            <header class="recipes-header">
+              <div>
+                <p class="eyebrow">300 - RECURSOS / 302 - COCINA</p>
+                <h1 id="recipes-heading">Mis recetas</h1>
+                <p class="recipes-intro">Recetas guardadas como archivos Markdown, sencillas de buscar y editar.</p>
+              </div>
+              <button id="new-recipe-button" class="primary-button" type="button"><span aria-hidden="true">＋</span> Nueva receta</button>
+            </header>
+            <label class="recipe-search-box" for="recipe-search-input">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="recipe-search-input" type="search" autocomplete="off" placeholder="Buscar por título, ingrediente o preparación">
+            </label>
+            <div id="recipes-layout" class="recipes-layout">
+              <nav id="recipe-list" class="recipe-list" aria-label="Lista de recetas"></nav>
+              <form id="recipe-form" class="recipe-form">
+                <div class="recipe-form-heading"><span class="eyebrow">Receta</span><span id="recipe-save-state" class="note-sync-state" data-state="none">Selecciona una receta</span></div>
+                <input id="recipe-title-input" class="recipe-title-input" type="text" maxlength="120" placeholder="Título de la receta" required>
+                <label class="field-label" for="recipe-ingredients-input">Ingredientes</label>
+                <textarea id="recipe-ingredients-input" class="recipe-textarea" placeholder="Un ingrediente por línea\n- 2 tomates"></textarea>
+                <label class="field-label" for="recipe-preparation-input">Preparación</label>
+                <textarea id="recipe-preparation-input" class="recipe-textarea preparation-textarea" placeholder="Describe los pasos de la preparación"></textarea>
+                <div class="recipe-actions"><button id="delete-recipe-button" class="danger-button" type="button">Eliminar</button><button id="save-recipe-button" class="primary-button" type="submit">Guardar receta</button></div>
+              </form>
             </div>
           </section>
         </main>

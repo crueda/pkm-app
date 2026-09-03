@@ -4,6 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
+import { parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
 import { createSnippet, searchNotes } from "./search.js";
@@ -20,7 +21,7 @@ const config = Object.freeze({
 
 const elements = Object.fromEntries([
   "app-shell", "menu-button", "sidebar", "sidebar-scrim", "brand-name", "connect-button",
-  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list",
+  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "recipes-button",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
   "note-list", "list-heading", "list-count", "last-sync-label", "settings-button",
@@ -31,6 +32,7 @@ const elements = Object.fromEntries([
   "publish-status", "publish-open-button", "publish-copy-button", "publish-action-button",
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
   "favorite-note-button", "delete-note-button",
+  "recipes-view", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -70,7 +72,11 @@ const state = {
   movingFolderId: null,
   deletingItemId: null,
   publishingItemId: null,
-  publicationUrl: ""
+  publicationUrl: "",
+  recipeOpen: false,
+  recipeQuery: "",
+  selectedRecipeId: null,
+  recipeFolderId: null
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -146,6 +152,12 @@ async function toggleFavorite(fileId) {
   state.favoriteIds = new Set(nextIds);
   renderSidebar();
   renderFavorites();
+  if (state.recipeOpen) {
+    elements["recipes-view"].hidden = false;
+    elements["welcome-view"].hidden = true;
+    elements["editor-view"].hidden = true;
+    renderRecipes();
+  }
   updateFavoriteNoteButton();
   try {
     await db.setSetting("favoriteIds", nextIds);
@@ -1203,6 +1215,129 @@ function closeDialogFromButton(button) {
   if (dialog?.open) dialog.close();
 }
 
+function recipeFolder() {
+  return state.files.find(file => file.kind === "folder" && !file.trashed && file.path === "300 - RECURSOS/302 - COCINA") ?? null;
+}
+
+function recipeFiles() {
+  const folder = recipeFolder();
+  return state.files
+    .filter(file => file.kind === "note" && !file.trashed && folder && file.parentId === folder.id && /\.md$/i.test(file.name))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), "es", { sensitivity: "base", numeric: true }));
+}
+
+function renderRecipeForm() {
+  const recipe = recipeFiles().find(file => file.id === state.selectedRecipeId) ?? null;
+  const disabled = !recipe;
+  for (const id of ["recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "save-recipe-button", "delete-recipe-button"]) {
+    elements[id].disabled = disabled;
+  }
+  if (!recipe) {
+    elements["recipe-title-input"].value = "";
+    elements["recipe-ingredients-input"].value = "";
+    elements["recipe-preparation-input"].value = "";
+    elements["recipe-save-state"].textContent = recipeFolder() ? "Selecciona una receta" : "No existe la carpeta de cocina";
+    return;
+  }
+  const parsed = parseRecipe(recipe.content, noteDisplayName(recipe));
+  elements["recipe-title-input"].value = parsed.title;
+  elements["recipe-ingredients-input"].value = parsed.ingredients;
+  elements["recipe-preparation-input"].value = parsed.preparation;
+  elements["recipe-save-state"].textContent = recipe.dirty ? "Pendiente de sincronizar" : "Guardada en Drive";
+  elements["recipe-save-state"].dataset.state = recipe.dirty ? "local" : "synced";
+}
+
+function renderRecipes() {
+  if (!state.recipeOpen) return;
+  const files = recipeFiles().filter(file => recipeMatches(parseRecipe(file.content, noteDisplayName(file)), state.recipeQuery));
+  const list = elements["recipe-list"];
+  list.replaceChildren();
+  for (const file of files) {
+    const recipe = parseRecipe(file.content, noteDisplayName(file));
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `recipe-list-item ${file.id === state.selectedRecipeId ? "selected" : ""}`;
+    button.innerHTML = `<strong></strong><span></span>`;
+    button.querySelector("strong").textContent = recipe.title;
+    button.querySelector("span").textContent = recipe.ingredients.split("\n").filter(Boolean).slice(0, 2).join(" · ") || "Sin ingredientes";
+    button.addEventListener("click", () => { state.selectedRecipeId = file.id; renderRecipes(); renderRecipeForm(); });
+    list.append(button);
+  }
+  if (!files.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-list";
+    empty.textContent = recipeFolder() ? "No hay recetas que coincidan." : "Conecta y sincroniza para acceder a 300 - RECURSOS/302 - COCINA.";
+    list.append(empty);
+  }
+  renderRecipeForm();
+}
+
+function setRecipeView(open) {
+  state.recipeOpen = open;
+  elements["recipes-view"].hidden = !open;
+  elements["welcome-view"].hidden = open || Boolean(currentNote());
+  elements["editor-view"].hidden = open || !currentNote();
+  elements["recipes-button"].classList.toggle("active", open);
+  if (!open) {
+    renderEditor();
+    return;
+  }
+  if (open) {
+    const first = recipeFiles()[0];
+    state.selectedRecipeId = state.selectedRecipeId && recipeFiles().some(file => file.id === state.selectedRecipeId) ? state.selectedRecipeId : first?.id ?? null;
+    renderRecipes();
+    requestAnimationFrame(() => elements["recipe-search-input"].focus());
+  }
+}
+
+async function ensureRecipeFolder() {
+  if (!state.rootId) throw new Error("Conecta Google Drive una vez antes de crear recetas");
+  let folder = recipeFolder();
+  if (folder) return folder;
+  const resources = state.files.find(file => file.kind === "folder" && !file.trashed && file.parentId === state.rootId && file.name === "300 - RECURSOS")
+    ?? await syncEngine.createFolder(state.rootId, "300 - RECURSOS");
+  await refreshLocalFiles();
+  folder = recipeFolder() || state.files.find(file => file.kind === "folder" && !file.trashed && file.parentId === resources.id && file.name === "302 - COCINA");
+  if (!folder) {
+    await syncEngine.createFolder(resources.id, "302 - COCINA");
+    await refreshLocalFiles();
+    folder = recipeFolder();
+  }
+  return folder;
+}
+
+async function createRecipe() {
+  try {
+    const folder = await ensureRecipeFolder();
+    const note = await syncEngine.createNote(folder.id, "Nueva receta", serializeRecipe({ title: "Nueva receta" }));
+    await refreshLocalFiles();
+    state.selectedRecipeId = note.id;
+    renderRecipes();
+    elements["recipe-title-input"].focus();
+    elements["recipe-title-input"].select();
+  } catch (error) { showToast(error.message || "No se pudo crear la receta", "error"); }
+}
+
+async function saveRecipe(event) {
+  event.preventDefault();
+  const recipe = recipeFiles().find(file => file.id === state.selectedRecipeId);
+  if (!recipe) return;
+  try {
+    const title = elements["recipe-title-input"].value.trim();
+    await syncEngine.updateNote(recipe.id, serializeRecipe({ title, ingredients: elements["recipe-ingredients-input"].value, preparation: elements["recipe-preparation-input"].value }));
+    if (noteDisplayName(recipe) !== title) await syncEngine.renameItem(recipe.id, title);
+    await refreshLocalFiles();
+    showToast("Receta guardada");
+  } catch (error) { showToast(error.message || "No se pudo guardar la receta", "error"); }
+}
+
+async function deleteRecipe() {
+  const recipe = recipeFiles().find(file => file.id === state.selectedRecipeId);
+  if (!recipe || !confirm(`¿Eliminar “${noteDisplayName(recipe)}”?`)) return;
+  try { await syncEngine.trashItem(recipe.id); state.selectedRecipeId = null; await refreshLocalFiles(); renderRecipes(); showToast("Receta movida a la papelera"); }
+  catch (error) { showToast(error.message || "No se pudo eliminar la receta", "error"); }
+}
+
 function bindEvents() {
   elements["menu-button"].addEventListener("click", () => setSidebarOpen(!elements["app-shell"].classList.contains("sidebar-open")));
   elements["sidebar-scrim"].addEventListener("click", () => setSidebarOpen(false));
@@ -1212,6 +1347,7 @@ function bindEvents() {
   });
   elements["favorites-close-button"].addEventListener("click", () => setFavoritesOpen(false));
   elements["favorites-scrim"].addEventListener("click", () => setFavoritesOpen(false));
+  elements["recipes-button"].addEventListener("click", () => setRecipeView(!state.recipeOpen));
   elements["theme-button"].addEventListener("click", cycleTheme);
   elements["connect-button"].addEventListener("click", connectOrSync);
   elements["welcome-connect-button"].addEventListener("click", connectOrSync);
@@ -1242,6 +1378,10 @@ function bindEvents() {
   elements["delete-note-button"].addEventListener("click", () => openDeleteDialog());
   elements["rename-folder-form"].addEventListener("submit", submitRenameFolder);
   elements["delete-form"].addEventListener("submit", confirmDelete);
+  elements["new-recipe-button"].addEventListener("click", createRecipe);
+  elements["recipe-form"].addEventListener("submit", saveRecipe);
+  elements["delete-recipe-button"].addEventListener("click", deleteRecipe);
+  elements["recipe-search-input"].addEventListener("input", event => { state.recipeQuery = event.target.value; renderRecipes(); });
 
   elements["search-input"].addEventListener("input", event => {
     state.query = event.target.value;
