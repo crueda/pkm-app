@@ -53,6 +53,17 @@ Pulsa la estrella de una carpeta en el árbol o la estrella de la cabecera de un
 
 Vuelve a pulsar una estrella activa para retirar el elemento. Borrar la caché local también borra esta selección.
 
+## Área de Ninjutsu
+
+Pulsa el icono de shuriken de la barra superior para abrir la vista dedicada. La aplicación localiza la carpeta `200 - AREA/201 - NINJUTSU` aunque esté dentro de `PKM` y muestra también las notas de todas sus subcarpetas.
+
+- Usa la caja principal para buscar por técnica, grado, arma, concepto, texto o ruta. La búsqueda ignora mayúsculas y tildes.
+- Filtra por **Programa 2024**, **Programación anual**, **Entrenamientos** o cualquier nueva sección que añadas.
+- Selecciona un resultado para leerlo sin abandonar la vista; **Abrir y editar** lo lleva al editor Markdown normal.
+- **Nuevo entrenamiento** crea una nota fechada dentro de `03 - Entrenamientos`, con objetivos, bloques de tiempo y observaciones listas para completar.
+
+El contenido sigue siendo Markdown normal en Google Drive. La vista especial no crea una base de datos paralela ni publica el programa.
+
 ## Visualizar y editar
 
 - **Vista:** es el modo predeterminado al abrir una nota y muestra el Markdown con títulos, listas, enlaces, tablas, imágenes y demás formato aplicado.

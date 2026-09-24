@@ -29,6 +29,9 @@
           <button id="recipes-button" class="icon-button" type="button" aria-label="Abrir recetas" title="Recetas">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg>
           </button>
+          <button id="ninjutsu-button" class="icon-button ninjutsu-button" type="button" aria-label="Abrir área de Ninjutsu" title="Ninjutsu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/><circle cx="12" cy="12" r="2.1"/></svg>
+          </button>
           <span id="brand-name" class="brand-name">Notas Drive</span>
         </div>
         <div class="topbar-spacer"></div>
@@ -213,6 +216,55 @@
                 <textarea id="recipe-preparation-input" class="recipe-textarea preparation-textarea" placeholder="Describe los pasos de la preparación"></textarea>
                 <div class="recipe-actions"><button id="delete-recipe-button" class="danger-button" type="button">Eliminar</button><button id="save-recipe-button" class="primary-button" type="submit">Guardar receta</button></div>
               </form>
+            </div>
+          </section>
+
+          <section id="ninjutsu-view" class="ninjutsu-view" hidden aria-labelledby="ninjutsu-heading">
+            <header class="ninjutsu-header">
+              <div>
+                <p id="ninjutsu-path-label" class="eyebrow">200 - AREA / 201 - NINJUTSU</p>
+                <h1 id="ninjutsu-heading">Ninjutsu</h1>
+                <p class="ninjutsu-intro">Programa técnico, planificación docente y diario de entrenamientos en un mismo lugar.</p>
+              </div>
+              <button id="new-training-button" class="primary-button" type="button"><span aria-hidden="true">＋</span> Nuevo entrenamiento</button>
+            </header>
+
+            <div id="ninjutsu-stats" class="ninjutsu-stats" aria-label="Resumen del área"></div>
+
+            <label class="ninjutsu-search-box" for="ninjutsu-search-input">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="ninjutsu-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar técnica, grado, arma, concepto o entrenamiento">
+              <kbd>/</kbd>
+            </label>
+
+            <div class="ninjutsu-layout">
+              <aside class="ninjutsu-browser" aria-label="Biblioteca de Ninjutsu">
+                <nav id="ninjutsu-categories" class="ninjutsu-categories" aria-label="Categorías de Ninjutsu"></nav>
+                <div class="ninjutsu-results-heading">
+                  <span>Resultados</span>
+                  <span id="ninjutsu-result-count" class="count-badge">0</span>
+                </div>
+                <nav id="ninjutsu-result-list" class="ninjutsu-result-list" aria-live="polite"></nav>
+              </aside>
+
+              <article id="ninjutsu-detail" class="ninjutsu-detail">
+                <div id="ninjutsu-empty" class="ninjutsu-empty">
+                  <div class="ninjutsu-empty-icon" aria-hidden="true">忍</div>
+                  <h2>Tu biblioteca de Ninjutsu</h2>
+                  <p>Selecciona un resultado para consultar el programa, la planificación o un entrenamiento.</p>
+                </div>
+                <div id="ninjutsu-document" hidden>
+                  <header class="ninjutsu-document-header">
+                    <div>
+                      <span id="ninjutsu-document-category" class="ninjutsu-category-badge"></span>
+                      <h2 id="ninjutsu-document-title"></h2>
+                      <p id="ninjutsu-document-path" class="ninjutsu-document-path"></p>
+                    </div>
+                    <button id="open-ninjutsu-note-button" class="secondary-button" type="button">Abrir y editar</button>
+                  </header>
+                  <div id="ninjutsu-document-content" class="markdown-body ninjutsu-document-content"></div>
+                </div>
+              </article>
             </div>
           </section>
         </main>
