@@ -4,6 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
+import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -21,7 +22,7 @@ const config = Object.freeze({
 
 const elements = Object.fromEntries([
   "app-shell", "menu-button", "sidebar", "sidebar-scrim", "brand-name", "connect-button",
-  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "recipes-button",
+  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "recipes-button", "ninjutsu-button",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
   "note-list", "list-heading", "list-count", "folder-actions", "selected-folder-label", "folder-favorite-button", "folder-publish-button", "folder-rename-button", "folder-move-button", "folder-delete-button", "last-sync-label", "settings-button",
@@ -33,6 +34,7 @@ const elements = Object.fromEntries([
   "editor-panes", "markdown-editor", "markdown-preview", "attach-photo-button", "attach-photo-input",
   "favorite-note-button", "delete-note-button",
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
+  "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -77,7 +79,11 @@ const state = {
   recipeOpen: false,
   recipeQuery: "",
   selectedRecipeId: null,
-  recipeFolderId: null
+  recipeFolderId: null,
+  ninjutsuOpen: false,
+  ninjutsuQuery: "",
+  ninjutsuCategory: "all",
+  selectedNinjutsuId: null
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -557,8 +563,11 @@ function updatePreview(content) {
 
 function renderEditor({ preserveTextarea = false } = {}) {
   const note = currentNote();
-  elements["welcome-view"].hidden = Boolean(note);
-  elements["editor-view"].hidden = !note;
+  const areaOpen = state.recipeOpen || state.ninjutsuOpen;
+  elements["welcome-view"].hidden = areaOpen || Boolean(note);
+  elements["editor-view"].hidden = areaOpen || !note;
+  elements["recipes-view"].hidden = !state.recipeOpen;
+  elements["ninjutsu-view"].hidden = !state.ninjutsuOpen;
   if (!note) return;
 
   elements["note-title-input"].value = noteDisplayName(note);
@@ -634,11 +643,17 @@ async function refreshLocalFiles({ preserveTextarea = false, selectRecent = fals
   renderSidebar();
   renderEditor({ preserveTextarea: preserveTextarea || hasUnsavedEditorText });
   renderFavorites();
+  if (state.recipeOpen) renderRecipes();
+  if (state.ninjutsuOpen) renderNinjutsu();
   await updateSettings();
 }
 
 async function selectNote(fileId, { mode = "preview" } = {}) {
   await saveCurrentNote.flush();
+  state.recipeOpen = false;
+  state.ninjutsuOpen = false;
+  elements["recipes-button"].classList.remove("active");
+  elements["ninjutsu-button"].classList.remove("active");
   state.selectedId = fileId;
   state.viewMode = mode === "edit" ? "edit" : "preview";
   const note = currentNote();
@@ -1234,10 +1249,13 @@ function renderRecipes() {
 
 function setRecipeView(open) {
   state.recipeOpen = open;
+  if (open) state.ninjutsuOpen = false;
   elements["recipes-view"].hidden = !open;
+  elements["ninjutsu-view"].hidden = true;
   elements["welcome-view"].hidden = open || Boolean(currentNote());
   elements["editor-view"].hidden = open || !currentNote();
   elements["recipes-button"].classList.toggle("active", open);
+  elements["ninjutsu-button"].classList.remove("active");
   if (!open) {
     renderEditor();
     return;
@@ -1298,6 +1316,159 @@ async function deleteRecipe() {
   catch (error) { showToast(error.message || "No se pudo eliminar la receta", "error"); }
 }
 
+function ninjutsuFolder() {
+  return findNinjutsuFolder(state.files);
+}
+
+function selectedNinjutsuNote() {
+  return ninjutsuNotes(state.files, ninjutsuFolder()).find(file => file.id === state.selectedNinjutsuId) ?? null;
+}
+
+function createNinjutsuCategoryButton({ id, label, count }) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `ninjutsu-category-button ${state.ninjutsuCategory === id ? "active" : ""}`;
+  button.setAttribute("aria-pressed", String(state.ninjutsuCategory === id));
+  button.innerHTML = `<strong></strong><span></span>`;
+  button.querySelector("strong").textContent = label;
+  button.querySelector("span").textContent = String(count);
+  button.addEventListener("click", () => {
+    state.ninjutsuCategory = id;
+    state.selectedNinjutsuId = null;
+    renderNinjutsu();
+  });
+  return button;
+}
+
+function renderNinjutsuStats(notes, categories) {
+  const trainingCount = notes.filter(file => parseNinjutsuNote(file, ninjutsuFolder()).metadata.tipo === "entrenamiento").length;
+  const values = [
+    [String(notes.length), "notas en la biblioteca"],
+    [String(categories.length), "secciones organizadas"],
+    [String(trainingCount), "entrenamientos guardados"]
+  ];
+  elements["ninjutsu-stats"].replaceChildren(...values.map(([value, label]) => {
+    const item = document.createElement("div");
+    item.className = "ninjutsu-stat";
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    const span = document.createElement("span");
+    span.textContent = label;
+    item.append(strong, span);
+    return item;
+  }));
+}
+
+function renderNinjutsuDetail(folder) {
+  const note = selectedNinjutsuNote();
+  elements["ninjutsu-empty"].hidden = Boolean(note);
+  elements["ninjutsu-document"].hidden = !note;
+  if (!note) return;
+  const parsed = parseNinjutsuNote(note, folder);
+  elements["ninjutsu-document-category"].textContent = parsed.category;
+  elements["ninjutsu-document-title"].textContent = parsed.title;
+  elements["ninjutsu-document-path"].textContent = parsed.relativePath;
+  elements["ninjutsu-document-content"].innerHTML = renderMarkdown(parsed.body);
+}
+
+function renderNinjutsu() {
+  if (!state.ninjutsuOpen) return;
+  const folder = ninjutsuFolder();
+  const notes = ninjutsuNotes(state.files, folder);
+  const categories = ninjutsuCategories(state.files, folder);
+  elements["ninjutsu-path-label"].textContent = folder?.path || `${NINJUTSU_FOLDERS.area} / ${NINJUTSU_FOLDERS.root}`;
+  renderNinjutsuStats(notes, categories);
+
+  const categoryNav = elements["ninjutsu-categories"];
+  categoryNav.replaceChildren(createNinjutsuCategoryButton({ id: "all", label: "Todo", count: notes.length }));
+  for (const category of categories) categoryNav.append(createNinjutsuCategoryButton(category));
+
+  const results = searchNinjutsuNotes(state.files, folder, state.ninjutsuQuery, state.ninjutsuCategory);
+  if (state.selectedNinjutsuId && !results.some(({ file }) => file.id === state.selectedNinjutsuId)) state.selectedNinjutsuId = null;
+  if (!state.selectedNinjutsuId && results.length) state.selectedNinjutsuId = results[0].file.id;
+  elements["ninjutsu-result-count"].textContent = String(results.length);
+  const list = elements["ninjutsu-result-list"];
+  list.replaceChildren();
+  for (const { file, parsed } of results) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `ninjutsu-result ${file.id === state.selectedNinjutsuId ? "selected" : ""}`;
+    button.innerHTML = `<strong></strong><small></small><p></p>`;
+    button.querySelector("strong").textContent = parsed.title;
+    button.querySelector("small").textContent = parsed.category;
+    button.querySelector("p").textContent = parsed.summary || parsed.relativePath;
+    button.addEventListener("click", () => {
+      state.selectedNinjutsuId = file.id;
+      renderNinjutsu();
+    });
+    list.append(button);
+  }
+  if (!results.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-list";
+    empty.textContent = folder
+      ? "No hay contenidos que coincidan con la búsqueda."
+      : `Conecta y sincroniza para acceder a ${NINJUTSU_FOLDERS.area}/${NINJUTSU_FOLDERS.root}.`;
+    list.append(empty);
+  }
+  renderNinjutsuDetail(folder);
+}
+
+function setNinjutsuView(open) {
+  state.ninjutsuOpen = open;
+  if (open) state.recipeOpen = false;
+  elements["ninjutsu-view"].hidden = !open;
+  elements["recipes-view"].hidden = true;
+  elements["welcome-view"].hidden = open || Boolean(currentNote());
+  elements["editor-view"].hidden = open || !currentNote();
+  elements["ninjutsu-button"].classList.toggle("active", open);
+  elements["recipes-button"].classList.remove("active");
+  if (!open) {
+    renderEditor();
+    return;
+  }
+  const notes = ninjutsuNotes(state.files, ninjutsuFolder());
+  state.selectedNinjutsuId = notes.some(file => file.id === state.selectedNinjutsuId) ? state.selectedNinjutsuId : notes[0]?.id ?? null;
+  renderNinjutsu();
+  requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
+}
+
+async function ensureNinjutsuTrainingFolder() {
+  if (!state.rootId) throw new Error("Conecta Google Drive una vez antes de crear entrenamientos");
+  let area = findNinjutsuAreaFolder(state.files);
+  if (!area) {
+    area = await syncEngine.createFolder(findPkmFolder(state.files)?.id || state.rootId, NINJUTSU_FOLDERS.area);
+    await refreshLocalFiles();
+    area = findNinjutsuAreaFolder(state.files) || area;
+  }
+  let root = ninjutsuFolder();
+  if (!root) {
+    root = await syncEngine.createFolder(area.id, NINJUTSU_FOLDERS.root);
+    await refreshLocalFiles();
+    root = ninjutsuFolder() || root;
+  }
+  let training = findNinjutsuTrainingFolder(state.files, root);
+  if (!training) {
+    training = await syncEngine.createFolder(root.id, NINJUTSU_FOLDERS.training);
+    await refreshLocalFiles();
+    training = findNinjutsuTrainingFolder(state.files, ninjutsuFolder()) || training;
+  }
+  return training;
+}
+
+async function createTraining() {
+  try {
+    const folder = await ensureNinjutsuTrainingFolder();
+    const date = new Date().toLocaleDateString("sv-SE");
+    const note = await syncEngine.createNote(folder.id, `${date} - Entrenamiento`, trainingNoteTemplate({ date }));
+    await refreshLocalFiles();
+    await selectNote(note.id, { mode: "edit" });
+    requestSyncSoon();
+  } catch (error) {
+    showToast(error.message || "No se pudo crear el entrenamiento", "error");
+  }
+}
+
 function bindEvents() {
   elements["menu-button"].addEventListener("click", () => setSidebarOpen(!elements["app-shell"].classList.contains("sidebar-open")));
   elements["sidebar-scrim"].addEventListener("click", () => setSidebarOpen(false));
@@ -1308,6 +1479,7 @@ function bindEvents() {
   elements["favorites-close-button"].addEventListener("click", () => setFavoritesOpen(false));
   elements["favorites-scrim"].addEventListener("click", () => setFavoritesOpen(false));
   elements["recipes-button"].addEventListener("click", () => setRecipeView(!state.recipeOpen));
+  elements["ninjutsu-button"].addEventListener("click", () => setNinjutsuView(!state.ninjutsuOpen));
   elements["theme-button"].addEventListener("click", cycleTheme);
   elements["connect-button"].addEventListener("click", connectOrSync);
   elements["welcome-connect-button"].addEventListener("click", connectOrSync);
@@ -1362,6 +1534,12 @@ function bindEvents() {
   elements["recipe-form"].addEventListener("submit", saveRecipe);
   elements["delete-recipe-button"].addEventListener("click", deleteRecipe);
   elements["recipe-search-input"].addEventListener("input", event => { state.recipeQuery = event.target.value; renderRecipes(); });
+  elements["ninjutsu-search-input"].addEventListener("input", event => { state.ninjutsuQuery = event.target.value; renderNinjutsu(); });
+  elements["open-ninjutsu-note-button"].addEventListener("click", () => {
+    const note = selectedNinjutsuNote();
+    if (note) selectNote(note.id);
+  });
+  elements["new-training-button"].addEventListener("click", createTraining);
 
   elements["search-input"].addEventListener("input", event => {
     state.query = event.target.value;
@@ -1459,6 +1637,11 @@ function bindEvents() {
 
   addEventListener("keydown", event => {
     const modifier = event.metaKey || event.ctrlKey;
+    const editing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement || event.target?.isContentEditable;
+    if (state.ninjutsuOpen && event.key === "/" && !editing) {
+      event.preventDefault();
+      elements["ninjutsu-search-input"].focus();
+    }
     if (modifier && event.key.toLocaleLowerCase("es") === "k") {
       event.preventDefault();
       setSidebarOpen(true);

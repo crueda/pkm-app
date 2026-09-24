@@ -16,6 +16,7 @@ Este ZIP contiene un MVP funcional con:
 - detección conservadora de conflictos por versión;
 - bloqueo preventivo al autorizar una cuenta de Google distinta;
 - importación de carpetas Markdown desde escritorio;
+- vistas específicas para recetas y para el área de Ninjutsu, con búsqueda recursiva, filtros por sección y creación guiada de entrenamientos;
 - renderizado seguro de Markdown y enlaces `[[wiki]]` básicos;
 - publicación explícita de copias de notas o carpetas con enlace de lectura, apertura y copia al portapapeles;
 - manifest, iconos y Service Worker para instalación como PWA;
