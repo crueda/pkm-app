@@ -53,14 +53,31 @@ Pulsa la estrella de una carpeta en el árbol o la estrella de la cabecera de un
 
 Vuelve a pulsar una estrella activa para retirar el elemento. Borrar la caché local también borra esta selección.
 
+## Menú de aplicaciones
+
+El botón de cuadrícula, junto a la estrella de favoritos, abre el menú de aplicaciones con dos opciones: **Recetas** y **Ninjutsu**. Se cierra al elegir una opción, al pulsar fuera o con `Esc`, y se puede recorrer con las flechas del teclado.
+
 ## Área de Ninjutsu
 
-Pulsa el icono de shuriken de la barra superior para abrir la vista dedicada. La aplicación localiza la carpeta `200 - AREA/201 - NINJUTSU` aunque esté dentro de `PKM` y muestra también las notas de todas sus subcarpetas.
+Abre **Ninjutsu** desde el menú de aplicaciones. La vista tiene dos pestañas.
+
+### Programación 2026–2027
+
+Incluye las 60 sesiones de la programación anual (semanas 40 de 2026 a 21 de 2027, lunes de taijutsu y miércoles de taihen y armas), con instructor, días no lectivos, niveles por grado y repaso espaciado.
+
+- La lista se agrupa por trimestre y semana; filtra por **Lunes** o **Miércoles** y pulsa **Hoy** para ir a la próxima sesión.
+- **Editar** convierte cada bloque (calentamiento, taihen, dakentai, jutai, armas, cierre) en un cuadro de texto con un elemento por línea y añade el campo **Mis notas** (admite Markdown). Los cambios se guardan solos en este dispositivo y lo añadido se resalta en ocre.
+- **Restaurar original** descarta tus cambios de esa sesión.
+- **Exportar a Drive** genera una nota Markdown con la sesión completa en `201 - NINJUTSU/03 - Entrenamientos/Programación 2026-2027`, por ejemplo `2026-10-05 - L41 - Kihon happo I- Ichimonji no kata.md`. Si ya existe, **Actualizar en Drive** la sobrescribe con la versión actual. Sin conexión, la nota queda pendiente y se sube en la próxima sincronización.
+
+### Biblioteca
+
+La aplicación localiza la carpeta `200 - AREA/201 - NINJUTSU` aunque esté dentro de `PKM` y muestra también las notas de todas sus subcarpetas, incluidas las sesiones exportadas.
 
 - Usa la caja principal para buscar por técnica, grado, arma, concepto, texto o ruta. La búsqueda ignora mayúsculas y tildes.
 - Filtra por **Programa 2024**, **Programación anual**, **Entrenamientos** o cualquier nueva sección que añadas.
 - Selecciona un resultado para leerlo sin abandonar la vista; **Abrir y editar** lo lleva al editor Markdown normal.
-- **Nuevo entrenamiento** crea una nota fechada dentro de `03 - Entrenamientos`, con objetivos, bloques de tiempo y observaciones listas para completar.
+- **Entrenamiento libre** crea una nota fechada dentro de `03 - Entrenamientos`, con objetivos, bloques de tiempo y observaciones listas para completar.
 
 El contenido sigue siendo Markdown normal en Google Drive. La vista especial no crea una base de datos paralela ni publica el programa.
 

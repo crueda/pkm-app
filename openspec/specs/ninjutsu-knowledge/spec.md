@@ -6,16 +6,40 @@ Provide a focused workspace over the Markdown content stored below `200 - AREA/2
 
 ## Requirements
 
-### Requirement: Dedicated entry point
+### Requirement: Applications menu entry point
 
-The application SHALL expose the Ninjutsu area from the top bar with a distinct accessible icon and SHALL keep it mutually exclusive with the editor and recipes views.
+The application SHALL expose a single applications button next to the favorites button that opens an accessible menu with the **Recetas** and **Ninjutsu** options, and SHALL keep those areas mutually exclusive with the note editor.
 
 #### Scenario: Open the Ninjutsu area
 
-- **WHEN** the user activates the Ninjutsu icon
-- **THEN** the application shows the dedicated Ninjutsu view
-- **AND** focuses its search field
+- **WHEN** the user opens the applications menu and chooses Ninjutsu
+- **THEN** the menu closes
+- **AND** the application shows the dedicated Ninjutsu view on the annual programming tab
 - **AND** hides the recipes and note editor views
+
+#### Scenario: Dismiss the menu
+
+- **WHEN** the menu is open and the user presses Escape or clicks outside it
+- **THEN** the menu closes without changing the current view
+
+### Requirement: Annual programming
+
+The application SHALL bundle the 2026–2027 annual programming as read-only data and SHALL let the user browse every session by trimester and week, filter by weekday and jump to the next session.
+
+#### Scenario: Edit a session
+
+- **WHEN** the user edits the blocks or personal notes of a session
+- **THEN** the changes are stored locally per session without altering the bundled programming
+- **AND** items added by the user are highlighted in the session view
+- **AND** the user can restore the original content
+
+#### Scenario: Export a session
+
+- **WHEN** the user exports a session
+- **THEN** the application writes a Markdown training note with frontmatter (`tipo: entrenamiento`, `sesion`, `fecha`, `instructor`) to `03 - Entrenamientos/Programación 2026-2027`
+- **AND** creates any missing folder of the hierarchy
+- **AND** updates the same note on later exports instead of duplicating it
+- **AND** queues it for Drive synchronization
 
 ### Requirement: Recursive library discovery
 

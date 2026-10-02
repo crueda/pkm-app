@@ -26,12 +26,21 @@
           <button id="favorites-button" class="icon-button favorites-button" type="button" aria-label="Abrir favoritos" aria-controls="favorites-drawer" aria-expanded="false" title="Favoritos">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg>
           </button>
-          <button id="recipes-button" class="icon-button" type="button" aria-label="Abrir recetas" title="Recetas">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg>
-          </button>
-          <button id="ninjutsu-button" class="icon-button ninjutsu-button" type="button" aria-label="Abrir área de Ninjutsu" title="Ninjutsu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/><circle cx="12" cy="12" r="2.1"/></svg>
-          </button>
+          <div class="apps-menu-wrapper">
+            <button id="apps-button" class="icon-button apps-button" type="button" aria-label="Abrir aplicaciones" aria-haspopup="menu" aria-controls="apps-menu" aria-expanded="false" title="Aplicaciones">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>
+            </button>
+            <div id="apps-menu" class="apps-menu" role="menu" aria-label="Aplicaciones" hidden>
+              <button id="recipes-button" class="apps-menu-item" type="button" role="menuitem" data-app="recipes">
+                <span class="apps-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg></span>
+                <span class="apps-menu-text"><strong>Recetas</strong><small>Cocina · 302 - COCINA</small></span>
+              </button>
+              <button id="ninjutsu-button" class="apps-menu-item" type="button" role="menuitem" data-app="ninjutsu">
+                <span class="apps-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/><circle cx="12" cy="12" r="2.1"/></svg></span>
+                <span class="apps-menu-text"><strong>Ninjutsu</strong><small>Programación y entrenamientos</small></span>
+              </button>
+            </div>
+          </div>
           <span id="brand-name" class="brand-name">Notas Drive</span>
         </div>
         <div class="topbar-spacer"></div>
@@ -226,46 +235,86 @@
                 <h1 id="ninjutsu-heading">Ninjutsu</h1>
                 <p class="ninjutsu-intro">Programa técnico, planificación docente y diario de entrenamientos en un mismo lugar.</p>
               </div>
-              <button id="new-training-button" class="primary-button" type="button"><span aria-hidden="true">＋</span> Nuevo entrenamiento</button>
+              <button id="new-training-button" class="secondary-button" type="button"><span aria-hidden="true">＋</span> Entrenamiento libre</button>
             </header>
 
-            <div id="ninjutsu-stats" class="ninjutsu-stats" aria-label="Resumen del área"></div>
-
-            <label class="ninjutsu-search-box" for="ninjutsu-search-input">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-              <input id="ninjutsu-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar técnica, grado, arma, concepto o entrenamiento">
-              <kbd>/</kbd>
-            </label>
-
-            <div class="ninjutsu-layout">
-              <aside class="ninjutsu-browser" aria-label="Biblioteca de Ninjutsu">
-                <nav id="ninjutsu-categories" class="ninjutsu-categories" aria-label="Categorías de Ninjutsu"></nav>
-                <div class="ninjutsu-results-heading">
-                  <span>Resultados</span>
-                  <span id="ninjutsu-result-count" class="count-badge">0</span>
-                </div>
-                <nav id="ninjutsu-result-list" class="ninjutsu-result-list" aria-live="polite"></nav>
-              </aside>
-
-              <article id="ninjutsu-detail" class="ninjutsu-detail">
-                <div id="ninjutsu-empty" class="ninjutsu-empty">
-                  <div class="ninjutsu-empty-icon" aria-hidden="true">忍</div>
-                  <h2>Tu biblioteca de Ninjutsu</h2>
-                  <p>Selecciona un resultado para consultar el programa, la planificación o un entrenamiento.</p>
-                </div>
-                <div id="ninjutsu-document" hidden>
-                  <header class="ninjutsu-document-header">
-                    <div>
-                      <span id="ninjutsu-document-category" class="ninjutsu-category-badge"></span>
-                      <h2 id="ninjutsu-document-title"></h2>
-                      <p id="ninjutsu-document-path" class="ninjutsu-document-path"></p>
-                    </div>
-                    <button id="open-ninjutsu-note-button" class="secondary-button" type="button">Abrir y editar</button>
-                  </header>
-                  <div id="ninjutsu-document-content" class="markdown-body ninjutsu-document-content"></div>
-                </div>
-              </article>
+            <div class="ninjutsu-tabs" role="tablist" aria-label="Secciones de Ninjutsu">
+              <button id="ninjutsu-tab-program" class="ninjutsu-tab active" type="button" role="tab" aria-selected="true" aria-controls="ninjutsu-program-panel" data-ninjutsu-tab="program">Programación 2026–2027</button>
+              <button id="ninjutsu-tab-library" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-library-panel" data-ninjutsu-tab="library">Biblioteca</button>
             </div>
+
+            <section id="ninjutsu-program-panel" class="ninjutsu-panel" role="tabpanel" aria-labelledby="ninjutsu-tab-program">
+              <div class="program-layout">
+                <aside class="program-browser" aria-label="Sesiones de la programación">
+                  <div class="program-browser-toolbar">
+                    <div class="program-day-filter" role="group" aria-label="Mostrar sesiones">
+                      <button class="program-filter-button active" type="button" data-program-filter="all" aria-pressed="true">Ambos</button>
+                      <button class="program-filter-button" type="button" data-program-filter="lunes" aria-pressed="false">Lunes</button>
+                      <button class="program-filter-button" type="button" data-program-filter="miercoles" aria-pressed="false">Miérc.</button>
+                    </div>
+                    <button id="program-today-button" class="secondary-button compact" type="button" title="Ir a la próxima sesión">Hoy</button>
+                  </div>
+                  <nav id="program-week-list" class="program-week-list"></nav>
+                </aside>
+
+                <article id="program-session" class="program-session" aria-live="polite">
+                  <header class="program-session-header">
+                    <div class="program-session-heading">
+                      <div id="program-session-badges" class="program-session-badges"></div>
+                      <h2 id="program-session-title"></h2>
+                      <p id="program-session-meta" class="program-session-meta"></p>
+                    </div>
+                    <div class="program-session-actions">
+                      <button id="program-edit-button" class="secondary-button" type="button" aria-pressed="false">Editar</button>
+                      <button id="program-reset-button" class="text-button danger-text" type="button" hidden>Restaurar original</button>
+                      <button id="program-export-button" class="primary-button" type="button">Exportar a Drive</button>
+                    </div>
+                  </header>
+                  <p id="program-export-state" class="program-export-state"></p>
+                  <div id="program-session-body" class="program-session-body"></div>
+                </article>
+              </div>
+            </section>
+
+            <section id="ninjutsu-library-panel" class="ninjutsu-panel" role="tabpanel" aria-labelledby="ninjutsu-tab-library" hidden>
+              <div id="ninjutsu-stats" class="ninjutsu-stats" aria-label="Resumen del área"></div>
+
+              <label class="ninjutsu-search-box" for="ninjutsu-search-input">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input id="ninjutsu-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar técnica, grado, arma, concepto o entrenamiento">
+                <kbd>/</kbd>
+              </label>
+
+              <div class="ninjutsu-layout">
+                <aside class="ninjutsu-browser" aria-label="Biblioteca de Ninjutsu">
+                  <nav id="ninjutsu-categories" class="ninjutsu-categories" aria-label="Categorías de Ninjutsu"></nav>
+                  <div class="ninjutsu-results-heading">
+                    <span>Resultados</span>
+                    <span id="ninjutsu-result-count" class="count-badge">0</span>
+                  </div>
+                  <nav id="ninjutsu-result-list" class="ninjutsu-result-list" aria-live="polite"></nav>
+                </aside>
+
+                <article id="ninjutsu-detail" class="ninjutsu-detail">
+                  <div id="ninjutsu-empty" class="ninjutsu-empty">
+                    <div class="ninjutsu-empty-icon" aria-hidden="true">忍</div>
+                    <h2>Tu biblioteca de Ninjutsu</h2>
+                    <p>Selecciona un resultado para consultar el programa, la planificación o un entrenamiento.</p>
+                  </div>
+                  <div id="ninjutsu-document" hidden>
+                    <header class="ninjutsu-document-header">
+                      <div>
+                        <span id="ninjutsu-document-category" class="ninjutsu-category-badge"></span>
+                        <h2 id="ninjutsu-document-title"></h2>
+                        <p id="ninjutsu-document-path" class="ninjutsu-document-path"></p>
+                      </div>
+                      <button id="open-ninjutsu-note-button" class="secondary-button" type="button">Abrir y editar</button>
+                    </header>
+                    <div id="ninjutsu-document-content" class="markdown-body ninjutsu-document-content"></div>
+                  </div>
+                </article>
+              </div>
+            </section>
           </section>
         </main>
       </div>
