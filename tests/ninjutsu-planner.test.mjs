@@ -96,3 +96,48 @@ test("localiza una exportación previa por id o por prefijo de nombre", () => {
   assert.equal(findExportedSessionNote(files, folder, findProgramSession("X41")), null);
   assert.equal(findExportedSessionNote(files, null, session), null);
 });
+
+test("el temporizador recorre los bloques según el tiempo transcurrido", async () => {
+  const { trainingTimerState, sessionTotalMinutes } = await import("../app/src/ninjutsu-planner.js");
+  const parts = [
+    { name: "Calentamiento", minutes: 15, items: [] },
+    { name: "Sin tiempo", minutes: 0, items: [] },
+    { name: "Taihen jutsu", minutes: 15, items: [] },
+    { name: "Jutai jutsu", minutes: 30, items: [] }
+  ];
+  assert.equal(sessionTotalMinutes(parts), 60);
+  const start = trainingTimerState(parts, 0);
+  assert.equal(start.part.name, "Calentamiento");
+  assert.equal(start.partRemainingMs, 15 * 60000);
+  assert.equal(start.next.name, "Taihen jutsu");
+  const second = trainingTimerState(parts, 15 * 60000);
+  assert.equal(second.index, 2);
+  assert.equal(second.partElapsedMs, 0);
+  const last = trainingTimerState(parts, 50 * 60000);
+  assert.equal(last.part.name, "Jutai jutsu");
+  assert.equal(last.partRemainingMs, 10 * 60000);
+  assert.equal(last.next, null);
+  assert.equal(last.remainingMs, 10 * 60000);
+  const done = trainingTimerState(parts, 62 * 60000);
+  assert.equal(done.finished, true);
+  assert.equal(done.overtimeMs, 2 * 60000);
+});
+
+test("el tiempo transcurrido descuenta las pausas y el reloj se formatea", async () => {
+  const { timerElapsedMs, formatClock, parseMinutes } = await import("../app/src/ninjutsu-planner.js");
+  assert.equal(timerElapsedMs({ startedAt: 1000, pausedMs: 500, pausedAt: null }, 11000), 9500);
+  assert.equal(timerElapsedMs({ startedAt: 1000, pausedMs: 0, pausedAt: 4000 }, 99000), 3000);
+  assert.equal(formatClock(65000), "01:05");
+  assert.equal(formatClock(3725000), "1:02:05");
+  assert.equal(parseMinutes("20"), 20);
+  assert.equal(parseMinutes("abc", 15), 15);
+  assert.equal(parseMinutes("-3", 15), 15);
+});
+
+test("cambiar los minutos de un bloque marca la sesión como editada", () => {
+  const session = findProgramSession("L40");
+  const edit = createSessionEdit(session);
+  assert.equal(isSessionEdited(session, edit), false);
+  edit.parts[0].minutes += 5;
+  assert.equal(isSessionEdited(session, edit), true);
+});

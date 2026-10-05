@@ -265,9 +265,10 @@
                       <p id="program-session-meta" class="program-session-meta"></p>
                     </div>
                     <div class="program-session-actions">
+                      <button id="program-start-button" class="primary-button timer-start-button" type="button"><span aria-hidden="true">▶</span> <span id="program-start-label">Empezar</span></button>
                       <button id="program-edit-button" class="secondary-button" type="button" aria-pressed="false">Editar</button>
                       <button id="program-reset-button" class="text-button danger-text" type="button" hidden>Restaurar original</button>
-                      <button id="program-export-button" class="primary-button" type="button">Exportar a Drive</button>
+                      <button id="program-export-button" class="secondary-button" type="button">Exportar a Drive</button>
                     </div>
                   </header>
                   <p id="program-export-state" class="program-export-state"></p>
@@ -478,6 +479,38 @@
         </div>
       </form>
     </dialog>
+
+    <section id="training-timer" class="training-timer" role="dialog" aria-modal="true" aria-labelledby="timer-part-name" hidden>
+      <header class="timer-top">
+        <div>
+          <p id="timer-session-label" class="eyebrow"></p>
+          <p id="timer-total" class="timer-total"></p>
+        </div>
+        <button id="timer-minimize-button" class="icon-button" type="button" aria-label="Minimizar temporizador" title="Minimizar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </header>
+      <div class="timer-main">
+        <p id="timer-step" class="timer-step"></p>
+        <h2 id="timer-part-name" class="timer-part-name"></h2>
+        <div id="timer-clock" class="timer-clock">00:00</div>
+        <p id="timer-part-meta" class="timer-part-meta"></p>
+        <div id="timer-segments" class="timer-segments" role="group" aria-label="Bloques del entrenamiento"></div>
+        <ul id="timer-items" class="timer-items"></ul>
+        <p id="timer-next" class="timer-next"></p>
+      </div>
+      <footer class="timer-controls">
+        <button id="timer-prev-button" class="secondary-button" type="button" title="Volver al bloque anterior">‹ Anterior</button>
+        <button id="timer-pause-button" class="primary-button" type="button">Pausar</button>
+        <button id="timer-next-button" class="secondary-button" type="button" title="Saltar al siguiente bloque">Siguiente ›</button>
+        <button id="timer-stop-button" class="text-button danger-text" type="button">Terminar entrenamiento</button>
+      </footer>
+    </section>
+
+    <button id="training-timer-pill" class="training-timer-pill" type="button" hidden>
+      <span class="timer-pill-dot" aria-hidden="true"></span>
+      <span id="training-timer-pill-label"></span>
+    </button>
 
     <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   </body>

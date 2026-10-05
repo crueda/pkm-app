@@ -2070,3 +2070,83 @@ button:disabled,
   .ninjutsu-tab { white-space: nowrap; }
   .program-levels div { grid-template-columns: 54px 1fr; }
 }
+
+/* Editor: minutos por bloque */
+.program-part-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 -10px; }
+.program-part-label-row .program-part-label { margin: 0; }
+.program-minutes-field { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 13px; }
+.program-minutes-field input { width: 64px; min-height: 32px; padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface-muted); color: var(--text); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; }
+.program-minutes-field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Temporizador de entrenamiento */
+.timer-start-button { gap: 6px; }
+body.timer-open { overflow: hidden; }
+.training-timer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+}
+.training-timer[hidden] { display: none; }
+.timer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: min(880px, 100%); margin: 0 auto; }
+.timer-top .eyebrow { margin: 0 0 4px; }
+.timer-top .icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.timer-total { margin: 0; color: var(--text-muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.timer-main { display: flex; flex-direction: column; align-items: center; width: min(880px, 100%); margin: 0 auto; text-align: center; }
+.timer-step { margin: 8px 0 4px; color: var(--text-muted); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.timer-part-name { margin: 0; font-size: clamp(26px, 6vw, 44px); line-height: 1.1; letter-spacing: -0.02em; }
+.timer-clock { margin: 10px 0 0; font-size: clamp(76px, 22vw, 168px); font-weight: 760; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; color: var(--accent); }
+.training-timer.ending .timer-clock { color: #b26b12; }
+:root[data-theme="dark"] .training-timer.ending .timer-clock { color: #f0b45c; }
+.training-timer.paused .timer-clock { opacity: 0.45; }
+.training-timer.finished .timer-clock { color: var(--text-muted); font-size: clamp(56px, 14vw, 110px); }
+.timer-part-meta { margin: 6px 0 18px; color: var(--text-muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.timer-segments { display: flex; gap: 4px; width: 100%; margin-bottom: 20px; }
+.timer-segment { position: relative; flex: 1 1 0; min-width: 0; height: 44px; padding: 0 6px; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-muted); color: var(--text-muted); font-size: 11px; font-weight: 680; }
+.timer-segment-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent-soft); transition: width 0.25s linear; }
+.timer-segment.done .timer-segment-fill { background: var(--border-strong); opacity: 0.5; }
+.timer-segment.current { border-color: var(--accent); color: var(--text); }
+.timer-segment-label { position: relative; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timer-items { width: 100%; margin: 0; padding: 18px 22px 18px 40px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); text-align: left; font-size: clamp(16px, 2.4vw, 20px); line-height: 1.5; }
+.timer-items li + li { margin-top: 8px; }
+.timer-next { margin: 14px 0 0; color: var(--text-muted); font-size: 15px; }
+.timer-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; width: min(880px, 100%); margin: 0 auto; }
+.timer-controls .primary-button { min-width: 150px; min-height: 52px; font-size: 17px; }
+.timer-controls .secondary-button { min-height: 52px; }
+.timer-controls .text-button { flex-basis: 100%; justify-content: center; }
+.training-timer-pill {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow);
+}
+.training-timer-pill[hidden] { display: none; }
+.training-timer-pill > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timer-pill-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: timer-pulse 1.4s ease-in-out infinite; }
+.training-timer-pill.paused .timer-pill-dot, .training-timer-pill.finished .timer-pill-dot { animation: none; opacity: 0.5; }
+@keyframes timer-pulse { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .timer-pill-dot { animation: none; } .timer-segment-fill { transition: none; } }
+@media (max-width: 560px) {
+  .timer-segment { height: 34px; }
+  .timer-segment-label { display: none; }
+  .timer-controls .secondary-button { flex: 1 1 0; }
+  .timer-controls .primary-button { flex: 1 1 100%; order: -1; }
+}

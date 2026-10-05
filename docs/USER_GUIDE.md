@@ -66,8 +66,10 @@ Abre **Ninjutsu** desde el menú de aplicaciones. La vista tiene dos pestañas.
 Incluye las 60 sesiones de la programación anual (semanas 40 de 2026 a 21 de 2027, lunes de taijutsu y miércoles de taihen y armas), con instructor, días no lectivos, niveles por grado y repaso espaciado.
 
 - La lista se agrupa por trimestre y semana; filtra por **Lunes** o **Miércoles** y pulsa **Hoy** para ir a la próxima sesión.
-- **Editar** convierte cada bloque (calentamiento, taihen, dakentai, jutai, armas, cierre) en un cuadro de texto con un elemento por línea y añade el campo **Mis notas** (admite Markdown). Los cambios se guardan solos en este dispositivo y lo añadido se resalta en ocre.
+- **Editar** convierte cada bloque (calentamiento, taihen, dakentai, jutai, armas, cierre) en un cuadro de texto con un elemento por línea, permite ajustar los minutos de cada bloque y añade el campo **Mis notas** (admite Markdown). Los cambios se guardan solos en este dispositivo y lo añadido se resalta en ocre.
 - **Restaurar original** descarta tus cambios de esa sesión.
+- **Empezar** abre el temporizador a pantalla completa: muestra el bloque que toca según el tiempo transcurrido, la cuenta atrás del bloque, sus contenidos, el siguiente bloque y una barra con todos los bloques (pulsa uno para saltar a él). Avisa con sonido y vibración en cada cambio de bloque y mantiene la pantalla encendida mientras está abierto.
+- **Pausar/Reanudar** (o la barra espaciadora), **Anterior** y **Siguiente** controlan el avance. Puedes minimizarlo: una pastilla flotante sigue mostrando el bloque y el tiempo, y el entrenamiento continúa aunque recargues la app. Al terminar, **Cerrar y anotar** abre el editor de la sesión para añadir tus notas antes de exportarla.
 - **Exportar a Drive** genera una nota Markdown con la sesión completa en `201 - NINJUTSU/03 - Entrenamientos/Programación 2026-2027`, por ejemplo `2026-10-05 - L41 - Kihon happo I- Ichimonji no kata.md`. Si ya existe, **Actualizar en Drive** la sobrescribe con la versión actual. Sin conexión, la nota queda pendiente y se sube en la próxima sincronización.
 
 ### Biblioteca

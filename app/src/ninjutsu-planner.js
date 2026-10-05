@@ -62,13 +62,64 @@ export function isSessionEdited(session, edit = null) {
   if (parts.length !== session.parts.length) return true;
   return parts.some((part, index) => {
     const base = session.parts[index];
-    return part.name !== base.name || part.items.length !== base.items.length || part.items.some((item, itemIndex) => item !== base.items[itemIndex]);
+    return part.name !== base.name || Number(part.minutes) !== Number(base.minutes) || part.items.length !== base.items.length || part.items.some((item, itemIndex) => item !== base.items[itemIndex]);
   });
 }
 
 export function addedItems(basePart, items = []) {
   const original = new Set(basePart?.items ?? []);
   return new Set(items.filter(item => !original.has(item)));
+}
+
+export function parseMinutes(value, fallback = 0) {
+  const minutes = Math.round(Number(String(value).replace(",", ".")));
+  return Number.isFinite(minutes) && minutes >= 0 && minutes <= 600 ? minutes : fallback;
+}
+
+export function sessionTotalMinutes(parts = []) {
+  return parts.reduce((total, part) => total + (Number(part.minutes) || 0), 0);
+}
+
+// Sitúa el tiempo transcurrido dentro de los bloques de la sesión.
+export function trainingTimerState(parts = [], elapsedMs = 0) {
+  const elapsed = Math.max(0, Number(elapsedMs) || 0);
+  const totalMs = sessionTotalMinutes(parts) * 60000;
+  let start = 0;
+  for (let index = 0; index < parts.length; index += 1) {
+    const durationMs = (Number(parts[index].minutes) || 0) * 60000;
+    if (durationMs > 0 && elapsed < start + durationMs) {
+      return {
+        index,
+        part: parts[index],
+        next: parts.slice(index + 1).find(part => Number(part.minutes) > 0) ?? null,
+        partElapsedMs: elapsed - start,
+        partRemainingMs: start + durationMs - elapsed,
+        partDurationMs: durationMs,
+        partStartMs: start,
+        elapsedMs: elapsed,
+        totalMs,
+        remainingMs: totalMs - elapsed,
+        finished: false
+      };
+    }
+    start += durationMs;
+  }
+  return { index: parts.length, part: null, next: null, partElapsedMs: 0, partRemainingMs: 0, partDurationMs: 0, partStartMs: totalMs, elapsedMs: elapsed, totalMs, remainingMs: 0, overtimeMs: elapsed - totalMs, finished: true };
+}
+
+export function timerElapsedMs(timer, now = Date.now()) {
+  if (!timer) return 0;
+  const running = timer.pausedAt ? timer.pausedAt : now;
+  return Math.max(0, running - timer.startedAt - (timer.pausedMs || 0));
+}
+
+export function formatClock(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = value => String(value).padStart(2, "0");
+  return hours ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
 
 export function sessionExportBaseName(session) {

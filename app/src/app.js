@@ -5,7 +5,7 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
-import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
+import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -37,7 +37,9 @@ const elements = Object.fromEntries([
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
-  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body",
+  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-start-button", "program-start-label",
+  "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
+  "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -93,7 +95,9 @@ const state = {
   programEditing: false,
   sessionEdits: {},
   sessionEditsLoaded: false,
-  exportingSession: false
+  exportingSession: false,
+  trainingTimer: null,
+  timerVisible: false
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -1752,21 +1756,36 @@ function renderSessionEditor(session, edit) {
   const form = document.createDocumentFragment();
   const hint = document.createElement("p");
   hint.className = "program-edit-hint";
-  hint.textContent = "Un elemento por línea. Los cambios se guardan solos en este dispositivo; pulsa «Exportar a Drive» para dejar la sesión en tu carpeta.";
+  hint.textContent = "Un elemento por línea; ajusta los minutos de cada bloque para el temporizador. Los cambios se guardan solos en este dispositivo; pulsa «Exportar a Drive» para dejar la sesión en tu carpeta.";
   form.append(hint);
   effective.parts.forEach((part, index) => {
     const id = `program-part-${index}`;
+    const row = document.createElement("div");
+    row.className = "program-part-label-row";
     const label = document.createElement("label");
     label.className = "field-label program-part-label";
     label.htmlFor = id;
-    label.textContent = `${part.name}${part.minutes ? ` · ${part.minutes}′` : ""}`;
+    label.textContent = part.name;
+    const minutesLabel = document.createElement("label");
+    minutesLabel.className = "program-minutes-field";
+    const minutesInput = document.createElement("input");
+    minutesInput.type = "number";
+    minutesInput.min = "0";
+    minutesInput.max = "600";
+    minutesInput.step = "1";
+    minutesInput.inputMode = "numeric";
+    minutesInput.value = String(part.minutes ?? 0);
+    minutesInput.dataset.partMinutes = String(index);
+    minutesInput.setAttribute("aria-label", `Minutos de ${part.name}`);
+    minutesLabel.append(minutesInput, " min");
+    row.append(label, minutesLabel);
     const textarea = document.createElement("textarea");
     textarea.id = id;
     textarea.className = "program-textarea";
     textarea.dataset.partIndex = String(index);
     textarea.rows = Math.max(2, part.items.length);
     textarea.value = part.items.join("\n");
-    form.append(label, textarea);
+    form.append(row, textarea);
   });
   const notesLabel = document.createElement("label");
   notesLabel.className = "field-label program-part-label";
@@ -1790,13 +1809,17 @@ function autoSizeTextarea(textarea) {
 
 function handleSessionEditInput(event) {
   const target = event.target;
-  if (!(target instanceof HTMLTextAreaElement)) return;
-  autoSizeTextarea(target);
+  const minutesField = target instanceof HTMLInputElement && target.dataset.partMinutes !== undefined;
+  if (!(target instanceof HTMLTextAreaElement) && !minutesField) return;
+  if (!minutesField) autoSizeTextarea(target);
   const session = selectedProgramSession();
   if (!session) return;
   const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
   if (!edit.parts?.length) edit.parts = createSessionEdit(session).parts;
-  if (target.dataset.notes) edit.notes = target.value;
+  if (minutesField) {
+    const index = Number(target.dataset.partMinutes);
+    if (edit.parts[index]) edit.parts[index].minutes = parseMinutes(target.value, edit.parts[index].minutes);
+  } else if (target.dataset.notes) edit.notes = target.value;
   else {
     const index = Number(target.dataset.partIndex);
     if (edit.parts[index]) edit.parts[index].items = itemsFromText(target.value);
@@ -1816,10 +1839,13 @@ function renderProgramHeader(session) {
   if (session.done) badges.append(createChip("Impartida", "done"));
   if (edited) badges.append(createChip("Editada", "edited"));
   elements["program-session-title"].textContent = session.title;
-  elements["program-session-meta"].textContent = `${formatSessionDate(session, { long: true })} · 21:00–22:30 · ${session.trimesterName} · semana ${session.week}`;
+  elements["program-session-meta"].textContent = `${formatSessionDate(session, { long: true })} · 21:00–22:30 · ${sessionTotalMinutes(effectiveSession(session, edit).parts)} min · ${session.trimesterName} · semana ${session.week}`;
   elements["program-edit-button"].textContent = state.programEditing ? "Hecho" : "Editar";
   elements["program-edit-button"].setAttribute("aria-pressed", String(state.programEditing));
   elements["program-reset-button"].hidden = !edited;
+  const totalMinutes = sessionTotalMinutes(effectiveSession(session, edit).parts);
+  elements["program-start-label"].textContent = state.trainingTimer?.sessionCode === session.code ? "Ver temporizador" : "Empezar";
+  elements["program-start-button"].title = `Empezar el entrenamiento con temporizador (${totalMinutes} min)`;
   elements["program-export-button"].disabled = state.exportingSession;
   elements["program-export-button"].textContent = state.exportingSession ? "Exportando…" : exported ? "Actualizar en Drive" : "Exportar a Drive";
   const exportState = elements["program-export-state"];
@@ -2011,6 +2037,23 @@ function bindEvents() {
   elements["program-reset-button"].addEventListener("click", resetSelectedSession);
   elements["program-export-button"].addEventListener("click", exportSelectedSession);
   elements["program-session-body"].addEventListener("input", handleSessionEditInput);
+  elements["program-start-button"].addEventListener("click", startOrShowTrainingTimer);
+  elements["timer-minimize-button"].addEventListener("click", () => setTimerVisible(false));
+  elements["training-timer-pill"].addEventListener("click", () => setTimerVisible(true));
+  elements["timer-pause-button"].addEventListener("click", toggleTimerPause);
+  elements["timer-prev-button"].addEventListener("click", () => jumpTimerPart(-1));
+  elements["timer-next-button"].addEventListener("click", () => jumpTimerPart(1));
+  elements["timer-stop-button"].addEventListener("click", stopTrainingTimer);
+  elements["timer-segments"].addEventListener("click", event => {
+    const segment = event.target.closest("[data-segment]");
+    if (segment) seekTimerToPart(Number(segment.dataset.segment));
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (state.timerVisible) requestWakeLock();
+      renderTrainingTimer();
+    }
+  });
 
   elements["search-input"].addEventListener("input", event => {
     state.query = event.target.value;
@@ -2126,8 +2169,13 @@ function bindEvents() {
       event.preventDefault();
       saveCurrentNote.flush().then(() => state.connected && connectOrSync());
     }
+    if (state.timerVisible && !editing && event.key === " " && event.target === document.body) {
+      event.preventDefault();
+      toggleTimerPause();
+    }
     if (event.key === "Escape") {
-      if (!elements["apps-menu"].hidden) setAppsMenuOpen(false);
+      if (state.timerVisible) setTimerVisible(false);
+      else if (!elements["apps-menu"].hidden) setAppsMenuOpen(false);
       else if (elements["app-shell"].classList.contains("favorites-open")) setFavoritesOpen(false);
       else setSidebarOpen(false);
     }
@@ -2167,6 +2215,271 @@ function bindEvents() {
   });
 }
 
+const TRAINING_TIMER_KEY = "ninjutsuTrainingTimer";
+let timerInterval = null;
+let timerLastIndex = null;
+let wakeLock = null;
+let audioContext = null;
+
+function timerSession() {
+  const code = state.trainingTimer?.sessionCode;
+  const session = code ? findProgramSession(code) : null;
+  return session ? effectiveSession(session, state.sessionEdits[code]) : null;
+}
+
+function persistTrainingTimer() {
+  db.setSetting(TRAINING_TIMER_KEY, state.trainingTimer).catch(() => {});
+}
+
+async function restoreTrainingTimer() {
+  try {
+    const stored = await db.getSetting(TRAINING_TIMER_KEY, null);
+    if (!stored?.sessionCode || !Number.isFinite(stored.startedAt) || !findProgramSession(stored.sessionCode)) return;
+    // Un temporizador olvidado de otro día no debe reaparecer.
+    if (timerElapsedMs(stored) > 6 * 3600000) {
+      await db.setSetting(TRAINING_TIMER_KEY, null);
+      return;
+    }
+    state.trainingTimer = stored;
+    await loadSessionEdits();
+    startTimerTicking();
+  } catch {
+    state.trainingTimer = null;
+  }
+}
+
+function startTimerTicking() {
+  clearInterval(timerInterval);
+  timerLastIndex = null;
+  timerInterval = setInterval(renderTrainingTimer, 250);
+  renderTrainingTimer();
+}
+
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator) || wakeLock || document.visibilityState !== "visible") return;
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
+  } catch {
+    wakeLock = null;
+  }
+}
+
+function releaseWakeLock() {
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+
+function playTimerChime(times = 2) {
+  try {
+    navigator.vibrate?.(times > 2 ? [300, 120, 300, 120, 600] : [250, 120, 250]);
+    audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+    const start = audioContext.currentTime;
+    for (let index = 0; index < times; index += 1) {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.frequency.value = index === times - 1 ? 1046 : 784;
+      gain.gain.setValueAtTime(0.0001, start + index * 0.28);
+      gain.gain.exponentialRampToValueAtTime(0.35, start + index * 0.28 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.28 + 0.24);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(start + index * 0.28);
+      oscillator.stop(start + index * 0.28 + 0.26);
+    }
+  } catch {
+    // El aviso sonoro es opcional.
+  }
+}
+
+async function startOrShowTrainingTimer() {
+  const session = selectedProgramSession();
+  if (!session) return;
+  if (state.programEditing) await saveSessionEdits.flush();
+  const active = state.trainingTimer;
+  if (active && active.sessionCode !== session.code) {
+    if (!confirm(`Ya hay un entrenamiento en marcha (${active.sessionCode}). ¿Terminarlo y empezar ${session.code}?`)) return;
+    state.trainingTimer = null;
+  }
+  if (!state.trainingTimer) {
+    if (!sessionTotalMinutes(effectiveSession(session, state.sessionEdits[session.code]).parts)) {
+      showToast("Esta sesión no tiene minutos asignados. Edítala para poner la duración de cada bloque.", "error");
+      return;
+    }
+    state.trainingTimer = { sessionCode: session.code, startedAt: Date.now(), pausedMs: 0, pausedAt: null };
+    persistTrainingTimer();
+    // Desbloquea el audio con el gesto del usuario para que suenen los cambios de bloque.
+    try {
+      audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+      audioContext.resume?.();
+    } catch {}
+    startTimerTicking();
+  }
+  setTimerVisible(true);
+  renderProgramHeader(session);
+}
+
+function setTimerVisible(visible) {
+  state.timerVisible = Boolean(visible && state.trainingTimer);
+  elements["training-timer"].hidden = !state.timerVisible;
+  document.body.classList.toggle("timer-open", state.timerVisible);
+  if (state.timerVisible) {
+    requestWakeLock();
+    requestAnimationFrame(() => elements["timer-pause-button"].focus());
+  } else releaseWakeLock();
+  renderTrainingTimer();
+}
+
+function setTimerElapsed(elapsedMs) {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  const reference = timer.pausedAt ?? Date.now();
+  timer.startedAt = reference - (timer.pausedMs || 0) - Math.max(0, elapsedMs);
+  timerLastIndex = null;
+  persistTrainingTimer();
+  renderTrainingTimer();
+}
+
+function seekTimerToPart(index) {
+  const session = timerSession();
+  if (!session) return;
+  const parts = session.parts;
+  const target = Math.max(0, Math.min(index, parts.length));
+  setTimerElapsed(sessionTotalMinutes(parts.slice(0, target)) * 60000);
+}
+
+function jumpTimerPart(direction) {
+  const session = timerSession();
+  if (!session) return;
+  const current = trainingTimerState(session.parts, timerElapsedMs(state.trainingTimer));
+  // «Anterior» vuelve al inicio del bloque actual si ya lleva unos segundos.
+  if (direction < 0 && !current.finished && current.partElapsedMs > 10000) seekTimerToPart(current.index);
+  else seekTimerToPart(current.index + direction);
+}
+
+function toggleTimerPause() {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  if (timer.pausedAt) {
+    timer.pausedMs = (timer.pausedMs || 0) + (Date.now() - timer.pausedAt);
+    timer.pausedAt = null;
+  } else timer.pausedAt = Date.now();
+  persistTrainingTimer();
+  renderTrainingTimer();
+}
+
+function stopTrainingTimer() {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  const session = timerSession();
+  const status = session ? trainingTimerState(session.parts, timerElapsedMs(timer)) : null;
+  if (status && !status.finished && !confirm("¿Terminar el entrenamiento ahora? El temporizador se detendrá.")) return;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  state.trainingTimer = null;
+  persistTrainingTimer();
+  setTimerVisible(false);
+  if (session) {
+    showToast(`${session.code} terminado en ${formatClock(status?.elapsedMs ?? 0)}. Puedes añadir tus notas y exportarla a Drive.`);
+    if (status?.finished) {
+      state.selectedSessionCode = session.code;
+      state.programEditing = true;
+    }
+    if (state.ninjutsuOpen) renderProgram();
+  }
+}
+
+function renderTimerSegments(parts, status) {
+  const container = elements["timer-segments"];
+  if (container.childElementCount !== parts.length || container.dataset.session !== state.trainingTimer.sessionCode) {
+    container.dataset.session = state.trainingTimer.sessionCode;
+    container.replaceChildren(...parts.map((part, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "timer-segment";
+      button.dataset.segment = String(index);
+      button.title = `Ir a ${part.name} (${part.minutes}′)`;
+      const fill = document.createElement("span");
+      fill.className = "timer-segment-fill";
+      const label = document.createElement("span");
+      label.className = "timer-segment-label";
+      label.textContent = part.name;
+      button.append(fill, label);
+      return button;
+    }));
+  }
+  let start = 0;
+  parts.forEach((part, index) => {
+    const duration = (Number(part.minutes) || 0) * 60000;
+    const progress = duration ? Math.min(1, Math.max(0, (status.elapsedMs - start) / duration)) : 1;
+    const button = container.children[index];
+    button.style.flexGrow = String(Math.max(Number(part.minutes) || 0, 0.0001));
+    button.classList.toggle("current", index === status.index);
+    button.classList.toggle("done", index < status.index);
+    button.setAttribute("aria-current", index === status.index ? "step" : "false");
+    button.firstElementChild.style.width = `${progress * 100}%`;
+    start += duration;
+  });
+}
+
+function renderTrainingTimer() {
+  const timer = state.trainingTimer;
+  const session = timer ? timerSession() : null;
+  const pill = elements["training-timer-pill"];
+  if (!timer || !session) {
+    pill.hidden = true;
+    elements["training-timer"].hidden = true;
+    return;
+  }
+  const status = trainingTimerState(session.parts, timerElapsedMs(timer));
+  const paused = Boolean(timer.pausedAt);
+
+  if (timerLastIndex !== null && status.index !== timerLastIndex && !paused) {
+    playTimerChime(status.finished ? 3 : 2);
+    if (status.finished) showToast("Tiempo de entrenamiento completado");
+    else if (!state.timerVisible) showToast(`Ahora: ${status.part.name} (${status.part.minutes}′)`);
+  }
+  timerLastIndex = status.index;
+
+  pill.hidden = state.timerVisible;
+  pill.classList.toggle("paused", paused);
+  pill.classList.toggle("finished", status.finished);
+  elements["training-timer-pill-label"].textContent = status.finished
+    ? `${session.code} · terminado · +${formatClock(status.overtimeMs)}`
+    : `${session.code} · ${status.part.name} · ${formatClock(status.partRemainingMs)}${paused ? " · en pausa" : ""}`;
+
+  if (!state.timerVisible) return;
+  const view = elements["training-timer"];
+  view.classList.toggle("paused", paused);
+  view.classList.toggle("finished", status.finished);
+  view.classList.toggle("ending", !status.finished && status.partRemainingMs <= 60000);
+  elements["timer-session-label"].textContent = `${session.code} · ${session.title}`;
+  elements["timer-total"].textContent = `Transcurrido ${formatClock(status.elapsedMs)} de ${formatClock(status.totalMs)}${status.finished ? "" : ` · quedan ${formatClock(status.remainingMs)}`}`;
+  elements["timer-step"].textContent = status.finished ? "Fin del entrenamiento" : `Bloque ${status.index + 1} de ${session.parts.length}${paused ? " · en pausa" : ""}`;
+  elements["timer-part-name"].textContent = status.finished ? "¡Entrenamiento completado!" : status.part.name;
+  elements["timer-clock"].textContent = status.finished ? `+${formatClock(status.overtimeMs)}` : formatClock(status.partRemainingMs);
+  elements["timer-part-meta"].textContent = status.finished
+    ? "Tiempo extra sobre lo programado"
+    : `quedan en este bloque · ${formatClock(status.partElapsedMs)} de ${status.part.minutes}′`;
+  renderTimerSegments(session.parts, status);
+
+  const items = elements["timer-items"];
+  const itemsKey = `${session.code}:${status.index}:${status.part?.items.join("|") ?? ""}`;
+  if (items.dataset.key !== itemsKey) {
+    items.dataset.key = itemsKey;
+    const source = status.finished ? ["Anota asistentes, qué ha funcionado y lo pendiente, y exporta la sesión a Drive."] : status.part.items;
+    items.replaceChildren(...(source.length ? source : ["Sin contenido para este bloque"]).map(text => {
+      const li = document.createElement("li");
+      li.textContent = text;
+      return li;
+    }));
+  }
+  elements["timer-next"].textContent = status.finished ? "" : status.next ? `Después: ${status.next.name} (${status.next.minutes}′)` : "Último bloque";
+  elements["timer-pause-button"].textContent = paused ? "Reanudar" : "Pausar";
+  elements["timer-prev-button"].disabled = status.index === 0 && status.partElapsedMs <= 10000;
+  elements["timer-next-button"].disabled = status.finished;
+  elements["timer-stop-button"].textContent = status.finished ? "Cerrar y anotar" : "Terminar entrenamiento";
+}
+
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
   try {
@@ -2195,6 +2508,7 @@ async function initialize() {
   bindEvents();
   await db.open();
   await refreshLocalFiles({ selectRecent: true, collapseFolders: true });
+  await restoreTrainingTimer();
   if (location.hash === "#new-note") {
     history.replaceState(null, "", `${location.pathname}${location.search}`);
     queueMicrotask(() => openCreateDialog("note"));
