@@ -5,6 +5,7 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
+import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -22,7 +23,7 @@ const config = Object.freeze({
 
 const elements = Object.fromEntries([
   "app-shell", "menu-button", "sidebar", "sidebar-scrim", "brand-name", "connect-button",
-  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "recipes-button", "ninjutsu-button",
+  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "apps-button", "apps-menu", "recipes-button", "ninjutsu-button",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
   "note-list", "list-heading", "list-count", "folder-actions", "selected-folder-label", "folder-favorite-button", "folder-publish-button", "folder-rename-button", "folder-move-button", "folder-delete-button", "last-sync-label", "settings-button",
@@ -35,6 +36,10 @@ const elements = Object.fromEntries([
   "favorite-note-button", "delete-note-button",
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
+  "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
+  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-start-button", "program-start-label",
+  "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
+  "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -83,7 +88,16 @@ const state = {
   ninjutsuOpen: false,
   ninjutsuQuery: "",
   ninjutsuCategory: "all",
-  selectedNinjutsuId: null
+  selectedNinjutsuId: null,
+  ninjutsuTab: "program",
+  programFilter: "all",
+  selectedSessionCode: null,
+  programEditing: false,
+  sessionEdits: {},
+  sessionEditsLoaded: false,
+  exportingSession: false,
+  trainingTimer: null,
+  timerVisible: false
 };
 
 function showToast(message, type = "info", duration = 4200) {
@@ -652,8 +666,7 @@ async function selectNote(fileId, { mode = "preview" } = {}) {
   await saveCurrentNote.flush();
   state.recipeOpen = false;
   state.ninjutsuOpen = false;
-  elements["recipes-button"].classList.remove("active");
-  elements["ninjutsu-button"].classList.remove("active");
+  updateAppsButton();
   state.selectedId = fileId;
   state.viewMode = mode === "edit" ? "edit" : "preview";
   const note = currentNote();
@@ -1254,8 +1267,7 @@ function setRecipeView(open) {
   elements["ninjutsu-view"].hidden = true;
   elements["welcome-view"].hidden = open || Boolean(currentNote());
   elements["editor-view"].hidden = open || !currentNote();
-  elements["recipes-button"].classList.toggle("active", open);
-  elements["ninjutsu-button"].classList.remove("active");
+  updateAppsButton();
   if (!open) {
     renderEditor();
     return;
@@ -1373,6 +1385,8 @@ function renderNinjutsuDetail(folder) {
 
 function renderNinjutsu() {
   if (!state.ninjutsuOpen) return;
+  renderNinjutsuTabs();
+  renderProgram();
   const folder = ninjutsuFolder();
   const notes = ninjutsuNotes(state.files, folder);
   const categories = ninjutsuCategories(state.files, folder);
@@ -1421,16 +1435,20 @@ function setNinjutsuView(open) {
   elements["recipes-view"].hidden = true;
   elements["welcome-view"].hidden = open || Boolean(currentNote());
   elements["editor-view"].hidden = open || !currentNote();
-  elements["ninjutsu-button"].classList.toggle("active", open);
-  elements["recipes-button"].classList.remove("active");
+  updateAppsButton();
   if (!open) {
     renderEditor();
     return;
   }
   const notes = ninjutsuNotes(state.files, ninjutsuFolder());
   state.selectedNinjutsuId = notes.some(file => file.id === state.selectedNinjutsuId) ? state.selectedNinjutsuId : notes[0]?.id ?? null;
+  if (!state.selectedSessionCode) state.selectedSessionCode = currentOrNextSession()?.code ?? null;
   renderNinjutsu();
-  requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
+  loadSessionEdits().then(() => {
+    renderProgram();
+    if (state.ninjutsuTab === "program") scrollSelectedSessionIntoView();
+  });
+  if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
 }
 
 async function ensureNinjutsuTrainingFolder() {
@@ -1469,6 +1487,444 @@ async function createTraining() {
   }
 }
 
+function updateAppsButton() {
+  elements["apps-button"].classList.toggle("active", state.recipeOpen || state.ninjutsuOpen);
+  elements["recipes-button"].classList.toggle("active", state.recipeOpen);
+  elements["ninjutsu-button"].classList.toggle("active", state.ninjutsuOpen);
+}
+
+function setAppsMenuOpen(open, { restoreFocus = true } = {}) {
+  elements["apps-menu"].hidden = !open;
+  elements["apps-button"].setAttribute("aria-expanded", String(open));
+  if (open) {
+    updateAppsButton();
+    requestAnimationFrame(() => {
+      const items = [...elements["apps-menu"].querySelectorAll(".apps-menu-item")];
+      (items.find(item => item.classList.contains("active")) || items[0])?.focus({ preventScroll: true });
+    });
+  } else if (restoreFocus) {
+    elements["apps-button"].focus({ preventScroll: true });
+  }
+}
+
+function handleAppsMenuKeydown(event) {
+  const items = [...elements["apps-menu"].querySelectorAll(".apps-menu-item")];
+  const index = items.indexOf(document.activeElement);
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    const delta = event.key === "ArrowDown" ? 1 : -1;
+    items[(index + delta + items.length) % items.length]?.focus();
+  } else if (event.key === "Tab") {
+    setAppsMenuOpen(false, { restoreFocus: false });
+  }
+}
+
+function setNinjutsuTab(tab) {
+  state.ninjutsuTab = tab === "library" ? "library" : "program";
+  renderNinjutsu();
+  if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
+  else scrollSelectedSessionIntoView();
+}
+
+function renderNinjutsuTabs() {
+  const program = state.ninjutsuTab === "program";
+  elements["ninjutsu-program-panel"].hidden = !program;
+  elements["ninjutsu-library-panel"].hidden = program;
+  for (const [tab, active] of [[elements["ninjutsu-tab-program"], program], [elements["ninjutsu-tab-library"], !program]]) {
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+  }
+}
+
+const SESSION_EDITS_KEY = `ninjutsuSessionEdits:${NINJUTSU_PROGRAM.id}`;
+
+async function loadSessionEdits() {
+  if (state.sessionEditsLoaded) return;
+  try {
+    const stored = await db.getSetting(SESSION_EDITS_KEY, {});
+    state.sessionEdits = stored && typeof stored === "object" ? stored : {};
+  } catch {
+    state.sessionEdits = {};
+  }
+  state.sessionEditsLoaded = true;
+}
+
+const saveSessionEdits = debounce(async () => {
+  try {
+    await db.setSetting(SESSION_EDITS_KEY, state.sessionEdits);
+  } catch (error) {
+    showToast(error.message || "No se pudieron guardar los cambios de la sesión", "error");
+  }
+}, 400);
+
+function selectedProgramSession() {
+  return findProgramSession(state.selectedSessionCode) ?? currentOrNextSession();
+}
+
+function sessionExportFolder() {
+  const root = ninjutsuFolder();
+  const training = root ? findNinjutsuTrainingFolder(state.files, root) : null;
+  if (!training) return null;
+  return state.files.find(file => file.kind === "folder" && !file.trashed && file.parentId === training.id && file.name === PROGRAM_EXPORT_FOLDER_NAME) ?? null;
+}
+
+function exportedNoteFor(session, folder = sessionExportFolder()) {
+  return findExportedSessionNote(state.files, folder, session, state.sessionEdits[session.code]);
+}
+
+function selectProgramSession(code) {
+  if (state.programEditing) saveSessionEdits.flush();
+  state.selectedSessionCode = code;
+  state.programEditing = false;
+  renderProgram();
+}
+
+function scrollSelectedSessionIntoView() {
+  requestAnimationFrame(() => {
+    elements["program-week-list"].querySelector(".program-session-item.selected")?.scrollIntoView({ block: "nearest" });
+  });
+}
+
+function createChip(text, className) {
+  const chip = document.createElement("span");
+  chip.className = `program-chip ${className}`;
+  chip.textContent = text;
+  return chip;
+}
+
+function instructorChip(session, { long = false } = {}) {
+  const label = long && session.provisional ? `${session.instructor} · provisional` : session.instructor;
+  const chip = createChip(label, `instructor ${session.instructor === "Carlos" ? "carlos" : "julio"}${session.provisional ? " provisional" : ""}`);
+  if (session.provisional) chip.title = "Reparto provisional: falta confirmar disponibilidad";
+  return chip;
+}
+
+function renderProgramList() {
+  const today = new Date().toLocaleDateString("sv-SE");
+  const nextCode = currentOrNextSession(today)?.code;
+  const folder = sessionExportFolder();
+  for (const button of document.querySelectorAll("[data-program-filter]")) {
+    const active = button.dataset.programFilter === state.programFilter;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  const list = elements["program-week-list"];
+  list.replaceChildren();
+  for (const trimester of NINJUTSU_PROGRAM.trimesters) {
+    const group = document.createElement("section");
+    group.className = "program-trimester";
+    const heading = document.createElement("h3");
+    heading.textContent = trimester.name;
+    group.append(heading);
+    for (const week of trimester.weeks) {
+      const sessions = week.sessions.filter(session => state.programFilter === "all" || session.day === state.programFilter);
+      if (!sessions.length) continue;
+      const weekBlock = document.createElement("div");
+      weekBlock.className = "program-week";
+      const weekLabel = document.createElement("div");
+      weekLabel.className = "program-week-label";
+      weekLabel.textContent = `Semana ${week.week}`;
+      weekBlock.append(weekLabel);
+      for (const base of sessions) {
+        const session = findProgramSession(base.code);
+        const selected = session.code === state.selectedSessionCode;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `program-session-item ${session.day}${selected ? " selected" : ""}${session.date < today ? " past" : ""}`;
+        button.setAttribute("aria-current", String(selected));
+        const top = document.createElement("span");
+        top.className = "program-session-item-top";
+        const code = document.createElement("strong");
+        code.className = "program-code";
+        code.textContent = session.code;
+        const date = document.createElement("span");
+        date.textContent = `${session.dayLabel.slice(0, 3)} ${formatSessionDate(session)}`;
+        top.append(code, date);
+        if (session.code === nextCode) top.append(createChip("Próxima", "next"));
+        const title = document.createElement("span");
+        title.className = "program-session-item-title";
+        title.textContent = session.title;
+        const flags = document.createElement("span");
+        flags.className = "program-session-item-flags";
+        flags.append(instructorChip(session));
+        if (session.nonTeaching) flags.append(createChip("No lectivo", "warning"));
+        if (isSessionEdited(session, state.sessionEdits[session.code])) flags.append(createChip("Editada", "edited"));
+        if (exportedNoteFor(session, folder)) flags.append(createChip("En Drive", "exported"));
+        button.append(top, title, flags);
+        button.addEventListener("click", () => selectProgramSession(session.code));
+        weekBlock.append(button);
+      }
+      group.append(weekBlock);
+    }
+    list.append(group);
+  }
+}
+
+function renderSessionView(session, edit) {
+  const effective = effectiveSession(session, edit);
+  const body = document.createDocumentFragment();
+  if (session.nonTeaching) {
+    const alert = document.createElement("p");
+    alert.className = "program-alert";
+    alert.textContent = "Día no lectivo en la UVa: confirma si hay clase o traslada la sesión.";
+    body.append(alert);
+  }
+  effective.parts.forEach((part, index) => {
+    const section = document.createElement("section");
+    section.className = "program-part";
+    const heading = document.createElement("h3");
+    const name = document.createElement("span");
+    name.textContent = part.name;
+    const minutes = document.createElement("span");
+    minutes.className = "program-minutes";
+    minutes.textContent = part.minutes ? `${part.minutes}′` : "";
+    heading.append(name, minutes);
+    const list = document.createElement("ul");
+    const added = addedItems(session.parts[index], part.items);
+    for (const item of part.items) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      if (added.has(item)) {
+        li.classList.add("added");
+        li.title = "Añadido por ti";
+      }
+      list.append(li);
+    }
+    if (!part.items.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Sin contenido";
+      list.append(li);
+    }
+    section.append(heading, list);
+    body.append(section);
+  });
+  if (effective.notes.trim()) {
+    const notes = document.createElement("section");
+    notes.className = "program-notes";
+    const heading = document.createElement("h3");
+    heading.textContent = "Mis notas";
+    const content = document.createElement("div");
+    content.className = "markdown-body";
+    content.innerHTML = renderMarkdown(effective.notes);
+    notes.append(heading, content);
+    body.append(notes);
+  }
+  if (session.levels?.length) {
+    const levels = document.createElement("dl");
+    levels.className = "program-levels";
+    for (const level of session.levels) {
+      const row = document.createElement("div");
+      const dt = document.createElement("dt");
+      dt.textContent = level.grades;
+      const dd = document.createElement("dd");
+      dd.textContent = level.text;
+      row.append(dt, dd);
+      levels.append(row);
+    }
+    body.append(levels);
+  }
+  if (session.reviews?.length) {
+    const reviews = document.createElement("div");
+    reviews.className = "program-reviews";
+    const title = document.createElement("p");
+    title.textContent = "Repaso espaciado · último trabajo hace";
+    const list = document.createElement("ul");
+    for (const review of session.reviews) {
+      const li = document.createElement("li");
+      const topic = document.createElement("span");
+      topic.textContent = review.topic;
+      const gap = document.createElement("strong");
+      gap.textContent = review.gap;
+      li.append(topic, gap);
+      list.append(li);
+    }
+    reviews.append(title, list);
+    body.append(reviews);
+  }
+  if (session.note) {
+    const note = document.createElement("p");
+    note.className = "program-note";
+    note.textContent = session.note;
+    body.append(note);
+  }
+  return body;
+}
+
+function renderSessionEditor(session, edit) {
+  const effective = effectiveSession(session, edit);
+  const form = document.createDocumentFragment();
+  const hint = document.createElement("p");
+  hint.className = "program-edit-hint";
+  hint.textContent = "Un elemento por línea; ajusta los minutos de cada bloque para el temporizador. Los cambios se guardan solos en este dispositivo; pulsa «Exportar a Drive» para dejar la sesión en tu carpeta.";
+  form.append(hint);
+  effective.parts.forEach((part, index) => {
+    const id = `program-part-${index}`;
+    const row = document.createElement("div");
+    row.className = "program-part-label-row";
+    const label = document.createElement("label");
+    label.className = "field-label program-part-label";
+    label.htmlFor = id;
+    label.textContent = part.name;
+    const minutesLabel = document.createElement("label");
+    minutesLabel.className = "program-minutes-field";
+    const minutesInput = document.createElement("input");
+    minutesInput.type = "number";
+    minutesInput.min = "0";
+    minutesInput.max = "600";
+    minutesInput.step = "1";
+    minutesInput.inputMode = "numeric";
+    minutesInput.value = String(part.minutes ?? 0);
+    minutesInput.dataset.partMinutes = String(index);
+    minutesInput.setAttribute("aria-label", `Minutos de ${part.name}`);
+    minutesLabel.append(minutesInput, " min");
+    row.append(label, minutesLabel);
+    const textarea = document.createElement("textarea");
+    textarea.id = id;
+    textarea.className = "program-textarea";
+    textarea.dataset.partIndex = String(index);
+    textarea.rows = Math.max(2, part.items.length);
+    textarea.value = part.items.join("\n");
+    form.append(row, textarea);
+  });
+  const notesLabel = document.createElement("label");
+  notesLabel.className = "field-label program-part-label";
+  notesLabel.htmlFor = "program-notes-input";
+  notesLabel.textContent = "Mis notas (asistentes, qué funcionó, pendientes…)";
+  const notes = document.createElement("textarea");
+  notes.id = "program-notes-input";
+  notes.className = "program-textarea program-notes-input";
+  notes.dataset.notes = "true";
+  notes.rows = 5;
+  notes.placeholder = "Admite Markdown";
+  notes.value = effective.notes;
+  form.append(notesLabel, notes);
+  return form;
+}
+
+function autoSizeTextarea(textarea) {
+  textarea.style.height = "auto";
+  textarea.style.height = `${textarea.scrollHeight + 2}px`;
+}
+
+function handleSessionEditInput(event) {
+  const target = event.target;
+  const minutesField = target instanceof HTMLInputElement && target.dataset.partMinutes !== undefined;
+  if (!(target instanceof HTMLTextAreaElement) && !minutesField) return;
+  if (!minutesField) autoSizeTextarea(target);
+  const session = selectedProgramSession();
+  if (!session) return;
+  const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
+  if (!edit.parts?.length) edit.parts = createSessionEdit(session).parts;
+  if (minutesField) {
+    const index = Number(target.dataset.partMinutes);
+    if (edit.parts[index]) edit.parts[index].minutes = parseMinutes(target.value, edit.parts[index].minutes);
+  } else if (target.dataset.notes) edit.notes = target.value;
+  else {
+    const index = Number(target.dataset.partIndex);
+    if (edit.parts[index]) edit.parts[index].items = itemsFromText(target.value);
+  }
+  edit.updatedAt = new Date().toISOString();
+  state.sessionEdits[session.code] = edit;
+  saveSessionEdits();
+  renderProgramHeader(session);
+}
+
+function renderProgramHeader(session) {
+  const edit = state.sessionEdits[session.code];
+  const edited = isSessionEdited(session, edit);
+  const exported = exportedNoteFor(session);
+  const badges = elements["program-session-badges"];
+  badges.replaceChildren(createChip(session.code, `code ${session.day}`), instructorChip(session, { long: true }));
+  if (session.done) badges.append(createChip("Impartida", "done"));
+  if (edited) badges.append(createChip("Editada", "edited"));
+  elements["program-session-title"].textContent = session.title;
+  elements["program-session-meta"].textContent = `${formatSessionDate(session, { long: true })} · 21:00–22:30 · ${sessionTotalMinutes(effectiveSession(session, edit).parts)} min · ${session.trimesterName} · semana ${session.week}`;
+  elements["program-edit-button"].textContent = state.programEditing ? "Hecho" : "Editar";
+  elements["program-edit-button"].setAttribute("aria-pressed", String(state.programEditing));
+  elements["program-reset-button"].hidden = !edited;
+  const totalMinutes = sessionTotalMinutes(effectiveSession(session, edit).parts);
+  elements["program-start-label"].textContent = state.trainingTimer?.sessionCode === session.code ? "Ver temporizador" : "Empezar";
+  elements["program-start-button"].title = `Empezar el entrenamiento con temporizador (${totalMinutes} min)`;
+  elements["program-export-button"].disabled = state.exportingSession;
+  elements["program-export-button"].textContent = state.exportingSession ? "Exportando…" : exported ? "Actualizar en Drive" : "Exportar a Drive";
+  const exportState = elements["program-export-state"];
+  if (exported) {
+    exportState.textContent = `${exported.dirty ? "Pendiente de subir a Drive" : "Guardada en Drive"} · ${exported.path || exported.name}`;
+    exportState.dataset.state = exported.dirty ? "local" : "synced";
+  } else {
+    exportState.textContent = `Al exportar se guardará en ${NINJUTSU_FOLDERS.root} / ${NINJUTSU_FOLDERS.training} / ${PROGRAM_EXPORT_FOLDER_NAME}`;
+    exportState.dataset.state = "none";
+  }
+}
+
+function renderProgram() {
+  if (!state.ninjutsuOpen || state.ninjutsuTab !== "program") return;
+  const session = selectedProgramSession();
+  if (!session) return;
+  state.selectedSessionCode = session.code;
+  renderProgramList();
+  renderProgramHeader(session);
+  const body = elements["program-session-body"];
+  const mode = state.programEditing ? "edit" : "view";
+  if (mode === "edit" && body.dataset.mode === "edit" && body.dataset.session === session.code) return;
+  body.dataset.mode = mode;
+  body.dataset.session = session.code;
+  const edit = state.sessionEdits[session.code];
+  body.replaceChildren(mode === "edit" ? renderSessionEditor(session, edit) : renderSessionView(session, edit));
+  if (mode === "edit") requestAnimationFrame(() => body.querySelectorAll("textarea").forEach(autoSizeTextarea));
+}
+
+async function resetSelectedSession() {
+  const session = selectedProgramSession();
+  if (!session || !confirm(`¿Restaurar ${session.code} al contenido original de la programación? Se perderán tus añadidos.`)) return;
+  const exportedFileId = state.sessionEdits[session.code]?.exportedFileId;
+  if (exportedFileId) state.sessionEdits[session.code] = { ...createSessionEdit(session), exportedFileId };
+  else delete state.sessionEdits[session.code];
+  await saveSessionEdits.flush();
+  state.programEditing = false;
+  renderProgram();
+  showToast("Sesión restaurada");
+}
+
+async function ensureProgramExportFolder() {
+  const training = await ensureNinjutsuTrainingFolder();
+  let folder = sessionExportFolder();
+  if (!folder) {
+    folder = await syncEngine.createFolder(training.id, PROGRAM_EXPORT_FOLDER_NAME);
+    await refreshLocalFiles();
+    folder = sessionExportFolder() || folder;
+  }
+  return folder;
+}
+
+async function exportSelectedSession() {
+  const session = selectedProgramSession();
+  if (!session || state.exportingSession) return;
+  state.exportingSession = true;
+  renderProgramHeader(session);
+  try {
+    await saveSessionEdits.flush();
+    const folder = await ensureProgramExportFolder();
+    const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
+    const markdown = sessionToMarkdown(session, edit);
+    const existing = findExportedSessionNote(state.files, folder, session, edit);
+    let noteId = existing?.id;
+    if (existing) await syncEngine.updateNote(existing.id, markdown);
+    else noteId = (await syncEngine.createNote(folder.id, sessionExportBaseName(session), markdown)).id;
+    state.sessionEdits[session.code] = { ...edit, exportedFileId: noteId, exportedAt: new Date().toISOString() };
+    await saveSessionEdits.flush();
+    await refreshLocalFiles();
+    requestSyncSoon();
+    showToast(state.connected ? `${session.code} exportada a Drive` : `${session.code} exportada; se subirá a Drive al conectar`);
+  } catch (error) {
+    showToast(error.message || "No se pudo exportar la sesión", "error");
+  } finally {
+    state.exportingSession = false;
+    renderProgram();
+  }
+}
+
 function bindEvents() {
   elements["menu-button"].addEventListener("click", () => setSidebarOpen(!elements["app-shell"].classList.contains("sidebar-open")));
   elements["sidebar-scrim"].addEventListener("click", () => setSidebarOpen(false));
@@ -1478,8 +1934,24 @@ function bindEvents() {
   });
   elements["favorites-close-button"].addEventListener("click", () => setFavoritesOpen(false));
   elements["favorites-scrim"].addEventListener("click", () => setFavoritesOpen(false));
-  elements["recipes-button"].addEventListener("click", () => setRecipeView(!state.recipeOpen));
-  elements["ninjutsu-button"].addEventListener("click", () => setNinjutsuView(!state.ninjutsuOpen));
+  elements["apps-button"].addEventListener("click", event => {
+    event.stopPropagation();
+    setAppsMenuOpen(elements["apps-menu"].hidden);
+  });
+  elements["apps-menu"].addEventListener("keydown", handleAppsMenuKeydown);
+  document.addEventListener("click", event => {
+    if (!elements["apps-menu"].hidden && !event.target.closest?.(".apps-menu-wrapper")) setAppsMenuOpen(false, { restoreFocus: false });
+  });
+  elements["recipes-button"].addEventListener("click", () => {
+    setAppsMenuOpen(false, { restoreFocus: false });
+    setFavoritesOpen(false, { restoreFocus: false });
+    setRecipeView(true);
+  });
+  elements["ninjutsu-button"].addEventListener("click", () => {
+    setAppsMenuOpen(false, { restoreFocus: false });
+    setFavoritesOpen(false, { restoreFocus: false });
+    setNinjutsuView(true);
+  });
   elements["theme-button"].addEventListener("click", cycleTheme);
   elements["connect-button"].addEventListener("click", connectOrSync);
   elements["welcome-connect-button"].addEventListener("click", connectOrSync);
@@ -1540,6 +2012,48 @@ function bindEvents() {
     if (note) selectNote(note.id);
   });
   elements["new-training-button"].addEventListener("click", createTraining);
+  for (const tab of [elements["ninjutsu-tab-program"], elements["ninjutsu-tab-library"]]) {
+    tab.addEventListener("click", () => setNinjutsuTab(tab.dataset.ninjutsuTab));
+  }
+  for (const button of document.querySelectorAll("[data-program-filter]")) {
+    button.addEventListener("click", () => {
+      state.programFilter = button.dataset.programFilter;
+      renderProgram();
+    });
+  }
+  elements["program-today-button"].addEventListener("click", () => {
+    const next = currentOrNextSession();
+    if (!next) return;
+    if (state.programFilter !== "all" && state.programFilter !== next.day) state.programFilter = "all";
+    selectProgramSession(next.code);
+    scrollSelectedSessionIntoView();
+  });
+  elements["program-edit-button"].addEventListener("click", () => {
+    if (state.programEditing) saveSessionEdits.flush();
+    state.programEditing = !state.programEditing;
+    renderProgram();
+    if (state.programEditing) requestAnimationFrame(() => elements["program-session-body"].querySelector("textarea")?.focus());
+  });
+  elements["program-reset-button"].addEventListener("click", resetSelectedSession);
+  elements["program-export-button"].addEventListener("click", exportSelectedSession);
+  elements["program-session-body"].addEventListener("input", handleSessionEditInput);
+  elements["program-start-button"].addEventListener("click", startOrShowTrainingTimer);
+  elements["timer-minimize-button"].addEventListener("click", () => setTimerVisible(false));
+  elements["training-timer-pill"].addEventListener("click", () => setTimerVisible(true));
+  elements["timer-pause-button"].addEventListener("click", toggleTimerPause);
+  elements["timer-prev-button"].addEventListener("click", () => jumpTimerPart(-1));
+  elements["timer-next-button"].addEventListener("click", () => jumpTimerPart(1));
+  elements["timer-stop-button"].addEventListener("click", stopTrainingTimer);
+  elements["timer-segments"].addEventListener("click", event => {
+    const segment = event.target.closest("[data-segment]");
+    if (segment) seekTimerToPart(Number(segment.dataset.segment));
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (state.timerVisible) requestWakeLock();
+      renderTrainingTimer();
+    }
+  });
 
   elements["search-input"].addEventListener("input", event => {
     state.query = event.target.value;
@@ -1638,7 +2152,7 @@ function bindEvents() {
   addEventListener("keydown", event => {
     const modifier = event.metaKey || event.ctrlKey;
     const editing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement || event.target?.isContentEditable;
-    if (state.ninjutsuOpen && event.key === "/" && !editing) {
+    if (state.ninjutsuOpen && state.ninjutsuTab === "library" && event.key === "/" && !editing) {
       event.preventDefault();
       elements["ninjutsu-search-input"].focus();
     }
@@ -1655,8 +2169,14 @@ function bindEvents() {
       event.preventDefault();
       saveCurrentNote.flush().then(() => state.connected && connectOrSync());
     }
+    if (state.timerVisible && !editing && event.key === " " && event.target === document.body) {
+      event.preventDefault();
+      toggleTimerPause();
+    }
     if (event.key === "Escape") {
-      if (elements["app-shell"].classList.contains("favorites-open")) setFavoritesOpen(false);
+      if (state.timerVisible) setTimerVisible(false);
+      else if (!elements["apps-menu"].hidden) setAppsMenuOpen(false);
+      else if (elements["app-shell"].classList.contains("favorites-open")) setFavoritesOpen(false);
       else setSidebarOpen(false);
     }
   });
@@ -1695,6 +2215,271 @@ function bindEvents() {
   });
 }
 
+const TRAINING_TIMER_KEY = "ninjutsuTrainingTimer";
+let timerInterval = null;
+let timerLastIndex = null;
+let wakeLock = null;
+let audioContext = null;
+
+function timerSession() {
+  const code = state.trainingTimer?.sessionCode;
+  const session = code ? findProgramSession(code) : null;
+  return session ? effectiveSession(session, state.sessionEdits[code]) : null;
+}
+
+function persistTrainingTimer() {
+  db.setSetting(TRAINING_TIMER_KEY, state.trainingTimer).catch(() => {});
+}
+
+async function restoreTrainingTimer() {
+  try {
+    const stored = await db.getSetting(TRAINING_TIMER_KEY, null);
+    if (!stored?.sessionCode || !Number.isFinite(stored.startedAt) || !findProgramSession(stored.sessionCode)) return;
+    // Un temporizador olvidado de otro día no debe reaparecer.
+    if (timerElapsedMs(stored) > 6 * 3600000) {
+      await db.setSetting(TRAINING_TIMER_KEY, null);
+      return;
+    }
+    state.trainingTimer = stored;
+    await loadSessionEdits();
+    startTimerTicking();
+  } catch {
+    state.trainingTimer = null;
+  }
+}
+
+function startTimerTicking() {
+  clearInterval(timerInterval);
+  timerLastIndex = null;
+  timerInterval = setInterval(renderTrainingTimer, 250);
+  renderTrainingTimer();
+}
+
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator) || wakeLock || document.visibilityState !== "visible") return;
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
+  } catch {
+    wakeLock = null;
+  }
+}
+
+function releaseWakeLock() {
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+
+function playTimerChime(times = 2) {
+  try {
+    navigator.vibrate?.(times > 2 ? [300, 120, 300, 120, 600] : [250, 120, 250]);
+    audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+    const start = audioContext.currentTime;
+    for (let index = 0; index < times; index += 1) {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.frequency.value = index === times - 1 ? 1046 : 784;
+      gain.gain.setValueAtTime(0.0001, start + index * 0.28);
+      gain.gain.exponentialRampToValueAtTime(0.35, start + index * 0.28 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.28 + 0.24);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(start + index * 0.28);
+      oscillator.stop(start + index * 0.28 + 0.26);
+    }
+  } catch {
+    // El aviso sonoro es opcional.
+  }
+}
+
+async function startOrShowTrainingTimer() {
+  const session = selectedProgramSession();
+  if (!session) return;
+  if (state.programEditing) await saveSessionEdits.flush();
+  const active = state.trainingTimer;
+  if (active && active.sessionCode !== session.code) {
+    if (!confirm(`Ya hay un entrenamiento en marcha (${active.sessionCode}). ¿Terminarlo y empezar ${session.code}?`)) return;
+    state.trainingTimer = null;
+  }
+  if (!state.trainingTimer) {
+    if (!sessionTotalMinutes(effectiveSession(session, state.sessionEdits[session.code]).parts)) {
+      showToast("Esta sesión no tiene minutos asignados. Edítala para poner la duración de cada bloque.", "error");
+      return;
+    }
+    state.trainingTimer = { sessionCode: session.code, startedAt: Date.now(), pausedMs: 0, pausedAt: null };
+    persistTrainingTimer();
+    // Desbloquea el audio con el gesto del usuario para que suenen los cambios de bloque.
+    try {
+      audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+      audioContext.resume?.();
+    } catch {}
+    startTimerTicking();
+  }
+  setTimerVisible(true);
+  renderProgramHeader(session);
+}
+
+function setTimerVisible(visible) {
+  state.timerVisible = Boolean(visible && state.trainingTimer);
+  elements["training-timer"].hidden = !state.timerVisible;
+  document.body.classList.toggle("timer-open", state.timerVisible);
+  if (state.timerVisible) {
+    requestWakeLock();
+    requestAnimationFrame(() => elements["timer-pause-button"].focus());
+  } else releaseWakeLock();
+  renderTrainingTimer();
+}
+
+function setTimerElapsed(elapsedMs) {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  const reference = timer.pausedAt ?? Date.now();
+  timer.startedAt = reference - (timer.pausedMs || 0) - Math.max(0, elapsedMs);
+  timerLastIndex = null;
+  persistTrainingTimer();
+  renderTrainingTimer();
+}
+
+function seekTimerToPart(index) {
+  const session = timerSession();
+  if (!session) return;
+  const parts = session.parts;
+  const target = Math.max(0, Math.min(index, parts.length));
+  setTimerElapsed(sessionTotalMinutes(parts.slice(0, target)) * 60000);
+}
+
+function jumpTimerPart(direction) {
+  const session = timerSession();
+  if (!session) return;
+  const current = trainingTimerState(session.parts, timerElapsedMs(state.trainingTimer));
+  // «Anterior» vuelve al inicio del bloque actual si ya lleva unos segundos.
+  if (direction < 0 && !current.finished && current.partElapsedMs > 10000) seekTimerToPart(current.index);
+  else seekTimerToPart(current.index + direction);
+}
+
+function toggleTimerPause() {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  if (timer.pausedAt) {
+    timer.pausedMs = (timer.pausedMs || 0) + (Date.now() - timer.pausedAt);
+    timer.pausedAt = null;
+  } else timer.pausedAt = Date.now();
+  persistTrainingTimer();
+  renderTrainingTimer();
+}
+
+function stopTrainingTimer() {
+  const timer = state.trainingTimer;
+  if (!timer) return;
+  const session = timerSession();
+  const status = session ? trainingTimerState(session.parts, timerElapsedMs(timer)) : null;
+  if (status && !status.finished && !confirm("¿Terminar el entrenamiento ahora? El temporizador se detendrá.")) return;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  state.trainingTimer = null;
+  persistTrainingTimer();
+  setTimerVisible(false);
+  if (session) {
+    showToast(`${session.code} terminado en ${formatClock(status?.elapsedMs ?? 0)}. Puedes añadir tus notas y exportarla a Drive.`);
+    if (status?.finished) {
+      state.selectedSessionCode = session.code;
+      state.programEditing = true;
+    }
+    if (state.ninjutsuOpen) renderProgram();
+  }
+}
+
+function renderTimerSegments(parts, status) {
+  const container = elements["timer-segments"];
+  if (container.childElementCount !== parts.length || container.dataset.session !== state.trainingTimer.sessionCode) {
+    container.dataset.session = state.trainingTimer.sessionCode;
+    container.replaceChildren(...parts.map((part, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "timer-segment";
+      button.dataset.segment = String(index);
+      button.title = `Ir a ${part.name} (${part.minutes}′)`;
+      const fill = document.createElement("span");
+      fill.className = "timer-segment-fill";
+      const label = document.createElement("span");
+      label.className = "timer-segment-label";
+      label.textContent = part.name;
+      button.append(fill, label);
+      return button;
+    }));
+  }
+  let start = 0;
+  parts.forEach((part, index) => {
+    const duration = (Number(part.minutes) || 0) * 60000;
+    const progress = duration ? Math.min(1, Math.max(0, (status.elapsedMs - start) / duration)) : 1;
+    const button = container.children[index];
+    button.style.flexGrow = String(Math.max(Number(part.minutes) || 0, 0.0001));
+    button.classList.toggle("current", index === status.index);
+    button.classList.toggle("done", index < status.index);
+    button.setAttribute("aria-current", index === status.index ? "step" : "false");
+    button.firstElementChild.style.width = `${progress * 100}%`;
+    start += duration;
+  });
+}
+
+function renderTrainingTimer() {
+  const timer = state.trainingTimer;
+  const session = timer ? timerSession() : null;
+  const pill = elements["training-timer-pill"];
+  if (!timer || !session) {
+    pill.hidden = true;
+    elements["training-timer"].hidden = true;
+    return;
+  }
+  const status = trainingTimerState(session.parts, timerElapsedMs(timer));
+  const paused = Boolean(timer.pausedAt);
+
+  if (timerLastIndex !== null && status.index !== timerLastIndex && !paused) {
+    playTimerChime(status.finished ? 3 : 2);
+    if (status.finished) showToast("Tiempo de entrenamiento completado");
+    else if (!state.timerVisible) showToast(`Ahora: ${status.part.name} (${status.part.minutes}′)`);
+  }
+  timerLastIndex = status.index;
+
+  pill.hidden = state.timerVisible;
+  pill.classList.toggle("paused", paused);
+  pill.classList.toggle("finished", status.finished);
+  elements["training-timer-pill-label"].textContent = status.finished
+    ? `${session.code} · terminado · +${formatClock(status.overtimeMs)}`
+    : `${session.code} · ${status.part.name} · ${formatClock(status.partRemainingMs)}${paused ? " · en pausa" : ""}`;
+
+  if (!state.timerVisible) return;
+  const view = elements["training-timer"];
+  view.classList.toggle("paused", paused);
+  view.classList.toggle("finished", status.finished);
+  view.classList.toggle("ending", !status.finished && status.partRemainingMs <= 60000);
+  elements["timer-session-label"].textContent = `${session.code} · ${session.title}`;
+  elements["timer-total"].textContent = `Transcurrido ${formatClock(status.elapsedMs)} de ${formatClock(status.totalMs)}${status.finished ? "" : ` · quedan ${formatClock(status.remainingMs)}`}`;
+  elements["timer-step"].textContent = status.finished ? "Fin del entrenamiento" : `Bloque ${status.index + 1} de ${session.parts.length}${paused ? " · en pausa" : ""}`;
+  elements["timer-part-name"].textContent = status.finished ? "¡Entrenamiento completado!" : status.part.name;
+  elements["timer-clock"].textContent = status.finished ? `+${formatClock(status.overtimeMs)}` : formatClock(status.partRemainingMs);
+  elements["timer-part-meta"].textContent = status.finished
+    ? "Tiempo extra sobre lo programado"
+    : `quedan en este bloque · ${formatClock(status.partElapsedMs)} de ${status.part.minutes}′`;
+  renderTimerSegments(session.parts, status);
+
+  const items = elements["timer-items"];
+  const itemsKey = `${session.code}:${status.index}:${status.part?.items.join("|") ?? ""}`;
+  if (items.dataset.key !== itemsKey) {
+    items.dataset.key = itemsKey;
+    const source = status.finished ? ["Anota asistentes, qué ha funcionado y lo pendiente, y exporta la sesión a Drive."] : status.part.items;
+    items.replaceChildren(...(source.length ? source : ["Sin contenido para este bloque"]).map(text => {
+      const li = document.createElement("li");
+      li.textContent = text;
+      return li;
+    }));
+  }
+  elements["timer-next"].textContent = status.finished ? "" : status.next ? `Después: ${status.next.name} (${status.next.minutes}′)` : "Último bloque";
+  elements["timer-pause-button"].textContent = paused ? "Reanudar" : "Pausar";
+  elements["timer-prev-button"].disabled = status.index === 0 && status.partElapsedMs <= 10000;
+  elements["timer-next-button"].disabled = status.finished;
+  elements["timer-stop-button"].textContent = status.finished ? "Cerrar y anotar" : "Terminar entrenamiento";
+}
+
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
   try {
@@ -1723,6 +2508,7 @@ async function initialize() {
   bindEvents();
   await db.open();
   await refreshLocalFiles({ selectRecent: true, collapseFolders: true });
+  await restoreTrainingTimer();
   if (location.hash === "#new-note") {
     history.replaceState(null, "", `${location.pathname}${location.search}`);
     queueMicrotask(() => openCreateDialog("note"));
