@@ -5,7 +5,7 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
-import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
+import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -37,7 +37,7 @@ const elements = Object.fromEntries([
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
-  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-start-button", "program-start-label",
+  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -1699,17 +1699,6 @@ function renderSessionView(session, edit) {
     section.append(heading, list);
     body.append(section);
   });
-  if (effective.notes.trim()) {
-    const notes = document.createElement("section");
-    notes.className = "program-notes";
-    const heading = document.createElement("h3");
-    heading.textContent = "Mis notas";
-    const content = document.createElement("div");
-    content.className = "markdown-body";
-    content.innerHTML = renderMarkdown(effective.notes);
-    notes.append(heading, content);
-    body.append(notes);
-  }
   if (session.levels?.length) {
     const levels = document.createElement("dl");
     levels.className = "program-levels";
@@ -1787,18 +1776,6 @@ function renderSessionEditor(session, edit) {
     textarea.value = part.items.join("\n");
     form.append(row, textarea);
   });
-  const notesLabel = document.createElement("label");
-  notesLabel.className = "field-label program-part-label";
-  notesLabel.htmlFor = "program-notes-input";
-  notesLabel.textContent = "Mis notas (asistentes, qué funcionó, pendientes…)";
-  const notes = document.createElement("textarea");
-  notes.id = "program-notes-input";
-  notes.className = "program-textarea program-notes-input";
-  notes.dataset.notes = "true";
-  notes.rows = 5;
-  notes.placeholder = "Admite Markdown";
-  notes.value = effective.notes;
-  form.append(notesLabel, notes);
   return form;
 }
 
@@ -1819,7 +1796,10 @@ function handleSessionEditInput(event) {
   if (minutesField) {
     const index = Number(target.dataset.partMinutes);
     if (edit.parts[index]) edit.parts[index].minutes = parseMinutes(target.value, edit.parts[index].minutes);
-  } else if (target.dataset.notes) edit.notes = target.value;
+  } else if (target.dataset.freeField) {
+    edit[target.dataset.freeField] = target.value;
+    if (target.dataset.freeField === "notices") target.closest(".program-free-box").classList.toggle("filled", Boolean(target.value.trim()));
+  }
   else {
     const index = Number(target.dataset.partIndex);
     if (edit.parts[index]) edit.parts[index].items = itemsFromText(target.value);
@@ -1842,7 +1822,7 @@ function renderProgramHeader(session) {
   elements["program-session-meta"].textContent = `${formatSessionDate(session, { long: true })} · 21:00–22:30 · ${sessionTotalMinutes(effectiveSession(session, edit).parts)} min · ${session.trimesterName} · semana ${session.week}`;
   elements["program-edit-button"].textContent = state.programEditing ? "Hecho" : "Editar";
   elements["program-edit-button"].setAttribute("aria-pressed", String(state.programEditing));
-  elements["program-reset-button"].hidden = !edited;
+  elements["program-reset-button"].hidden = !arePartsEdited(session, edit);
   const totalMinutes = sessionTotalMinutes(effectiveSession(session, edit).parts);
   elements["program-start-label"].textContent = state.trainingTimer?.sessionCode === session.code ? "Ver temporizador" : "Empezar";
   elements["program-start-button"].title = `Empezar el entrenamiento con temporizador (${totalMinutes} min)`;
@@ -1867,6 +1847,7 @@ function renderProgram() {
   renderProgramHeader(session);
   const body = elements["program-session-body"];
   const mode = state.programEditing ? "edit" : "view";
+  renderFreeFields(session);
   if (mode === "edit" && body.dataset.mode === "edit" && body.dataset.session === session.code) return;
   body.dataset.mode = mode;
   body.dataset.session = session.code;
@@ -1875,11 +1856,25 @@ function renderProgram() {
   if (mode === "edit") requestAnimationFrame(() => body.querySelectorAll("textarea").forEach(autoSizeTextarea));
 }
 
+function renderFreeFields(session) {
+  const effective = effectiveSession(session, state.sessionEdits[session.code]);
+  for (const textarea of [elements["program-notices-input"], elements["program-notes-input"]]) {
+    const field = textarea.dataset.freeField;
+    // No pisar lo que se está escribiendo si otra acción vuelve a pintar la sesión.
+    if (textarea.dataset.session === session.code && document.activeElement === textarea) continue;
+    textarea.dataset.session = session.code;
+    if (textarea.value !== effective[field]) textarea.value = effective[field];
+    requestAnimationFrame(() => autoSizeTextarea(textarea));
+  }
+  elements["program-notices-input"].closest(".program-free-box").classList.toggle("filled", Boolean(effective.notices.trim()));
+}
+
 async function resetSelectedSession() {
   const session = selectedProgramSession();
-  if (!session || !confirm(`¿Restaurar ${session.code} al contenido original de la programación? Se perderán tus añadidos.`)) return;
-  const exportedFileId = state.sessionEdits[session.code]?.exportedFileId;
-  if (exportedFileId) state.sessionEdits[session.code] = { ...createSessionEdit(session), exportedFileId };
+  if (!session || !confirm(`¿Restaurar los bloques de ${session.code} al contenido original de la programación? Se perderán tus añadidos; los avisos y notas se conservan.`)) return;
+  const previous = state.sessionEdits[session.code] ?? {};
+  const kept = Object.fromEntries(["exportedFileId", "exportedAt", "notices", "notes"].filter(key => previous[key]).map(key => [key, previous[key]]));
+  if (Object.keys(kept).length) state.sessionEdits[session.code] = { ...createSessionEdit(session), ...kept };
   else delete state.sessionEdits[session.code];
   await saveSessionEdits.flush();
   state.programEditing = false;
@@ -2037,6 +2032,8 @@ function bindEvents() {
   elements["program-reset-button"].addEventListener("click", resetSelectedSession);
   elements["program-export-button"].addEventListener("click", exportSelectedSession);
   elements["program-session-body"].addEventListener("input", handleSessionEditInput);
+  elements["program-notices-input"].addEventListener("input", handleSessionEditInput);
+  elements["program-notes-input"].addEventListener("input", handleSessionEditInput);
   elements["program-start-button"].addEventListener("click", startOrShowTrainingTimer);
   elements["timer-minimize-button"].addEventListener("click", () => setTimerVisible(false));
   elements["training-timer-pill"].addEventListener("click", () => setTimerVisible(true));
@@ -2473,6 +2470,9 @@ function renderTrainingTimer() {
       return li;
     }));
   }
+  const notices = session.notices.trim();
+  elements["timer-notices"].hidden = !notices || status.finished;
+  elements["timer-notices"].textContent = notices ? `Avisos: ${notices}` : "";
   elements["timer-next"].textContent = status.finished ? "" : status.next ? `Después: ${status.next.name} (${status.next.minutes}′)` : "Último bloque";
   elements["timer-pause-button"].textContent = paused ? "Reanudar" : "Pausar";
   elements["timer-prev-button"].disabled = status.index === 0 && status.partElapsedMs <= 10000;

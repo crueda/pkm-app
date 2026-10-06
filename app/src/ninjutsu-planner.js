@@ -47,17 +47,27 @@ function cloneParts(parts = []) {
 }
 
 export function createSessionEdit(session) {
-  return { parts: cloneParts(session.parts), notes: "", updatedAt: null };
+  return { parts: cloneParts(session.parts), notices: "", notes: "", updatedAt: null };
 }
 
 export function effectiveSession(session, edit = null) {
-  if (!edit) return { ...session, parts: cloneParts(session.parts), notes: "" };
-  return { ...session, parts: cloneParts(edit.parts?.length ? edit.parts : session.parts), notes: String(edit.notes ?? "") };
+  if (!edit) return { ...session, parts: cloneParts(session.parts), notices: "", notes: "" };
+  return {
+    ...session,
+    parts: cloneParts(edit.parts?.length ? edit.parts : session.parts),
+    notices: String(edit.notices ?? ""),
+    notes: String(edit.notes ?? "")
+  };
 }
 
 export function isSessionEdited(session, edit = null) {
   if (!edit) return false;
-  if (String(edit.notes ?? "").trim()) return true;
+  return Boolean(String(edit.notices ?? "").trim() || String(edit.notes ?? "").trim()) || arePartsEdited(session, edit);
+}
+
+// Solo los bloques: avisos y notas no cuentan como cambios a restaurar.
+export function arePartsEdited(session, edit = null) {
+  if (!edit) return false;
   const parts = edit.parts ?? session.parts;
   if (parts.length !== session.parts.length) return true;
   return parts.some((part, index) => {
@@ -155,6 +165,9 @@ export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGR
     ""
   ];
   if (session.nonTeaching) lines.push("> Día no lectivo en la UVa: confirmar si hay clase o trasladar la sesión.", "");
+  lines.push("## Avisos");
+  lines.push(effective.notices.trim() || "- ");
+  lines.push("");
   for (const part of effective.parts) {
     lines.push(`## ${part.name}${part.minutes ? ` (${part.minutes}′)` : ""}`);
     lines.push(...(part.items.length ? part.items.map(item => `- ${item}`) : ["- "]));
