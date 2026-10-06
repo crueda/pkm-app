@@ -141,3 +141,17 @@ test("cambiar los minutos de un bloque marca la sesión como editada", () => {
   edit.parts[0].minutes += 5;
   assert.equal(isSessionEdited(session, edit), true);
 });
+
+test("avisos y notas se guardan aparte de los bloques y se exportan", async () => {
+  const { arePartsEdited } = await import("../app/src/ninjutsu-planner.js");
+  const session = findProgramSession("L40");
+  const edit = { ...createSessionEdit(session), notices: "Traer tanbo", notes: "Vinieron 8" };
+  assert.equal(isSessionEdited(session, edit), true);
+  assert.equal(arePartsEdited(session, edit), false);
+  const effective = effectiveSession(session, edit);
+  assert.equal(effective.notices, "Traer tanbo");
+  const markdown = sessionToMarkdown(session, edit);
+  assert.match(markdown, /## Avisos\nTraer tanbo\n/);
+  assert.match(markdown, /## Notas del entrenamiento\nVinieron 8\n/);
+  assert.ok(markdown.indexOf("## Avisos") < markdown.indexOf("## Calentamiento"));
+});

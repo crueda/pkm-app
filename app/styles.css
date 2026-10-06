@@ -2029,6 +2029,14 @@ button:disabled,
 .program-export-state[data-state="synced"] { color: var(--accent-strong); }
 .program-export-state[data-state="local"] { color: var(--program-review); }
 .program-session-body { padding: clamp(18px, 3vw, 28px); display: grid; gap: 18px; }
+.program-free-box { display: grid; gap: 6px; margin: 0 clamp(18px, 3vw, 28px); }
+.program-free-box.notices { margin-top: clamp(14px, 2.4vw, 22px); margin-bottom: calc(-1 * clamp(4px, 1vw, 10px)); }
+.program-free-box.notes { margin-bottom: clamp(18px, 3vw, 28px); }
+.program-free-label { font-size: 13px; font-weight: 760; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.program-free-box.notices .program-free-label { color: var(--program-warning); }
+.program-free-input { min-height: 0; }
+.program-free-box.notices.filled .program-free-input { border-color: var(--program-warning); box-shadow: inset 3px 0 0 var(--program-warning); }
+.timer-notices { width: 100%; margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; color: var(--program-warning); font-weight: 680; text-align: left; white-space: pre-line; box-shadow: inset 0 0 0 1.5px currentColor; }
 .program-alert { margin: 0; padding: 10px 12px; border-radius: 10px; color: var(--program-warning); font-weight: 680; box-shadow: inset 0 0 0 1.5px currentColor; }
 .program-part h3 { margin: 0 0 6px; display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
 .program-minutes { color: var(--text-muted); font-weight: 600; }
@@ -2150,3 +2158,5 @@ body.timer-open { overflow: hidden; }
   .timer-controls .secondary-button { flex: 1 1 0; }
   .timer-controls .primary-button { flex: 1 1 100%; order: -1; }
 }
+.training-timer { --program-warning: #c2412f; }
+:root[data-theme="dark"] .training-timer { --program-warning: #f07a66; }

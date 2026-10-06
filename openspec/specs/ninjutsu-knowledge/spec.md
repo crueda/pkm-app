@@ -33,6 +33,14 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **AND** items added by the user are highlighted in the session view
 - **AND** the user can restore the original content
 
+#### Scenario: Fill session notices and notes
+
+- **WHEN** the user types in the free-text Notices or Notes boxes of a session
+- **THEN** the text is stored locally for that session without entering edit mode
+- **AND** restoring the original blocks keeps both texts
+- **AND** the export includes `## Avisos` before the blocks and `## Notas del entrenamiento` at the end
+- **AND** the training timer shows the notices
+
 #### Scenario: Export a session
 
 - **WHEN** the user exports a session

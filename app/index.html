@@ -272,7 +272,15 @@
                     </div>
                   </header>
                   <p id="program-export-state" class="program-export-state"></p>
+                  <section class="program-free-box notices">
+                    <label class="program-free-label" for="program-notices-input">Avisos</label>
+                    <textarea id="program-notices-input" class="program-textarea program-free-input" data-free-field="notices" rows="2" placeholder="Material que llevar, cambios de horario, quién falta, recordatorios…"></textarea>
+                  </section>
                   <div id="program-session-body" class="program-session-body"></div>
+                  <section class="program-free-box notes">
+                    <label class="program-free-label" for="program-notes-input">Notas</label>
+                    <textarea id="program-notes-input" class="program-textarea program-free-input" data-free-field="notes" rows="4" placeholder="Asistentes, qué funcionó, qué repetir, pendientes…"></textarea>
+                  </section>
                 </article>
               </div>
             </section>
@@ -498,6 +506,7 @@
         <div id="timer-segments" class="timer-segments" role="group" aria-label="Bloques del entrenamiento"></div>
         <ul id="timer-items" class="timer-items"></ul>
         <p id="timer-next" class="timer-next"></p>
+        <p id="timer-notices" class="timer-notices" hidden></p>
       </div>
       <footer class="timer-controls">
         <button id="timer-prev-button" class="secondary-button" type="button" title="Volver al bloque anterior">‹ Anterior</button>
