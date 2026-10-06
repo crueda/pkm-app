@@ -143,6 +143,10 @@ export const DEFAULT_WEEK_WORDS = Object.freeze({
   41: {
     word: "Ichigo ichie (一期一会)",
     text: "«Un momento, un encuentro». Cada entrenamiento es único e irrepetible: este grupo, este compañero y esta técnica no volverán a darse igual. Nace de la ceremonia del té: entrenar con plena atención y respeto por quien tienes delante, porque esta ocasión no se repetirá."
+  },
+  44: {
+    word: "Ganbatte (頑張って)",
+    text: "«¡Ánimo, esfuérzate, no te rindas!». Viene de ganbaru: perseverar con tenacidad ante la dificultad. En el tatami es seguir intentándolo cuando la técnica no sale, apoyar al compañero para que dé lo mejor de sí y valorar el esfuerzo constante más que el resultado inmediato."
   }
 });
 
