@@ -155,3 +155,19 @@ test("avisos y notas se guardan aparte de los bloques y se exportan", async () =
   assert.match(markdown, /## Notas del entrenamiento\nVinieron 8\n/);
   assert.ok(markdown.indexOf("## Avisos") < markdown.indexOf("## Calentamiento"));
 });
+
+test("palabra de la semana solo en semanas de Carlos, con las ya explicadas", async () => {
+  const { hasWeekWord, weekWord, previousWeekWords } = await import("../app/src/ninjutsu-planner.js");
+  assert.equal(hasWeekWord(findProgramSession("L40")), true);
+  assert.equal(hasWeekWord(findProgramSession("L42")), false);
+  assert.match(weekWord(40).word, /^Shoshin/);
+  assert.match(weekWord(41).word, /^Ichigo ichie/);
+  assert.equal(weekWord(44).word, "");
+  const stored = { 44: { word: "Zanshin", text: "" } };
+  assert.equal(weekWord(44, stored).word, "Zanshin");
+  assert.deepEqual(previousWeekWords(findProgramSession("X41")).map(item => item.week), [40]);
+  assert.deepEqual(previousWeekWords(findProgramSession("L47"), stored).map(item => item.word.split(" ")[0]), ["Zanshin", "Ichigo", "Shoshin"]);
+  const markdown = sessionToMarkdown(findProgramSession("L41"), null, NINJUTSU_PROGRAM, weekWord(41));
+  assert.match(markdown, /## Palabra de la semana\n\*\*Ichigo ichie \(一期一会\)\*\*/);
+  assert.doesNotMatch(sessionToMarkdown(findProgramSession("L42")), /Palabra de la semana/);
+});

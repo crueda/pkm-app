@@ -33,6 +33,14 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **AND** items added by the user are highlighted in the session view
 - **AND** the user can restore the original content
 
+#### Scenario: Word of the week
+
+- **WHEN** the selected session belongs to a week taught by Carlos
+- **THEN** a "Palabra de la semana" card shows an editable word and explanation shared by both sessions of that week, prefilled for the weeks already taught (Shoshin, Ichigo ichie)
+- **AND** lists the words of previous Carlos weeks
+- **AND** the export includes a `## Palabra de la semana` section
+- **AND** weeks taught by other instructors show no card
+
 #### Scenario: Fill session notices and notes
 
 - **WHEN** the user types in the free-text Notices or Notes boxes of a session

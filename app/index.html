@@ -272,6 +272,12 @@
                     </div>
                   </header>
                   <p id="program-export-state" class="program-export-state"></p>
+                  <section id="program-word" class="program-word" hidden>
+                    <p class="program-word-eyebrow">Palabra de la semana</p>
+                    <input id="program-word-input" class="program-word-input" type="text" data-word-field="word" autocomplete="off" spellcheck="false" placeholder="Escribe la palabra de esta semana" aria-label="Palabra de la semana">
+                    <textarea id="program-word-text" class="program-word-text" data-word-field="text" rows="2" placeholder="Qué significa y cómo la llevas al tatami…" aria-label="Explicación de la palabra de la semana"></textarea>
+                    <p id="program-word-history" class="program-word-history" hidden></p>
+                  </section>
                   <section class="program-free-box notices">
                     <label class="program-free-label" for="program-notices-input">Avisos</label>
                     <textarea id="program-notices-input" class="program-textarea program-free-input" data-free-field="notices" rows="2" placeholder="Material que llevar, cambios de horario, quién falta, recordatorios…"></textarea>

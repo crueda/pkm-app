@@ -5,7 +5,7 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
-import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, isSessionEdited, itemsFromText, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
+import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, hasWeekWord, isSessionEdited, itemsFromText, previousWeekWords, weekWord, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -37,7 +37,7 @@ const elements = Object.fromEntries([
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
-  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
+  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -95,6 +95,7 @@ const state = {
   programEditing: false,
   sessionEdits: {},
   sessionEditsLoaded: false,
+  weekWords: {},
   exportingSession: false,
   trainingTimer: null,
   timerVisible: false
@@ -1538,13 +1539,52 @@ function renderNinjutsuTabs() {
 
 const SESSION_EDITS_KEY = `ninjutsuSessionEdits:${NINJUTSU_PROGRAM.id}`;
 
+const WEEK_WORDS_KEY = `ninjutsuWeekWords:${NINJUTSU_PROGRAM.id}`;
+
+const saveWeekWords = debounce(async () => {
+  try {
+    await db.setSetting(WEEK_WORDS_KEY, state.weekWords);
+  } catch {
+    showToast("No se pudo guardar la palabra de la semana", "error");
+  }
+}, 400);
+
+function handleWeekWordInput(event) {
+  const target = event.target;
+  const field = target.dataset.wordField;
+  const session = selectedProgramSession();
+  if (!field || !session || !hasWeekWord(session)) return;
+  if (target instanceof HTMLTextAreaElement) autoSizeTextarea(target);
+  state.weekWords[session.week] = { ...weekWord(session.week, state.weekWords), [field]: target.value };
+  saveWeekWords();
+}
+
+function renderWeekWord(session) {
+  const section = elements["program-word"];
+  section.hidden = !hasWeekWord(session);
+  if (section.hidden) return;
+  const current = weekWord(session.week, state.weekWords);
+  for (const [element, field] of [[elements["program-word-input"], "word"], [elements["program-word-text"], "text"]]) {
+    if (element.dataset.week === String(session.week) && document.activeElement === element) continue;
+    element.dataset.week = String(session.week);
+    if (element.value !== current[field]) element.value = current[field];
+  }
+  requestAnimationFrame(() => autoSizeTextarea(elements["program-word-text"]));
+  const previous = previousWeekWords(session, state.weekWords);
+  const history = elements["program-word-history"];
+  history.hidden = !previous.length;
+  history.textContent = previous.length ? `Anteriores: ${previous.map(item => `${item.word} (sem. ${item.week})`).join(" · ")}` : "";
+}
+
 async function loadSessionEdits() {
   if (state.sessionEditsLoaded) return;
   try {
-    const stored = await db.getSetting(SESSION_EDITS_KEY, {});
+    const [stored, words] = await Promise.all([db.getSetting(SESSION_EDITS_KEY, {}), db.getSetting(WEEK_WORDS_KEY, {})]);
     state.sessionEdits = stored && typeof stored === "object" ? stored : {};
+    state.weekWords = words && typeof words === "object" ? words : {};
   } catch {
     state.sessionEdits = {};
+    state.weekWords = {};
   }
   state.sessionEditsLoaded = true;
 }
@@ -1848,6 +1888,7 @@ function renderProgram() {
   const body = elements["program-session-body"];
   const mode = state.programEditing ? "edit" : "view";
   renderFreeFields(session);
+  renderWeekWord(session);
   if (mode === "edit" && body.dataset.mode === "edit" && body.dataset.session === session.code) return;
   body.dataset.mode = mode;
   body.dataset.session = session.code;
@@ -1902,7 +1943,8 @@ async function exportSelectedSession() {
     await saveSessionEdits.flush();
     const folder = await ensureProgramExportFolder();
     const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
-    const markdown = sessionToMarkdown(session, edit);
+    await saveWeekWords.flush();
+    const markdown = sessionToMarkdown(session, edit, NINJUTSU_PROGRAM, hasWeekWord(session) ? weekWord(session.week, state.weekWords) : null);
     const existing = findExportedSessionNote(state.files, folder, session, edit);
     let noteId = existing?.id;
     if (existing) await syncEngine.updateNote(existing.id, markdown);
@@ -2033,6 +2075,7 @@ function bindEvents() {
   elements["program-export-button"].addEventListener("click", exportSelectedSession);
   elements["program-session-body"].addEventListener("input", handleSessionEditInput);
   elements["program-notices-input"].addEventListener("input", handleSessionEditInput);
+  elements["program-word"].addEventListener("input", handleWeekWordInput);
   elements["program-notes-input"].addEventListener("input", handleSessionEditInput);
   elements["program-start-button"].addEventListener("click", startOrShowTrainingTimer);
   elements["timer-minimize-button"].addEventListener("click", () => setTimerVisible(false));

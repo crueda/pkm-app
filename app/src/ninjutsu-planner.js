@@ -132,6 +132,46 @@ export function formatClock(ms) {
   return hours ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
 
+// Palabra de la semana: solo en las semanas que imparte Carlos.
+export const WORD_WEEK_INSTRUCTOR = "Carlos";
+
+export const DEFAULT_WEEK_WORDS = Object.freeze({
+  40: {
+    word: "Shoshin (初心)",
+    text: "Mente de principiante. Acercarse a cada técnica y a cada entrenamiento con apertura y curiosidad, sin dar nada por sabido, como si fuera la primera vez, aunque se lleven años practicando. «En la mente del principiante hay muchas posibilidades; en la del experto, pocas» (Shunryu Suzuki)."
+  },
+  41: {
+    word: "Ichigo ichie (一期一会)",
+    text: "«Un momento, un encuentro». Cada entrenamiento es único e irrepetible: este grupo, este compañero y esta técnica no volverán a darse igual. Nace de la ceremonia del té: entrenar con plena atención y respeto por quien tienes delante, porque esta ocasión no se repetirá."
+  }
+});
+
+export function hasWeekWord(session) {
+  return session?.instructor === WORD_WEEK_INSTRUCTOR;
+}
+
+export function weekWord(week, stored = {}) {
+  const base = DEFAULT_WEEK_WORDS[week] ?? { word: "", text: "" };
+  const own = stored?.[week];
+  return {
+    word: String(own?.word ?? base.word),
+    text: String(own?.text ?? base.text)
+  };
+}
+
+// Palabras ya trabajadas en semanas anteriores de Carlos, de la más reciente a la más antigua.
+export function previousWeekWords(session, stored = {}, program = NINJUTSU_PROGRAM) {
+  const weeks = [];
+  for (const candidate of programSessions(program)) {
+    if (candidate.date >= session.date) break;
+    if (candidate.week !== session.week && hasWeekWord(candidate) && !weeks.some(item => item.week === candidate.week)) {
+      const { word } = weekWord(candidate.week, stored);
+      if (word.trim()) weeks.push({ week: candidate.week, word });
+    }
+  }
+  return weeks.reverse();
+}
+
 export function sessionExportBaseName(session) {
   return `${session.date} - ${session.code} - ${session.title}`;
 }
@@ -145,7 +185,7 @@ export function findExportedSessionNote(files = [], folder, session, edit = null
   return live.find(file => file.parentId === folder.id && String(file.name).startsWith(prefix)) ?? null;
 }
 
-export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGRAM) {
+export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGRAM, word = null) {
   const effective = effectiveSession(session, edit);
   const dayLabel = WEEKDAY_LABELS[session.day] ?? session.day;
   const lines = [
@@ -165,6 +205,11 @@ export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGR
     ""
   ];
   if (session.nonTeaching) lines.push("> Día no lectivo en la UVa: confirmar si hay clase o trasladar la sesión.", "");
+  if (word && (word.word.trim() || word.text.trim())) {
+    lines.push("## Palabra de la semana");
+    if (word.word.trim()) lines.push(`**${word.word.trim()}**`, "");
+    if (word.text.trim()) lines.push(word.text.trim(), "");
+  }
   lines.push("## Avisos");
   lines.push(effective.notices.trim() || "- ");
   lines.push("");
