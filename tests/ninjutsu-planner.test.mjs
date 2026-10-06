@@ -162,7 +162,8 @@ test("palabra de la semana solo en semanas de Carlos, con las ya explicadas", as
   assert.equal(hasWeekWord(findProgramSession("L42")), false);
   assert.match(weekWord(40).word, /^Shoshin/);
   assert.match(weekWord(41).word, /^Ichigo ichie/);
-  assert.equal(weekWord(44).word, "");
+  assert.match(weekWord(44).word, /^Ganbatte/);
+  assert.equal(weekWord(47).word, "");
   const stored = { 44: { word: "Zanshin", text: "" } };
   assert.equal(weekWord(44, stored).word, "Zanshin");
   assert.deepEqual(previousWeekWords(findProgramSession("X41")).map(item => item.week), [40]);
