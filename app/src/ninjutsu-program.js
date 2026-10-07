@@ -209,7 +209,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 41,
               "day": "miercoles",
               "date": "2026-10-07",
-              "title": "Ukemi y tehodoki con Omote gyaku",
+              "title": "Kaiten y ukemi · Omote gyaku y O soto nage",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
@@ -220,28 +220,29 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Carrera en círculo: talones, rodillas arriba, zancada lateral y cambios de sentido a la señal",
                     "Sin dejar de correr, golpeos al aire a la voz: Fudoken, Shuto, Shito ken, codo y rodilla",
                     "Desplazamientos por filas: Shizen → Ichimonji → Jumonji → Hoko, adelante y atrás",
-                    "Junan taiso de muñecas, antebrazos y hombros (preparación de tehodoki)"
+                    "Desplazamientos básicos cruzando el tatami: repta alterna y Ko ashi (paso apoyado)",
+                    "Junan taiso de muñecas, antebrazos y hombros"
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 25,
+                  "minutes": 30,
                   "items": [
-                    "Zenpo, Sokuho y Koho ukemi",
-                    "Encadenar Kaiten → Ukemi → Kamae",
-                    "Repaso: Kaiten"
+                    "Zenpo kaiten Ryo te y Kata te, por filas",
+                    "Ushiro kaiten: progresión desde sentado y salida en kamae",
+                    "Zenpo, Sokuho y Koho ukemi, con atención al Yoko",
+                    "Encadenar Kaiten → Ukemi → Kamae"
                   ]
                 },
                 {
-                  "name": "Jutai jutsu · Tehodoki",
-                  "minutes": 40,
+                  "name": "Jutai jutsu",
+                  "minutes": 35,
                   "items": [
-                    "Tehodoki ante Katate dori: salir en giro hacia el pulgar de uke",
-                    "Tehodoki ante agarre cruzado y ante Ryote dori, con kuzushi antes de soltar",
-                    "Tehodoki ante agarre de solapa y ante agarre de muñeca con las dos manos",
+                    "Tehodoki ante Katate dori y Ryote dori: kuzushi y salida en giro hacia el pulgar",
                     "Omote gyaku de aplicación: encadenar la suelta con la toma de muñeca y el derribo",
-                    "Omote gyaku ante Fudoken, entrando en Mae omote",
-                    "Por parejas, uke agarra con intención: tehodoki libre → Omote gyaku"
+                    "O soto nage por fases: kumi kata, kuzushi atrás y barrido",
+                    "O soto nage a ritmo, con uke rompiendo la caída en Yoko ukemi",
+                    "Encadenar: si uke resiste el Omote gyaku, pasar a O soto nage"
                   ]
                 },
                 {
@@ -255,15 +256,15 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Tehodoki ante agarre directo; Omote gyaku lento, cuidando el ángulo del codo."
+                  "text": "Zenpo kaiten con ayuda; tehodoki ante agarre directo; O soto nage lento, cuidando el Yoko ukemi de uke."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Encadenar tehodoki y Omote gyaku ante dos agarres distintos."
+                  "text": "Zenpo y Ushiro kaiten con salida en kamae; encadenar tehodoki, Omote gyaku y O soto nage."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Henka: si uke resiste la suelta, pasar a Ura gyaku o a O soto gari."
+                  "text": "Kaiten a ambos lados; henka: si uke resiste la suelta, pasar a Ura gyaku o a O soto gari."
                 }
               ],
               "reviews": [
@@ -273,6 +274,10 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 },
                 {
                   "topic": "Omote gyaku",
+                  "gap": "1 sem."
+                },
+                {
+                  "topic": "Nage waza (O soto)",
                   "gap": "1 sem."
                 }
               ],

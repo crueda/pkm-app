@@ -180,7 +180,9 @@ test("el programa de tanbo arranca el 21 de octubre y el lunes festivo queda can
   assert.equal(x41.parts.some(part => part.name.includes("Armas")), false);
   assert.match(x41.parts[0].items.join(" "), /Carrera en círculo/);
   assert.match(x41.parts[0].items.join(" "), /Desplazamientos por filas/);
-  assert.match(x41.parts[2].name, /Tehodoki/);
+  assert.match(x41.parts[0].items.join(" "), /repta alterna/);
+  assert.match(x41.parts[1].items.join(" "), /Ushiro kaiten/);
+  assert.match(x41.parts[2].items.join(" "), /O soto nage/);
   assert.match(x41.parts[2].items.join(" "), /Omote gyaku de aplicación/);
   assert.equal(x41.parts.reduce((total, part) => total + part.minutes, 0), 90);
   const l42 = findProgramSession("L42");
