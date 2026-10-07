@@ -39,7 +39,7 @@ const elements = Object.fromEntries([
   "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
-  "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-label",
+  "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-open", "training-timer-pill-close", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
   "delete-dialog", "delete-form", "delete-description", "settings-dialog", "install-dialog",
   "rename-folder-dialog", "rename-folder-form", "rename-folder-name",
@@ -2082,7 +2082,8 @@ function bindEvents() {
   elements["program-notes-input"].addEventListener("input", handleSessionEditInput);
   elements["program-start-button"].addEventListener("click", startOrShowTrainingTimer);
   elements["timer-minimize-button"].addEventListener("click", () => setTimerVisible(false));
-  elements["training-timer-pill"].addEventListener("click", () => setTimerVisible(true));
+  elements["training-timer-pill-open"].addEventListener("click", () => setTimerVisible(true));
+  elements["training-timer-pill-close"].addEventListener("click", stopTrainingTimer);
   elements["timer-pause-button"].addEventListener("click", toggleTimerPause);
   elements["timer-prev-button"].addEventListener("click", () => jumpTimerPart(-1));
   elements["timer-next-button"].addEventListener("click", () => jumpTimerPart(1));

@@ -69,7 +69,7 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **WHEN** the user starts a session
 - **THEN** a full-screen timer shows the block that corresponds to the elapsed time, its countdown, its items and the next block, using the edited minutes of each block
 - **AND** signals each block change with sound and vibration and keeps the screen awake while visible
-- **AND** supports pausing, skipping to the previous, next or any block, and minimizing to a floating indicator
+- **AND** supports pausing, skipping to the previous, next or any block, and minimizing to a floating indicator that can either reopen the timer or end the training and dismiss itself
 - **AND** keeps running across reloads until the user ends it
 
 ### Requirement: Recursive library discovery

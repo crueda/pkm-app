@@ -2151,7 +2151,6 @@ body.timer-open { overflow: hidden; }
   gap: 10px;
   max-width: calc(100vw - 32px);
   min-height: 46px;
-  padding: 0 18px;
   border-radius: 999px;
   background: var(--accent);
   color: var(--surface);
@@ -2159,8 +2158,12 @@ body.timer-open { overflow: hidden; }
   font-variant-numeric: tabular-nums;
   box-shadow: var(--shadow);
 }
+.training-timer-pill-open { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 6px 0 18px; border: 0; background: none; border-radius: 999px 0 0 999px; color: inherit; font-weight: inherit; font-variant-numeric: inherit; cursor: pointer; }
+.training-timer-pill-close { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 42px; min-height: 46px; padding: 0 14px 0 4px; border: 0; background: none; border-radius: 0 999px 999px 0; color: inherit; cursor: pointer; opacity: 0.8; }
+.training-timer-pill-close:hover, .training-timer-pill-close:focus-visible { opacity: 1; }
+.training-timer-pill-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 .training-timer-pill[hidden] { display: none; }
-.training-timer-pill > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-timer-pill-open > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .timer-pill-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: timer-pulse 1.4s ease-in-out infinite; }
 .training-timer-pill.paused .timer-pill-dot, .training-timer-pill.finished .timer-pill-dot { animation: none; opacity: 0.5; }
 @keyframes timer-pulse { 50% { opacity: 0.25; } }

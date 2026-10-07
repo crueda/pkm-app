@@ -522,10 +522,15 @@
       </footer>
     </section>
 
-    <button id="training-timer-pill" class="training-timer-pill" type="button" hidden>
-      <span class="timer-pill-dot" aria-hidden="true"></span>
-      <span id="training-timer-pill-label"></span>
-    </button>
+    <div id="training-timer-pill" class="training-timer-pill" hidden>
+      <button id="training-timer-pill-open" class="training-timer-pill-open" type="button" title="Volver al temporizador">
+        <span class="timer-pill-dot" aria-hidden="true"></span>
+        <span id="training-timer-pill-label"></span>
+      </button>
+      <button id="training-timer-pill-close" class="training-timer-pill-close" type="button" aria-label="Terminar entrenamiento y quitar el indicador" title="Terminar entrenamiento">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
 
     <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   </body>
