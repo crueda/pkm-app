@@ -2009,6 +2009,7 @@ button:disabled,
 .program-chip.instructor.carlos.provisional { color: var(--program-carlos); }
 .program-chip.instructor.julio.provisional { color: var(--program-julio); }
 .program-chip.warning { background: transparent; color: var(--program-warning); box-shadow: inset 0 0 0 1.5px currentColor; }
+.program-chip.cancelled { background: var(--danger-soft); color: var(--danger); }
 .program-chip.edited { background: var(--program-review-soft); color: var(--program-review); }
 .program-chip.exported { background: var(--accent-soft); color: var(--accent-strong); }
 .program-chip.next { background: var(--accent); color: var(--surface); }
@@ -2048,6 +2049,8 @@ button:disabled,
 .program-free-box.notices.filled .program-free-input { border-color: var(--program-warning); box-shadow: inset 3px 0 0 var(--program-warning); }
 .timer-notices { width: 100%; margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; color: var(--program-warning); font-weight: 680; text-align: left; white-space: pre-line; box-shadow: inset 0 0 0 1.5px currentColor; }
 .program-alert { margin: 0; padding: 10px 12px; border-radius: 10px; color: var(--program-warning); font-weight: 680; box-shadow: inset 0 0 0 1.5px currentColor; }
+.program-alert.cancelled { color: var(--danger); }
+.program-session-item.cancelled .program-session-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
 .program-part h3 { margin: 0 0 6px; display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
 .program-minutes { color: var(--text-muted); font-weight: 600; }
 .program-part ul { margin: 0; padding-left: 20px; display: grid; gap: 3px; line-height: 1.5; }

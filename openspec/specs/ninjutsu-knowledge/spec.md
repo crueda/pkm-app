@@ -24,7 +24,7 @@ The application SHALL expose a single applications button next to the favorites 
 
 ### Requirement: Annual programming
 
-The application SHALL bundle the 2026–2027 annual programming as read-only data and SHALL let the user browse every session by trimester and week, filter by weekday and jump to the next session.
+The application SHALL bundle the 2026–2027 annual programming as read-only data and SHALL let the user browse every session by trimester and week, filter by weekday and jump to the next session, skipping the sessions cancelled because of a public holiday.
 
 #### Scenario: Edit a session
 
@@ -40,6 +40,13 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **AND** lists the words of previous Carlos weeks
 - **AND** the export includes a `## Palabra de la semana` section
 - **AND** weeks taught by other instructors show no card
+
+#### Scenario: Cancelled session
+
+- **WHEN** a session is cancelled because its day is a public holiday
+- **THEN** the session list shows a "Sin clase" flag and the session view states the reason instead of the non-teaching warning
+- **AND** the next-session shortcut skips it
+- **AND** the export writes `> Sin clase: …` below the heading
 
 #### Scenario: Fill session notices and notes
 

@@ -1670,7 +1670,7 @@ function renderProgramList() {
         const selected = session.code === state.selectedSessionCode;
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `program-session-item ${session.day}${selected ? " selected" : ""}${session.date < today ? " past" : ""}`;
+        button.className = `program-session-item ${session.day}${selected ? " selected" : ""}${session.date < today ? " past" : ""}${session.cancelled ? " cancelled" : ""}`;
         button.setAttribute("aria-current", String(selected));
         const top = document.createElement("span");
         top.className = "program-session-item-top";
@@ -1687,7 +1687,8 @@ function renderProgramList() {
         const flags = document.createElement("span");
         flags.className = "program-session-item-flags";
         flags.append(instructorChip(session));
-        if (session.nonTeaching) flags.append(createChip("No lectivo", "warning"));
+        if (session.cancelled) flags.append(createChip("Sin clase", "cancelled"));
+        else if (session.nonTeaching) flags.append(createChip("No lectivo", "warning"));
         if (isSessionEdited(session, state.sessionEdits[session.code])) flags.append(createChip("Editada", "edited"));
         if (exportedNoteFor(session, folder)) flags.append(createChip("En Drive", "exported"));
         button.append(top, title, flags);
@@ -1703,10 +1704,12 @@ function renderProgramList() {
 function renderSessionView(session, edit) {
   const effective = effectiveSession(session, edit);
   const body = document.createDocumentFragment();
-  if (session.nonTeaching) {
+  if (session.cancelled || session.nonTeaching) {
     const alert = document.createElement("p");
-    alert.className = "program-alert";
-    alert.textContent = "Día no lectivo en la UVa: confirma si hay clase o traslada la sesión.";
+    alert.className = `program-alert${session.cancelled ? " cancelled" : ""}`;
+    alert.textContent = session.cancelled
+      ? `Sin clase: ${session.cancelledReason ?? "sesión cancelada"}`
+      : "Día no lectivo en la UVa: confirma si hay clase o traslada la sesión.";
     body.append(alert);
   }
   effective.parts.forEach((part, index) => {

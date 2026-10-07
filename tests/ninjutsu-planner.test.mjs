@@ -37,6 +37,7 @@ test("conserva instructor, días no lectivos y repasos", () => {
   const l42 = findProgramSession("L42");
   assert.equal(l42.instructor, "Julio");
   assert.equal(l42.nonTeaching, true);
+  assert.equal(l42.cancelled, true);
   assert.equal(findProgramSession("L2").provisional, true);
   assert.ok(findProgramSession("L41").reviews.some(review => review.topic.startsWith("Kamae")));
   assert.equal(findProgramSession("nada"), null);
@@ -45,6 +46,7 @@ test("conserva instructor, días no lectivos y repasos", () => {
 test("elige la próxima sesión a partir de la fecha", () => {
   assert.equal(currentOrNextSession("2026-10-03").code, "L41");
   assert.equal(currentOrNextSession("2026-10-05").code, "L41");
+  assert.equal(currentOrNextSession("2026-10-08").code, "X42");
   assert.equal(currentOrNextSession("2026-12-20").code, "L2");
   assert.equal(currentOrNextSession("2027-07-01").code, "X21");
 });
@@ -77,7 +79,7 @@ test("exporta la sesión editada como nota de entrenamiento", () => {
   assert.match(markdown, /## Taihen jutsu \(15′\)\n(- .+\n)*- Ukemi extra\n/);
   assert.match(markdown, /## Niveles\n- \*\*10º–7º:\*\*/);
   assert.match(markdown, /## Notas del entrenamiento\n- Asistentes: 8\n/);
-  assert.match(sessionToMarkdown(findProgramSession("L42")), /Día no lectivo/);
+  assert.match(sessionToMarkdown(findProgramSession("L45")), /Día no lectivo/);
   assert.equal(sessionExportBaseName(session), "2026-10-05 - L41 - Kihon happo I: Ichimonji no kata");
   assert.equal(PROGRAM_EXPORT_FOLDER_NAME, "Programación 2026-2027");
 });
@@ -171,4 +173,21 @@ test("palabra de la semana solo en semanas de Carlos, con las ya explicadas", as
   const markdown = sessionToMarkdown(findProgramSession("L41"), null, NINJUTSU_PROGRAM, weekWord(41));
   assert.match(markdown, /## Palabra de la semana\n\*\*Ichigo ichie \(一期一会\)\*\*/);
   assert.doesNotMatch(sessionToMarkdown(findProgramSession("L42")), /Palabra de la semana/);
+});
+
+test("el programa de tanbo arranca el 21 de octubre y el lunes festivo queda cancelado", () => {
+  const x41 = findProgramSession("X41");
+  assert.equal(x41.parts.some(part => part.name.includes("Armas")), false);
+  assert.match(x41.parts[0].items.join(" "), /Carrera en círculo/);
+  assert.match(x41.parts[0].items.join(" "), /Desplazamientos por filas/);
+  assert.match(x41.parts[2].name, /Tehodoki/);
+  assert.match(x41.parts[2].items.join(" "), /Omote gyaku de aplicación/);
+  assert.equal(x41.parts.reduce((total, part) => total + part.minutes, 0), 90);
+  const l42 = findProgramSession("L42");
+  assert.match(l42.cancelledReason, /festivo del 12 de octubre/);
+  assert.match(sessionToMarkdown(l42), /> Sin clase: festivo del 12 de octubre./);
+  const tanbo = programSessions().filter(session => /Tanbo [IVX]+/.test(session.title));
+  assert.deepEqual(tanbo.map(session => session.code), ["X43", "X46", "X50", "X5"]);
+  assert.equal(tanbo[0].date, "2026-10-21");
+  assert.match(tanbo[0].parts.find(part => part.name === "Armas · Tanbo").items[0], /Arranque del programa de tanbo/);
 });

@@ -31,7 +31,7 @@ export function findProgramSession(code, program = NINJUTSU_PROGRAM) {
 
 export function currentOrNextSession(today = new Date().toLocaleDateString("sv-SE"), program = NINJUTSU_PROGRAM) {
   const sessions = programSessions(program);
-  return sessions.find(session => session.date >= today) ?? sessions.at(-1) ?? null;
+  return sessions.find(session => session.date >= today && !session.cancelled) ?? sessions.at(-1) ?? null;
 }
 
 export function itemsFromText(text = "") {
@@ -208,7 +208,8 @@ export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGR
     `${dayLabel}, ${formatSessionDate(session, { long: true }).replace(/^[^,]+,\s*/, "")} · 21:00–22:30 · Imparte ${session.instructor}${session.provisional ? " (provisional)" : ""}`,
     ""
   ];
-  if (session.nonTeaching) lines.push("> Día no lectivo en la UVa: confirmar si hay clase o trasladar la sesión.", "");
+  if (session.cancelled) lines.push(`> Sin clase: ${session.cancelledReason ?? "sesión cancelada"}`, "");
+  else if (session.nonTeaching) lines.push("> Día no lectivo en la UVa: confirmar si hay clase o trasladar la sesión.", "");
   if (word && (word.word.trim() || word.text.trim())) {
     lines.push("## Palabra de la semana");
     if (word.word.trim()) lines.push(`**${word.word.trim()}**`, "");

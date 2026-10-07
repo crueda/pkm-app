@@ -69,7 +69,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 40,
               "day": "miercoles",
               "date": "2026-09-30",
-              "title": "Kaiten básicos · Tanbo I",
+              "title": "Kaiten básicos · Toma de contacto con el tanbo",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
@@ -119,7 +119,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "grades": "4º–2º",
                   "text": "Mute kaiten de recuerdo."
                 }
-              ]
+              ],
+              "note": "Solo fue una toma de contacto con el arma: el programa de tanbo arranca el 21 de octubre (X43)."
             }
           ]
         },
@@ -208,20 +209,23 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 41,
               "day": "miercoles",
               "date": "2026-10-07",
-              "title": "Ukemi · Tanbo II: Uchi waza",
+              "title": "Ukemi y tehodoki con Omote gyaku",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
                   "name": "Calentamiento",
-                  "minutes": 10,
+                  "minutes": 20,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera en círculo: talones, rodillas arriba, zancada lateral y cambios de sentido a la señal",
+                    "Sin dejar de correr, golpeos al aire a la voz: Fudoken, Shuto, Shito ken, codo y rodilla",
+                    "Desplazamientos por filas: Shizen → Ichimonji → Jumonji → Hoko, adelante y atrás",
+                    "Junan taiso de muñecas, antebrazos y hombros (preparación de tehodoki)"
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 25,
                   "items": [
                     "Zenpo, Sokuho y Koho ukemi",
                     "Encadenar Kaiten → Ukemi → Kamae",
@@ -229,42 +233,50 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   ]
                 },
                 {
-                  "name": "Armas · Tanbo",
+                  "name": "Jutai jutsu · Tehodoki",
                   "minutes": 40,
                   "items": [
-                    "Uchi waza Honte: Shomen, Do yoko, Do gyaku yoko, Tsuki mae/ushiro, Ushiro mawashi, Ushiro ascendente",
-                    "Gyakute: Tsuki, Omote mawashi uchi, Age uchi, Ushiro",
-                    "Ryote: Mae, Yoko, Ushiro, Otoshi"
+                    "Tehodoki ante Katate dori: salir en giro hacia el pulgar de uke",
+                    "Tehodoki ante agarre cruzado y ante Ryote dori, con kuzushi antes de soltar",
+                    "Tehodoki ante agarre de solapa y ante agarre de muñeca con las dos manos",
+                    "Omote gyaku de aplicación: encadenar la suelta con la toma de muñeca y el derribo",
+                    "Omote gyaku ante Fudoken, entrando en Mae omote",
+                    "Por parejas, uke agarra con intención: tehodoki libre → Omote gyaku"
                   ]
                 },
                 {
                   "name": "Cierre",
                   "minutes": 5,
                   "items": [
-                    "Rei con el arma, recogida y estiramiento"
+                    "Estiramiento de muñecas y antebrazos, y respiración"
                   ]
                 }
               ],
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Honte completo."
+                  "text": "Tehodoki ante agarre directo; Omote gyaku lento, cuidando el ángulo del codo."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Honte y Gyakute."
+                  "text": "Encadenar tehodoki y Omote gyaku ante dos agarres distintos."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Los tres agarres, encadenados."
+                  "text": "Henka: si uke resiste la suelta, pasar a Ura gyaku o a O soto gari."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Kaiten (rodamientos)",
                   "gap": "1 sem."
+                },
+                {
+                  "topic": "Omote gyaku",
+                  "gap": "1 sem."
                 }
-              ]
+              ],
+              "note": "Sin bloque de armas: el programa de tanbo se traslada al 21 de octubre (X43)."
             }
           ]
         },
@@ -342,7 +354,10 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "topic": "Kihon happo",
                   "gap": "1 sem."
                 }
-              ]
+              ],
+              "cancelled": true,
+              "cancelledReason": "festivo del 12 de octubre.",
+              "note": "Contenido repartido entre L43 (Shuto y Koho geri) y L44 (Omote gyaku tsuki, O goshi y gatame)."
             },
             {
               "code": "X42",
@@ -410,7 +425,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "parts": [
                 {
                   "name": "Calentamiento",
-                  "minutes": 15,
+                  "minutes": 10,
                   "items": [
                     "Junan taiso con trabajo de muñecas",
                     "Ukemi de recuerdo: yoko y koho"
@@ -421,15 +436,18 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 15,
                   "items": [
                     "Mawashi (giro 90º) a ambos lados",
-                    "Entrada en Ura con giro de cadera"
+                    "Entrada en Ura con giro de cadera",
+                    "Sabaki Mae omote / Mae ura entrando ante Fudoken, encadenando con Shuto"
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
-                  "minutes": 25,
+                  "minutes": 30,
                   "items": [
                     "Hacho ken (palma) y Shito/Boshi ken (pulgar)",
                     "Zonas de ataque: Jodan, Chudan, Gedan",
+                    "Kiten ken / Shuto: omote y ura, a cuello y clavícula",
+                    "Koho geri desde Ichimonji y desde giro",
                     "Repaso: Gedan uke + Zenpo geri"
                   ]
                 },
@@ -474,15 +492,20 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 {
                   "topic": "Dakentai (tsuki, keri, uke)",
                   "gap": "1 sem."
+                },
+                {
+                  "topic": "Ichimonji no kata",
+                  "gap": "2 sem."
                 }
-              ]
+              ],
+              "note": "Recoge Shuto (Kiten ken) y Koho geri del lunes 12, que fue festivo."
             },
             {
               "code": "X43",
               "week": 43,
               "day": "miercoles",
               "date": "2026-10-21",
-              "title": "Tobi y Zenpo otoshi ukemi · Tanbo III: Uke waza",
+              "title": "Tobi y Zenpo otoshi ukemi · Tanbo I: kamae y te no uchi",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
@@ -506,9 +529,10 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Uke waza Honte: Jodan uke, Yoko mawashi uke, Chudan uke, Gedan uke, Gedan kake uke",
-                    "Uke + sabaki ante Fudoken y ante Shomen de tanbo",
-                    "Repaso: Uchi waza"
+                    "Arranque del programa de tanbo: características, medidas y partes",
+                    "Te no uchi: Honte, Gyakute y Ryote; cambios de agarre",
+                    "Kamae: Jodan, Chudan, Dokko, Ichimonji, Seigan",
+                    "Transiciones entre kamae en desplazamiento"
                   ]
                 },
                 {
@@ -522,27 +546,24 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Otoshi ukemi solo desde rodillas."
+                  "text": "Otoshi ukemi solo desde rodillas; tanbo: Honte y los cinco kamae."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Desde cuclillas."
+                  "text": "Otoshi ukemi desde cuclillas; tanbo: Honte y Gyakute con transiciones."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Desde de pie y sobre obstáculo bajo."
+                  "text": "Otoshi ukemi de pie y sobre obstáculo bajo; tanbo: los tres agarres en desplazamiento."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Happo tai sabaki",
                   "gap": "1 sem."
-                },
-                {
-                  "topic": "Tanbo",
-                  "gap": "2 sem."
                 }
-              ]
+              ],
+              "note": "Primera sesión del programa de tanbo, que arranca dos semanas más tarde de lo previsto."
             }
           ]
         },
@@ -560,7 +581,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "parts": [
                 {
                   "name": "Calentamiento",
-                  "minutes": 15,
+                  "minutes": 10,
                   "items": [
                     "Junan taiso con equilibrio sobre una pierna (preparación Hicho)"
                   ]
@@ -583,11 +604,14 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 },
                 {
                   "name": "Jutai jutsu",
-                  "minutes": 30,
+                  "minutes": 35,
                   "items": [
                     "Sokki: presión rodilla–rodilla Mae, Omote, Ura y Ushiro",
                     "Presión sobre el pie más próximo",
-                    "Aplicar Sokki como cierre de Ichimonji no kata"
+                    "Aplicar Sokki como cierre de Ichimonji no kata",
+                    "Omote gyaku tsuki (Hoshu kihon 5) ante Fudoken",
+                    "O goshi con buena entrada de cadera",
+                    "Gatame: control de cabeza y control del brazo con la rodilla"
                   ]
                 },
                 {
@@ -601,23 +625,28 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Kamae no kata: aprender 8 primeros kamae; Hicho sin Shuto final."
+                  "text": "Kamae no kata: aprender 8 primeros kamae; Hicho sin Shuto final. Omote gyaku tsuki a velocidad lenta, foco en el ángulo del codo."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Kamae no kata completo; Hicho completo."
+                  "text": "Kamae no kata completo; Hicho completo. Encadenar Omote gyaku tori y tsuki ante dos ataques distintos."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Hicho no kata con Uke cambiando de ataque (Fudoken / Zenpo geri)."
+                  "text": "Hicho no kata con Uke cambiando de ataque (Fudoken / Zenpo geri). Henka: si uke resiste el Omote gyaku, pasar a O soto gari."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Dakentai (tsuki, keri, uke)",
                   "gap": "1 sem."
+                },
+                {
+                  "topic": "Omote gyaku",
+                  "gap": "3 sem."
                 }
-              ]
+              ],
+              "note": "Recoge Omote gyaku tsuki, O goshi y gatame del lunes 12, que fue festivo."
             },
             {
               "code": "X44",
@@ -899,7 +928,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 46,
               "day": "miercoles",
               "date": "2026-11-11",
-              "title": "Kaiten desde kamae · Tanbo IV: Tanbo waza",
+              "title": "Kaiten desde kamae · Tanbo II: Uchi y Uke waza",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
@@ -923,9 +952,12 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Tanbo waza: Kansetsu, Nage y Shime waza",
-                    "Eda koppo, Ude garami, Take ori, Kyojutsu",
-                    "Repaso: Uke waza de tanbo"
+                    "Uchi waza Honte: Shomen, Do yoko, Do gyaku yoko, Tsuki mae/ushiro, Ushiro mawashi, Ushiro ascendente",
+                    "Uchi waza Gyakute: Tsuki, Omote mawashi uchi, Age uchi, Ushiro",
+                    "Uchi waza Ryote: Mae, Yoko, Ushiro, Otoshi",
+                    "Uke waza Honte: Jodan uke, Yoko mawashi uke, Chudan uke, Gedan uke, Gedan kake uke",
+                    "Uke + sabaki ante Fudoken y ante Shomen de tanbo",
+                    "Repaso: kamae y te no uchi"
                   ]
                 },
                 {
@@ -939,15 +971,15 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Uchi y Uke waza (8º)."
+                  "text": "Uchi waza Honte completo y Uke waza básico."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Tanbo waza de 7º."
+                  "text": "Honte y Gyakute, y Uke waza con sabaki."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Tanbo waza y desarmado contra tanbo."
+                  "text": "Los tres agarres encadenando uchi y uke."
                 }
               ],
               "reviews": [
@@ -1464,7 +1496,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 50,
               "day": "miercoles",
               "date": "2026-12-09",
-              "title": "Ukemi ante proyección · Tanbo V: 6º Kyu",
+              "title": "Ukemi ante proyección · Tanbo III: Tanbo waza y 6º Kyu",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
@@ -1488,10 +1520,12 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
+                    "Tanbo waza: Kansetsu, Nage y Shime waza",
+                    "Eda koppo, Ude garami, Take ori, Kyojutsu",
                     "Ude gaeshi, Katate jime, Kote gaeshi (7º)",
                     "Ude kujiki, Katame kujiki, Katate dori (6º)",
                     "Desarmado contra tanbo",
-                    "Repaso: Tanbo waza"
+                    "Repaso: Uchi y Uke waza"
                   ]
                 },
                 {
@@ -1518,6 +1552,20 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 {
                   "topic": "Tanbo",
                   "gap": "4 sem."
+                }
+              ],
+              "levels": [
+                {
+                  "grades": "10º–7º",
+                  "text": "Uchi y Uke waza de 8º, y tanbo waza de 7º con ayuda."
+                },
+                {
+                  "grades": "6º–5º",
+                  "text": "Tanbo waza de 7º completo e inicio de las técnicas de 6º."
+                },
+                {
+                  "grades": "4º–2º",
+                  "text": "Técnicas de 6º, desarmado y henka contra tanbo."
                 }
               ]
             }
@@ -2215,7 +2263,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 5,
               "day": "miercoles",
               "date": "2027-02-03",
-              "title": "Repaso de Aruki waza · Tanbo VI: contra tanto y kumite",
+              "title": "Repaso de Aruki waza · Tanbo IV: contra tanto y kumite",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
@@ -2274,7 +2322,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 },
                 {
                   "topic": "Tanbo",
-                  "gap": "1 sem."
+                  "gap": "8 sem."
                 },
                 {
                   "topic": "Tanto",
