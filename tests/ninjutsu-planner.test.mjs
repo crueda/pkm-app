@@ -29,7 +29,12 @@ test("incluye las 60 sesiones de la programación con fechas de lunes y miércol
   for (const session of sessions) {
     const weekday = new Date(`${session.date}T12:00:00Z`).getUTCDay();
     assert.equal(weekday, session.day === "lunes" ? 1 : 3, session.code);
-    assert.ok(session.parts.length >= 4, session.code);
+    if (session.cancelled) {
+      assert.equal(session.parts.length, 1, session.code);
+      assert.equal(session.parts[0].name, "Contenido redistribuido", session.code);
+    } else {
+      assert.ok(session.parts.length >= 4, session.code);
+    }
   }
 });
 
@@ -75,12 +80,12 @@ test("exporta la sesión editada como nota de entrenamiento", () => {
   assert.match(markdown, /sesion: L41/);
   assert.match(markdown, /fecha: 2026-10-05/);
   assert.match(markdown, /instructor: Carlos/);
-  assert.match(markdown, /# L41 · Kihon happo I: Ichimonji no kata/);
+  assert.match(markdown, /# L41 · Kihon happo I, Shuto y Koho Geri/);
   assert.match(markdown, /## Taihen jutsu \(15′\)\n(- .+\n)*- Ukemi extra\n/);
   assert.match(markdown, /## Niveles\n- \*\*10º–7º:\*\*/);
   assert.match(markdown, /## Notas del entrenamiento\n- Asistentes: 8\n/);
-  assert.match(sessionToMarkdown(findProgramSession("L45")), /Día no lectivo/);
-  assert.equal(sessionExportBaseName(session), "2026-10-05 - L41 - Kihon happo I: Ichimonji no kata");
+  assert.match(sessionToMarkdown(findProgramSession("L45")), /> Sin clase: festivo del 2 de noviembre\./);
+  assert.equal(sessionExportBaseName(session), "2026-10-05 - L41 - Kihon happo I, Shuto y Koho Geri");
   assert.equal(PROGRAM_EXPORT_FOLDER_NAME, "Programación 2026-2027");
 });
 
@@ -175,21 +180,19 @@ test("palabra de la semana solo en semanas de Carlos, con las ya explicadas", as
   assert.doesNotMatch(sessionToMarkdown(findProgramSession("L42")), /Palabra de la semana/);
 });
 
-test("el programa de tanbo arranca el 21 de octubre y el lunes festivo queda cancelado", () => {
+test("el programa de tanbo arranca el 14 de octubre y el lunes festivo queda cancelado", () => {
   const x41 = findProgramSession("X41");
   assert.equal(x41.parts.some(part => part.name.includes("Armas")), false);
-  assert.match(x41.parts[0].items.join(" "), /Carrera en círculo/);
-  assert.match(x41.parts[0].items.join(" "), /Desplazamientos por filas/);
-  assert.match(x41.parts[0].items.join(" "), /repta alterna/);
-  assert.match(x41.parts[1].items.join(" "), /Ushiro kaiten/);
-  assert.match(x41.parts[2].items.join(" "), /O soto nage/);
-  assert.match(x41.parts[2].items.join(" "), /Omote gyaku de aplicación/);
+  assert.match(x41.parts[0].items.join(" "), /Carrera suave en círculos/);
+  assert.match(x41.parts[1].items.join(" "), /Zenpo, Sokuho y Koho ukemi/);
+  assert.match(x41.parts[2].items.join(" "), /O Soto Nage y O Goshi/);
+  assert.match(x41.parts[2].items.join(" "), /Omote Gyaku, Ura Gyaku y Hon Gyaku/);
   assert.equal(x41.parts.reduce((total, part) => total + part.minutes, 0), 90);
   const l42 = findProgramSession("L42");
   assert.match(l42.cancelledReason, /festivo del 12 de octubre/);
   assert.match(sessionToMarkdown(l42), /> Sin clase: festivo del 12 de octubre./);
   const tanbo = programSessions().filter(session => /Tanbo [IVX]+/.test(session.title));
-  assert.deepEqual(tanbo.map(session => session.code), ["X43", "X46", "X50", "X5"]);
-  assert.equal(tanbo[0].date, "2026-10-21");
-  assert.match(tanbo[0].parts.find(part => part.name === "Armas · Tanbo").items[0], /Arranque del programa de tanbo/);
+  assert.deepEqual(tanbo.map(session => session.code), ["X42", "X43", "X48", "X5"]);
+  assert.equal(tanbo[0].date, "2026-10-14");
+  assert.match(tanbo[0].parts.find(part => part.name === "Armas · Tanbo").items[0], /características, medidas, partes y Te no Uchi/);
 });

@@ -1,4 +1,4 @@
-// Generado a partir de «Programación anual 2026–2027 · Nin Jutsu Budo Taijutsu.html».
+// Generado a partir de «Programación anual 2026–2027 · Nin Jutsu Budo Taijutsu v4.html», convertido y validado como Markdown.
 // Contenido base de solo lectura: las modificaciones del usuario se guardan aparte.
 export const NINJUTSU_PROGRAM = Object.freeze({
   "id": "2026-2027",
@@ -38,7 +38,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Juego de equilibrio a pata coja por parejas",
                     "Shizen, Ichimonji, Jumonji y Hoko; transiciones en filas",
-                    "Sabaki con esos kamae ante intento de agarre"
+                    "Sabaki con esos kamae ante intento de agarre",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -47,7 +48,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Fudoken por fases, estático y dinámico de Ichimonji a Jumonji",
                     "Jodan uke de Shizen a Ichimonji; parejas con contraataque de uke",
-                    "Juego de tocar el hombro: Hoko, giro de cadera y sabaki"
+                    "Juego de tocar el hombro: Hoko, giro de cadera y sabaki",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -57,7 +59,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Yoko ukemi por filas",
                     "Kumi kata y kuzushi a Mae omote → O soto nage (también ante Fudoken)",
                     "Omote gyaku desde Fudoken / Jodan uke omote",
-                    "Si sobra tiempo: tehodoki ante agarre directo saliendo en giro"
+                    "Si sobra tiempo: tehodoki ante agarre directo saliendo en giro",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 }
               ],
@@ -69,40 +72,44 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 40,
               "day": "miercoles",
               "date": "2026-09-30",
-              "title": "Kaiten básicos · Toma de contacto con el tanbo",
+              "title": "Kaiten básicos · Kamae, desplazamientos y dakentai",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Zenpo kaiten Ryo te y Kata te",
                     "Koho kaiten",
-                    "Salir del kaiten en kamae (Shizen, Ichimonji)"
+                    "Salir del kaiten en kamae (Shizen, Ichimonji)",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanbo",
+                  "name": "Trabajo sin armas · Kamae, desplazamientos y dakentai",
                   "minutes": 40,
                   "items": [
-                    "Tanbo: características, medidas y partes",
-                    "Te no uchi y kamae: Jodan, Chudan, Dokko, Ichimonji, Seigan",
-                    "Transiciones entre kamae en desplazamiento"
+                    "Shizen, Ichimonji, Hicho y Jumonji: entradas, salidas y cambios de kamae.",
+                    "Mae/Koho/Yoko Aruki y Happo Tai Sabaki aplicados a la distancia de combate.",
+                    "Fudoken y Shuto encadenados con Jodan Uke, Gedan Uke y salida angular.",
+                    "Entrada a O Soto Nage y O Soto Gari con control final."
                   ]
                 },
                 {
                   "name": "Cierre",
                   "minutes": 5,
                   "items": [
-                    "Rei con el arma, recogida y estiramiento"
+                    "Vuelta a la calma, estiramiento y rei final."
                   ]
                 }
               ],
@@ -119,8 +126,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "grades": "4º–2º",
                   "text": "Mute kaiten de recuerdo."
                 }
-              ],
-              "note": "Solo fue una toma de contacto con el arma: el programa de tanbo arranca el 21 de octubre (X43)."
+              ]
             }
           ]
         },
@@ -132,7 +138,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 41,
               "day": "lunes",
               "date": "2026-10-05",
-              "title": "Kihon happo I: Ichimonji no kata",
+              "title": "Kihon happo I, Shuto y Koho Geri",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
@@ -149,7 +155,9 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 15,
                   "items": [
                     "Ichimonji avanzando y retrocediendo, manteniendo la distancia",
-                    "Sabaki atrás 45º (Ushiro omote/ura) ante Fudoken lento"
+                    "Sabaki atrás 45º (Ushiro omote/ura) ante Fudoken lento",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada.",
+                    "Sabaki Mae Omote/Mae Ura entrando ante Fudoken y enlazado con Shuto."
                   ]
                 },
                 {
@@ -159,7 +167,10 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Gedan uke; combinación Jodan uke / Gedan uke por parejas",
                     "Zenpo geri: Sokuyaku (planta) y Sokugyaku (punta)",
                     "Ichimonji no kata (Koshi kihon sanpo 1) completo, por fases",
-                    "Repaso: Fudoken desde Ichimonji (sesión 1)"
+                    "Repaso: Fudoken desde Ichimonji (sesión 1)",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki.",
+                    "Kiten Ken / Shuto Omote y Ura, a cuello y clavícula.",
+                    "Koho Geri desde Ichimonji y desde giro."
                   ]
                 },
                 {
@@ -168,7 +179,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "O soto gari tras kuzushi",
                     "Omote gyaku tori (Hoshu kihon 4) ante agarre de solapa",
-                    "Repaso: Omote gyaku ante Fudoken"
+                    "Repaso: Omote gyaku ante Fudoken",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -209,79 +221,67 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 41,
               "day": "miercoles",
               "date": "2026-10-07",
-              "title": "Kaiten y ukemi · Omote gyaku y O soto nage",
+              "title": "Ukemi · Kihon happo y controles",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 20,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Carrera en círculo: talones, rodillas arriba, zancada lateral y cambios de sentido a la señal",
-                    "Sin dejar de correr, golpeos al aire a la voz: Fudoken, Shuto, Shito ken, codo y rodilla",
-                    "Desplazamientos por filas: Shizen → Ichimonji → Jumonji → Hoko, adelante y atrás",
-                    "Desplazamientos básicos cruzando el tatami: repta alterna y Ko ashi (paso apoyado)",
-                    "Junan taiso de muñecas, antebrazos y hombros"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
                   "minutes": 30,
                   "items": [
-                    "Zenpo kaiten Ryo te y Kata te, por filas",
-                    "Ushiro kaiten: progresión desde sentado y salida en kamae",
-                    "Zenpo, Sokuho y Koho ukemi, con atención al Yoko",
-                    "Encadenar Kaiten → Ukemi → Kamae"
+                    "Zenpo, Sokuho y Koho ukemi",
+                    "Encadenar Kaiten → Ukemi → Kamae",
+                    "Repaso: Kaiten",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Jutai jutsu",
-                  "minutes": 35,
+                  "name": "Trabajo sin armas · Kihon happo y controles",
+                  "minutes": 40,
                   "items": [
-                    "Tehodoki ante Katate dori y Ryote dori: kuzushi y salida en giro hacia el pulgar",
-                    "Omote gyaku de aplicación: encadenar la suelta con la toma de muñeca y el derribo",
-                    "O soto nage por fases: kumi kata, kuzushi atrás y barrido",
-                    "O soto nage a ritmo, con uke rompiendo la caída en Yoko ukemi",
-                    "Encadenar: si uke resiste el Omote gyaku, pasar a O soto nage"
+                    "Ichimonji no Kata: recepción, contraataque y recuperación de distancia.",
+                    "Omote Gyaku, Ura Gyaku y Hon Gyaku desde agarre de muñeca.",
+                    "O Soto Nage y O Goshi enlazados desde ataque de Fudoken.",
+                    "Randori técnico: Ukemi, control y salida a kamae sin resistencia."
                   ]
                 },
                 {
                   "name": "Cierre",
                   "minutes": 5,
                   "items": [
-                    "Estiramiento de muñecas y antebrazos, y respiración"
+                    "Vuelta a la calma, estiramiento y rei final."
                   ]
                 }
               ],
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Zenpo kaiten con ayuda; tehodoki ante agarre directo; O soto nage lento, cuidando el Yoko ukemi de uke."
+                  "text": "Honte completo."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Zenpo y Ushiro kaiten con salida en kamae; encadenar tehodoki, Omote gyaku y O soto nage."
+                  "text": "Honte y Gyakute."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Kaiten a ambos lados; henka: si uke resiste la suelta, pasar a Ura gyaku o a O soto gari."
+                  "text": "Los tres agarres, encadenados."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Kaiten (rodamientos)",
                   "gap": "1 sem."
-                },
-                {
-                  "topic": "Omote gyaku",
-                  "gap": "1 sem."
-                },
-                {
-                  "topic": "Nage waza (O soto)",
-                  "gap": "1 sem."
                 }
-              ],
-              "note": "Sin bloque de armas: el programa de tanbo se traslada al 21 de octubre (X43)."
+              ]
             }
           ]
         },
@@ -293,109 +293,61 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 42,
               "day": "lunes",
               "date": "2026-10-12",
-              "title": "Shuto, Koho geri y Omote gyaku tsuki",
+              "title": "Festivo · sin entrenamiento",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 15,
+                  "name": "Contenido redistribuido",
+                  "minutes": 0,
                   "items": [
-                    "Junan taiso",
-                    "Rodamientos suaves de recuerdo (miércoles anterior)"
+                    "Shuto, Koho Geri y el sabaki asociado se integran en L41 (5 de octubre).",
+                    "Omote Gyaku Tsuki, O Goshi y los controles en suelo se integran en L43 (19 de octubre).",
+                    "No se pierde contenido del programa: queda repartido entre las dos sesiones indicadas."
                   ]
-                },
-                {
-                  "name": "Taihen jutsu",
-                  "minutes": 15,
-                  "items": [
-                    "Sabaki Mae omote / Mae ura entrando ante Fudoken",
-                    "Encadenar sabaki con Shuto (Kiten ken)"
-                  ]
-                },
-                {
-                  "name": "Dakentai jutsu",
-                  "minutes": 25,
-                  "items": [
-                    "Kiten ken / Shuto: omote y ura, a cuello y clavícula",
-                    "Koho geri desde Ichimonji y desde giro",
-                    "Repaso: Ichimonji no kata"
-                  ]
-                },
-                {
-                  "name": "Jutai jutsu",
-                  "minutes": 30,
-                  "items": [
-                    "Omote gyaku tsuki (Hoshu kihon 5) ante Fudoken",
-                    "O goshi con buena entrada de cadera",
-                    "Gatame: control de cabeza y control del brazo con la rodilla"
-                  ]
-                },
-                {
-                  "name": "Cierre",
-                  "minutes": 5,
-                  "items": [
-                    "Respiración y estiramiento de muñecas"
-                  ]
-                }
-              ],
-              "nonTeaching": true,
-              "levels": [
-                {
-                  "grades": "10º–7º",
-                  "text": "Omote gyaku tsuki a velocidad lenta, foco en el ángulo del codo."
-                },
-                {
-                  "grades": "6º–5º",
-                  "text": "Encadenar Omote gyaku tori y tsuki ante dos ataques distintos."
-                },
-                {
-                  "grades": "4º–2º",
-                  "text": "Henka: si uke resiste el Omote gyaku, pasar a O soto gari."
-                }
-              ],
-              "reviews": [
-                {
-                  "topic": "Kihon happo",
-                  "gap": "1 sem."
                 }
               ],
               "cancelled": true,
-              "cancelledReason": "festivo del 12 de octubre.",
-              "note": "Contenido repartido entre L43 (Shuto y Koho geri) y L44 (Omote gyaku tsuki, O goshi y gatame)."
+              "nonTeaching": true,
+              "cancelledReason": "festivo del 12 de octubre."
             },
             {
               "code": "X42",
               "week": 42,
               "day": "miercoles",
               "date": "2026-10-14",
-              "title": "Happo tai sabaki · Tanto I",
+              "title": "Tobi y Zenpo otoshi ukemi · Tanbo I: fundamentos y uchi waza",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Happo tai sabaki gata: Mae omote, Mae ura, Ushiro omote, Ushiro ura, Ushiro, Mae, Mawashi",
-                    "Sabaki ante Fudoken y Zenpo geri",
-                    "Yoko aruki cruzando por delante y por detrás"
+                    "Zenpo, Sokuho y Koho tobi",
+                    "Zenpo otoshi ukemi en progresión: rodillas → cuclillas → de pie",
+                    "Repaso: Happo sabaki",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanto",
+                  "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Tanto: Te no uchi Honte (Mae kisaki) y Gyakute (Ushiro kisaki)",
-                    "Cambios de mano por delante y por detrás; recoger del suelo",
-                    "Posiciones básicas: Shizen no kage, Kage, Seigan, Gedan, Gyaku tenchi, Jumonji, Hachiji, Shote, Kosa, Ichimonji"
+                    "Tanbo: características, medidas, partes y Te no Uchi.",
+                    "Kamae: Jodan, Chudan, Dokko, Ichimonji y Seigan; transiciones en desplazamiento.",
+                    "Uchi Waza Honte: Shomen, Do Yoko, Do Gyaku Yoko y Tsuki Mae/Ushiro.",
+                    "Uchi Waza Gyakute y Ryote: Tsuki, Omote Mawashi Uchi, Age Uchi, Mae, Yoko y Otoshi.",
+                    "Aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -411,8 +363,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "topic": "Ukemi (caídas)",
                   "gap": "1 sem."
                 }
-              ],
-              "note": "Usar siempre tanto de madera o goma."
+              ]
             }
           ]
         },
@@ -424,13 +375,13 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 43,
               "day": "lunes",
               "date": "2026-10-19",
-              "title": "Ura gyaku, Hon gyaku y controles en el suelo",
+              "title": "Omote, Ura y Hon Gyaku · controles en el suelo",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
                   "name": "Calentamiento",
-                  "minutes": 10,
+                  "minutes": 15,
                   "items": [
                     "Junan taiso con trabajo de muñecas",
                     "Ukemi de recuerdo: yoko y koho"
@@ -442,18 +393,18 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Mawashi (giro 90º) a ambos lados",
                     "Entrada en Ura con giro de cadera",
-                    "Sabaki Mae omote / Mae ura entrando ante Fudoken, encadenando con Shuto"
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
-                  "minutes": 30,
+                  "minutes": 25,
                   "items": [
                     "Hacho ken (palma) y Shito/Boshi ken (pulgar)",
                     "Zonas de ataque: Jodan, Chudan, Gedan",
-                    "Kiten ken / Shuto: omote y ura, a cuello y clavícula",
-                    "Koho geri desde Ichimonji y desde giro",
-                    "Repaso: Gedan uke + Zenpo geri"
+                    "Repaso: Gedan uke + Zenpo geri",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki.",
+                    "Repaso integrado: Shuto y Koho Geri antes de entrar a Gyaku Waza."
                   ]
                 },
                 {
@@ -464,7 +415,11 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Hon gyaku con brazo extendido",
                     "Ura gyaku tori / Hon gyaku tori (Hoshu kihon 6)",
                     "Gatame: brazo sin manos, brazos extendidos a la espalda, pierna",
-                    "Repaso: O soto nage y O soto gari"
+                    "Repaso: O soto nage y O soto gari",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo.",
+                    "Omote Gyaku Tsuki (Hoshu Kihon 5) ante Fudoken.",
+                    "O Goshi con entrada completa de cadera.",
+                    "Gatame: control de cabeza y control del brazo con la rodilla."
                   ]
                 },
                 {
@@ -478,15 +433,15 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Ura gyaku solo derribando hacia atrás."
+                  "text": "Ura gyaku solo derribando hacia atrás. Añadir Omote Gyaku Tsuki lento, cuidando el ángulo del codo."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Ura gyaku tori con salida al suelo y gatame."
+                  "text": "Ura gyaku tori con salida al suelo y gatame. Encadenar Omote Gyaku Tori y Tsuki ante dos ataques distintos."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Transiciones Omote ↔ Ura gyaku según reacción de uke."
+                  "text": "Transiciones Omote ↔ Ura gyaku según reacción de uke. Si uke resiste Omote Gyaku, enlazar con O Soto Gari."
                 }
               ],
               "reviews": [
@@ -497,47 +452,46 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 {
                   "topic": "Dakentai (tsuki, keri, uke)",
                   "gap": "1 sem."
-                },
-                {
-                  "topic": "Ichimonji no kata",
-                  "gap": "2 sem."
                 }
-              ],
-              "note": "Recoge Shuto (Kiten ken) y Koho geri del lunes 12, que fue festivo."
+              ]
             },
             {
               "code": "X43",
               "week": 43,
               "day": "miercoles",
               "date": "2026-10-21",
-              "title": "Tobi y Zenpo otoshi ukemi · Tanbo I: kamae y te no uchi",
+              "title": "Kaiten desde kamae · Tanbo II: uke y tanbo waza",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Zenpo, Sokuho y Koho tobi",
-                    "Zenpo otoshi ukemi en progresión: rodillas → cuclillas → de pie",
-                    "Repaso: Happo sabaki"
+                    "Variaciones de Kaiten entre kamae, cambiando de lado",
+                    "Kaiten con las manos a la espalda (4º–2º)",
+                    "Repaso: Ukemi y Tobi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
                   "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Arranque del programa de tanbo: características, medidas y partes",
-                    "Te no uchi: Honte, Gyakute y Ryote; cambios de agarre",
-                    "Kamae: Jodan, Chudan, Dokko, Ichimonji, Seigan",
-                    "Transiciones entre kamae en desplazamiento"
+                    "Uke Waza Honte: Jodan Uke, Yoko Mawashi Uke, Chudan Uke, Gedan Uke y Gedan Kake Uke.",
+                    "Uke más sabaki ante Fudoken y ante Shomen de tanbo.",
+                    "Tanbo Waza: Kansetsu, Nage y Shime Waza.",
+                    "Eda Koppo, Ude Garami, Take Ori y Kyojutsu.",
+                    "Repaso enlazado de Uchi Waza y cambios de kamae."
                   ]
                 },
                 {
@@ -551,24 +505,27 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Otoshi ukemi solo desde rodillas; tanbo: Honte y los cinco kamae."
+                  "text": "Otoshi ukemi solo desde rodillas."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Otoshi ukemi desde cuclillas; tanbo: Honte y Gyakute con transiciones."
+                  "text": "Desde cuclillas."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Otoshi ukemi de pie y sobre obstáculo bajo; tanbo: los tres agarres en desplazamiento."
+                  "text": "Desde de pie y sobre obstáculo bajo."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Happo tai sabaki",
                   "gap": "1 sem."
+                },
+                {
+                  "topic": "Tanbo",
+                  "gap": "2 sem."
                 }
-              ],
-              "note": "Primera sesión del programa de tanbo, que arranca dos semanas más tarde de lo previsto."
+              ]
             }
           ]
         },
@@ -580,22 +537,25 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 44,
               "day": "lunes",
               "date": "2026-10-26",
-              "title": "Kamae no kata y Hicho no kata",
+              "title": "Kamae, Hicho y Ganseki Nage",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
                   "name": "Calentamiento",
-                  "minutes": 10,
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso con equilibrio sobre una pierna (preparación Hicho)"
+                    "Junan taiso con equilibrio sobre una pierna (preparación Hicho)",
+                    "Juroppo Ken: recorrido técnico de las armas naturales."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kamae no kata completo: los 15 kamae, nombres y transiciones"
+                    "Kamae no kata completo: los 15 kamae, nombres y transiciones",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada.",
+                    "Ukemi frente a proyección suave: Mae y Yoko."
                   ]
                 },
                 {
@@ -604,19 +564,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Sokki ken (rodilla), Sokuho geri, Mawashi geri",
                     "Hicho no kata (Koshi kihon sanpo 2) por fases",
-                    "Repaso: Shuto y Koho geri"
+                    "Repaso: Shuto y Koho geri",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki.",
+                    "Shitanken, Sanshitanken y Tetsui Ken.",
+                    "Repaso espaciado: Ichimonji y Hicho no Kata."
                   ]
                 },
                 {
                   "name": "Jutai jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Sokki: presión rodilla–rodilla Mae, Omote, Ura y Ushiro",
                     "Presión sobre el pie más próximo",
                     "Aplicar Sokki como cierre de Ichimonji no kata",
-                    "Omote gyaku tsuki (Hoshu kihon 5) ante Fudoken",
-                    "O goshi con buena entrada de cadera",
-                    "Gatame: control de cabeza y control del brazo con la rodilla"
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo.",
+                    "Ganseki Nage, Ganseki Otoshi y Ganseki Geri.",
+                    "Ganseki Nage (Hoshu Kihon 8) y repaso de Hoshu Kihon 4, 5 y 6."
                   ]
                 },
                 {
@@ -630,61 +593,60 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Kamae no kata: aprender 8 primeros kamae; Hicho sin Shuto final. Omote gyaku tsuki a velocidad lenta, foco en el ángulo del codo."
+                  "text": "Kamae no kata: aprender 8 primeros kamae; Hicho sin Shuto final. Ganseki Nage básico con caída en Yoko Ukemi."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Kamae no kata completo; Hicho completo. Encadenar Omote gyaku tori y tsuki ante dos ataques distintos."
+                  "text": "Kamae no kata completo; Hicho completo. Trabajar las tres variantes de Ganseki."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Hicho no kata con Uke cambiando de ataque (Fudoken / Zenpo geri). Henka: si uke resiste el Omote gyaku, pasar a O soto gari."
+                  "text": "Hicho no kata con Uke cambiando de ataque (Fudoken / Zenpo geri). Enlazar Ganseki con Oniku Daki si uke retira el brazo."
                 }
               ],
               "reviews": [
                 {
                   "topic": "Dakentai (tsuki, keri, uke)",
                   "gap": "1 sem."
-                },
-                {
-                  "topic": "Omote gyaku",
-                  "gap": "3 sem."
                 }
-              ],
-              "note": "Recoge Omote gyaku tsuki, O goshi y gatame del lunes 12, que fue festivo."
+              ]
             },
             {
               "code": "X44",
               "week": 44,
               "day": "miercoles",
               "date": "2026-10-28",
-              "title": "Nagare · Tanto II: Kiri y Uke",
+              "title": "Happo tai sabaki · Tanto I",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Sokuho nagare y Tachi nagare (pierna extendida)",
-                    "Mute kaiten en progresión",
-                    "Taihen ante corte de tanto: salir de línea"
+                    "Happo tai sabaki gata: Mae omote, Mae ura, Ushiro omote, Ushiro ura, Ushiro, Mae, Mawashi",
+                    "Sabaki ante Fudoken y Zenpo geri",
+                    "Yoko aruki cruzando por delante y por detrás",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
                   "name": "Armas · Tanto",
                   "minutes": 40,
                   "items": [
-                    "Técnicas básicas: Soto kiri, Uchi kiri, Otoshi kiri, Kiri age, Tsuki kiri, Hara tsuki",
-                    "Uke waza con tanto",
-                    "Repaso: Kamae de tanto"
+                    "Tanto: Te no uchi Honte (Mae kisaki) y Gyakute (Ushiro kisaki)",
+                    "Cambios de mano por delante y por detrás; recoger del suelo",
+                    "Posiciones básicas: Shizen no kage, Kage, Seigan, Gedan, Gyaku tenchi, Jumonji, Hachiji, Shote, Kosa, Ichimonji",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -714,7 +676,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "topic": "Tanto",
                   "gap": "2 sem."
                 }
-              ]
+              ],
+              "note": "Usar siempre tanto de madera o goma."
             }
           ]
         },
@@ -726,79 +689,23 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 45,
               "day": "lunes",
               "date": "2026-11-02",
-              "title": "Ganseki nage y repaso del Kihon happo",
+              "title": "Festivo · sin entrenamiento",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 15,
+                  "name": "Contenido redistribuido",
+                  "minutes": 0,
                   "items": [
-                    "Junan taiso",
-                    "Juroppo ken: recorrido de las armas naturales"
-                  ]
-                },
-                {
-                  "name": "Taihen jutsu",
-                  "minutes": 15,
-                  "items": [
-                    "Ukemi frente a proyección suave (Mae y Yoko)"
-                  ]
-                },
-                {
-                  "name": "Dakentai jutsu",
-                  "minutes": 25,
-                  "items": [
-                    "Shitanken, Sanshitanken y Tetsui ken",
-                    "Repaso espaciado: Ichimonji e Hicho no kata"
-                  ]
-                },
-                {
-                  "name": "Jutai jutsu",
-                  "minutes": 30,
-                  "items": [
-                    "Ganseki nage, Ganseki otoshi, Ganseki geri",
-                    "Ganseki nage (Hoshu kihon 8)",
-                    "Repaso espaciado: Hoshu kihon 4, 5 y 6"
-                  ]
-                },
-                {
-                  "name": "Cierre",
-                  "minutes": 5,
-                  "items": [
-                    "Cadena: Kihon happo 1, 2, 4, 5, 6 y 8"
+                    "Juroppo Ken, el repaso de Ichimonji/Hicho y Ganseki Nage se integran en L44 (26 de octubre).",
+                    "Ganseki y la cadena de Kihon Happo se consolidan en L46 (9 de noviembre).",
+                    "No se pierde contenido del programa: queda repartido entre las dos sesiones indicadas."
                   ]
                 }
               ],
+              "cancelled": true,
               "nonTeaching": true,
-              "levels": [
-                {
-                  "grades": "10º–7º",
-                  "text": "Ganseki nage básico; caer en Yoko ukemi."
-                },
-                {
-                  "grades": "6º–5º",
-                  "text": "Las tres variantes de Ganseki."
-                },
-                {
-                  "grades": "4º–2º",
-                  "text": "Ganseki con transición a Oniku daki si uke retira el brazo."
-                }
-              ],
-              "reviews": [
-                {
-                  "topic": "Kihon happo",
-                  "gap": "1 sem."
-                },
-                {
-                  "topic": "Gyaku waza / kansetsu",
-                  "gap": "2 sem."
-                },
-                {
-                  "topic": "Ukemi (caídas)",
-                  "gap": "2 sem."
-                }
-              ]
+              "cancelledReason": "festivo del 2 de noviembre."
             },
             {
               "code": "X45",
@@ -810,19 +717,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Mae aruki lento y rápido; Nuki ashi; O ashi",
                     "Yoko aruki con cambios de dirección y ocultación",
-                    "Repta alterna (rápida, gato, manos a la espalda); repta de espaldas portando arma"
+                    "Repta alterna (rápida, gato, manos a la espalda); repta de espaldas portando arma",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -831,7 +741,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Hanbo: características",
                     "Te no uchi: Honte, Gyakute, Gatana, en lanza, punta abajo",
-                    "Kamae: Katayaburi, Munen muso, Otonashi, Jodan, Chudan, Gedan, Hasso, Waki, Yoko, Ichimonji"
+                    "Kamae: Katayaburi, Munen muso, Otonashi, Jodan, Chudan, Gedan, Hasso, Waki, Yoko, Ichimonji",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -859,7 +770,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 46,
               "day": "lunes",
               "date": "2026-11-09",
-              "title": "Musha dori / Muso dori y defensas de antebrazo",
+              "title": "Ganseki, Musha/Muso Dori y defensas de antebrazo",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
@@ -875,7 +786,9 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Entrada por Ura con giro, preparando Musha dori"
+                    "Entrada por Ura con giro, preparando Musha dori",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada.",
+                    "Ukemi y recolocación tras Ganseki Nage."
                   ]
                 },
                 {
@@ -883,7 +796,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Nagashi uke / Haiwan uke y Gedan kake uke",
-                    "Fumikomi y Fumikiri (aplastar, cortar)"
+                    "Fumikomi y Fumikiri (aplastar, cortar)",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -892,7 +806,10 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Musa dori (brazo en V desde atrás) y Oniku daki omote/ura",
                     "Muso tori: a) Musha dori, b) Muso dori (Hoshu kihon 7)",
-                    "Repaso: Ganseki nage"
+                    "Repaso: Ganseki nage",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo.",
+                    "Consolidación de Ganseki Nage antes de Musha/Muso Dori.",
+                    "Cadena de Kihon Happo 1, 2, 4, 5, 6 y 8."
                   ]
                 },
                 {
@@ -933,36 +850,37 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 46,
               "day": "miercoles",
               "date": "2026-11-11",
-              "title": "Kaiten desde kamae · Tanbo II: Uchi y Uke waza",
+              "title": "Nagare · Tanto II: Kiri y Uke",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Variaciones de Kaiten entre kamae, cambiando de lado",
-                    "Kaiten con las manos a la espalda (4º–2º)",
-                    "Repaso: Ukemi y Tobi"
+                    "Sokuho nagare y Tachi nagare (pierna extendida)",
+                    "Mute kaiten en progresión",
+                    "Taihen ante corte de tanto: salir de línea",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanbo",
+                  "name": "Armas · Tanto",
                   "minutes": 40,
                   "items": [
-                    "Uchi waza Honte: Shomen, Do yoko, Do gyaku yoko, Tsuki mae/ushiro, Ushiro mawashi, Ushiro ascendente",
-                    "Uchi waza Gyakute: Tsuki, Omote mawashi uchi, Age uchi, Ushiro",
-                    "Uchi waza Ryote: Mae, Yoko, Ushiro, Otoshi",
-                    "Uke waza Honte: Jodan uke, Yoko mawashi uke, Chudan uke, Gedan uke, Gedan kake uke",
-                    "Uke + sabaki ante Fudoken y ante Shomen de tanbo",
-                    "Repaso: kamae y te no uchi"
+                    "Técnicas básicas: Soto kiri, Uchi kiri, Otoshi kiri, Kiri age, Tsuki kiri, Hara tsuki",
+                    "Uke waza con tanto",
+                    "Repaso: Kamae de tanto",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -976,15 +894,15 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "levels": [
                 {
                   "grades": "10º–7º",
-                  "text": "Uchi waza Honte completo y Uke waza básico."
+                  "text": "Uchi y Uke waza (8º)."
                 },
                 {
                   "grades": "6º–5º",
-                  "text": "Honte y Gyakute, y Uke waza con sabaki."
+                  "text": "Tanbo waza de 7º."
                 },
                 {
                   "grades": "4º–2º",
-                  "text": "Los tres agarres encadenando uchi y uke."
+                  "text": "Tanbo waza y desarmado contra tanbo."
                 }
               ],
               "reviews": [
@@ -1028,7 +946,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Jumonji avanzando con sabaki lateral"
+                    "Jumonji avanzando con sabaki lateral",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1037,7 +956,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Juji uke, Soto / Uchi ude uke",
                     "Shikanken, Uraken y Kikaku ken",
-                    "Jumonji no kata (Koshi kihon sanpo 3)"
+                    "Jumonji no kata (Koshi kihon sanpo 3)",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1045,7 +965,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Ashi barai, O uchi gari, Ko uchi gari",
-                    "Repaso: Ura / Hon gyaku"
+                    "Repaso: Ura / Hon gyaku",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1087,19 +1008,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Ko ashi, paso apoyado",
                     "Repta simultánea (puntas, pierna estirada), repta a saltos (rana), cuatro patas",
-                    "Happogan: varios avanzando en grupo"
+                    "Happogan: varios avanzando en grupo",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -1108,7 +1032,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Uchi waza: Choku tsuki, Ushiro tsuki, Kaeshi, Shomen, Yokomen, Gyaku yokomen, Katate uchi, Hachi no kaeshi",
                     "Uke waza contra Tsuki, Jodan tsuki, Yokomen, Shomen y Gedan kaeshi",
-                    "Repaso: kamae de hanbo"
+                    "Repaso: kamae de hanbo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1152,7 +1077,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kuzushi hacia delante: entrada bajo el centro de uke"
+                    "Kuzushi hacia delante: entrada bajo el centro de uke",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1160,7 +1086,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Kakushi geri y Aruki ko geri",
-                    "Repaso espaciado: Hicho no kata"
+                    "Repaso espaciado: Hicho no kata",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1168,7 +1095,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Kubi nage, Ippon seoi nage, Morote seoi nage, Sukui nage",
-                    "Repaso espaciado: Musha / Muso dori y Ganseki nage"
+                    "Repaso espaciado: Musha / Muso dori y Ganseki nage",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1209,33 +1137,38 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 48,
               "day": "miercoles",
               "date": "2026-11-25",
-              "title": "Taihen ante tanto · Tanto III: Entrenamiento",
+              "title": "Ukemi ante proyección · Tanbo III: técnicas de 7º–6º Kyu",
               "instructor": "Carlos",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Sabaki + Kaiten como esquiva ante ataque de tanto",
-                    "Repaso: Nagare y Happo sabaki"
+                    "Ukemi recibiendo proyecciones con arma",
+                    "Repaso: Aruki waza",
+                    "Repaso: Tobi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanto",
+                  "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Tanto contra adversario desarmado (8º)",
-                    "Tanto contra tanto (7º)",
-                    "Kyusho: Tsuki (estocada) y Kiri (corte) (6º)",
-                    "Yakusoku kumiuchi con tanto"
+                    "Ude Gaeshi, Katate Jime y Kote Gaeshi (7º Kyu).",
+                    "Ude Kujiki, Katame Kujiki y Katate Dori (6º Kyu).",
+                    "Desarmado contra tanbo desde ataque vertical, lateral y estocada.",
+                    "Repaso de Tanbo Waza: Kansetsu, Nage y Shime Waza.",
+                    "Aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1301,7 +1234,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Sabaki ante Kin geri y ante Fudoken encadenados"
+                    "Sabaki ante Kin geri y ante Fudoken encadenados",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1310,7 +1244,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Mikazuki geri omote/ura y Kakato geri",
                     "Ashibo kake uke y Nami gaeshi (tibia)",
-                    "Yakusoku kumiuchi por grado (ver niveles)"
+                    "Yakusoku kumiuchi por grado (ver niveles)",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1318,7 +1253,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Muso dori, Kannuki gatame y Waki gatame",
-                    "Repaso: Ashi barai / O uchi / Ko uchi gari"
+                    "Repaso: Ashi barai / O uchi / Ko uchi gari",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1360,19 +1296,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Kaiten no kata (6º)",
                     "Kaiten portando el hanbo sin golpearse",
-                    "Repaso: Kaiten desde kamae"
+                    "Repaso: Kaiten desde kamae",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -1381,7 +1320,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Kihon happo hanbo jutsu 1–8: Naname ushiro omote waki uchi … Kata te tsuki",
                     "Renzoku waza: encadenar uchi",
-                    "Repaso: Uchi y Uke"
+                    "Repaso: Uchi y Uke",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1443,7 +1383,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Ukemi ante Harai goshi en progresión"
+                    "Ukemi ante Harai goshi en progresión",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1451,7 +1392,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Haito ken (canto radial)",
-                    "Repaso: Yakusoku kumiuchi"
+                    "Repaso: Yakusoku kumiuchi",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1459,7 +1401,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Hara gatame, Ude osae y Kote hineri",
-                    "Harai goshi, Ushiro goshi (contra), Kata / Ryo ashi dori"
+                    "Harai goshi, Ushiro goshi (contra), Kata / Ryo ashi dori",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1501,36 +1444,37 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 50,
               "day": "miercoles",
               "date": "2026-12-09",
-              "title": "Ukemi ante proyección · Tanbo III: Tanbo waza y 6º Kyu",
+              "title": "Taihen ante tanto · Tanto III: Entrenamiento",
               "instructor": "Julio",
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Ukemi recibiendo proyecciones con arma",
-                    "Repaso: Aruki waza",
-                    "Repaso: Tobi"
+                    "Sabaki + Kaiten como esquiva ante ataque de tanto",
+                    "Repaso: Nagare y Happo sabaki",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanbo",
+                  "name": "Armas · Tanto",
                   "minutes": 40,
                   "items": [
-                    "Tanbo waza: Kansetsu, Nage y Shime waza",
-                    "Eda koppo, Ude garami, Take ori, Kyojutsu",
-                    "Ude gaeshi, Katate jime, Kote gaeshi (7º)",
-                    "Ude kujiki, Katame kujiki, Katate dori (6º)",
-                    "Desarmado contra tanbo",
-                    "Repaso: Uchi y Uke waza"
+                    "Tanto contra adversario desarmado (8º)",
+                    "Tanto contra tanto (7º)",
+                    "Kyusho: Tsuki (estocada) y Kiri (corte) (6º)",
+                    "Yakusoku kumiuchi con tanto",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1557,20 +1501,6 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 {
                   "topic": "Tanbo",
                   "gap": "4 sem."
-                }
-              ],
-              "levels": [
-                {
-                  "grades": "10º–7º",
-                  "text": "Uchi y Uke waza de 8º, y tanbo waza de 7º con ayuda."
-                },
-                {
-                  "grades": "6º–5º",
-                  "text": "Tanbo waza de 7º completo e inicio de las técnicas de 6º."
-                },
-                {
-                  "grades": "4º–2º",
-                  "text": "Técnicas de 6º, desarmado y henka contra tanbo."
                 }
               ]
             }
@@ -1599,7 +1529,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kamae no kata y Happo sabaki ante ataque"
+                    "Kamae no kata y Happo sabaki ante ataque",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1607,7 +1538,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Circuito por estaciones: Tsuki waza, Keri waza, Uke waza",
-                    "Koshi kihon sanpo completo"
+                    "Koshi kihon sanpo completo",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1616,7 +1548,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Hoshu kihon gohō completo (4 a 8)",
                     "Proyecciones 9º–7º: cada alumno elige tres",
-                    "Yakusoku kumiuchi de su grado"
+                    "Yakusoku kumiuchi de su grado",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1682,17 +1615,20 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": false,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Circuito: Kaiten, Ukemi, Tobi, Nagare, Sabaki, Aruki waza, Kaiten no kata"
+                    "Circuito: Kaiten, Ukemi, Tobi, Nagare, Sabaki, Aruki waza, Kaiten no kata",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -1701,7 +1637,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Estación Tanbo: kamae, uchi, uke, tanbo waza",
                     "Estación Tanto: kamae, kiri, tanto contra desarmado",
-                    "Estación Hanbo: kamae, uchi, uke, kihon happo"
+                    "Estación Hanbo: kamae, uchi, uke, kihon happo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1788,14 +1725,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Movimiento de los cinco elementos sin técnica: hundirse, fluir, subir"
+                    "Movimiento de los cinco elementos sin técnica: hundirse, fluir, subir",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Chi no kata, Sui no kata, Ka no kata: forma solo y con uke"
+                    "Chi no kata, Sui no kata, Ka no kata: forma solo y con uke",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1803,7 +1742,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Aplicación de Sui no kata con Omote gyaku",
-                    "Repaso: Kubi nage y Seoi nage"
+                    "Repaso: Kubi nage y Seoi nage",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1849,18 +1789,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Tenchi tobi y Sokuho tobi ante corte de sable (5º)",
-                    "Repaso: Tobi y Ukemi"
+                    "Repaso: Tobi y Ukemi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -1869,7 +1812,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Ninpo ken jutsu: partes del sable, Rei, Te no uchi",
                     "Kamae: Seigan, Ichi, Dai jodan, Gedan, Jizuri, Ryusui, Hasso, Kocho, Kongo",
-                    "Monouchi y Ki ken tai ichi"
+                    "Monouchi y Ki ken tai ichi",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -1931,7 +1875,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Giros de cadera para Ushiro mawashi"
+                    "Giros de cadera para Ushiro mawashi",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -1939,7 +1884,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Fu no kata y Ku no kata",
-                    "Shiho keri: Keri kaeshi, Ura mawashi, Ushiro mawashi"
+                    "Shiho keri: Keri kaeshi, Ura mawashi, Ushiro mawashi",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -1947,7 +1893,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Kata kuruma",
-                    "Repaso: Hara gatame, Ude osae"
+                    "Repaso: Hara gatame, Ude osae",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -1993,18 +1940,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Hicho kaiten: en altura y en longitud",
-                    "Kaiten con hanbo"
+                    "Kaiten con hanbo",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -2014,7 +1964,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Nage y Katame waza con hanbo (6º)",
                     "Fudoken D: Tsuke iri, Koshi ori, Ganseki I–III, Ude garami (5º)",
                     "4º–2º: Ryo te dori, Han gyaku jime, Ryo te garami dori, Kataginu (4º)",
-                    "Repaso: Kihon happo hanbo"
+                    "Repaso: Kihon happo hanbo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2075,7 +2026,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Entradas cortas en Ura para luxar"
+                    "Entradas cortas en Ura para luxar",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -2083,7 +2035,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Repaso espaciado: Jumonji no kata",
-                    "Combinación Shuto → Hacho ken → Take ori"
+                    "Combinación Shuto → Hacho ken → Take ori",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2092,7 +2045,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Take ori omote y ura; Kote hineri en progresión",
                     "Juji jime en sus tres formas (control y seguridad: soltar al primer golpe)",
-                    "Repaso: Omote / Ura gyaku"
+                    "Repaso: Omote / Ura gyaku",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2138,19 +2092,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Shikko (en seiza) y Saguri aruki (en cuclillas)",
                     "Desplazamiento perceptivo con ojos cerrados",
-                    "Repaso: Kaiten no kata"
+                    "Repaso: Kaiten no kata",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -2159,7 +2116,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Shishin bo: Uke waza (Shuto, Jodan, Nagare omote/ura, Gedan, Gedan kake)",
                     "Ate waza (Hacho ken, Boshi ken, Kiten ken, Tetsui ken) y Tsukami a brazos y piernas",
-                    "Eda koppo; aplicaciones Ganseki dome, Hiki otoshi, Ude kujiki desde la base de tanbo"
+                    "Eda koppo; aplicaciones Ganseki dome, Hiki otoshi, Ude kujiki desde la base de tanbo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2208,14 +2166,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Caída hacia atrás controlada llevando a uke (sin proyectar)"
+                    "Caída hacia atrás controlada llevando a uke (sin proyectar)",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Yakusoku kumiuchi Ippon/Nihonme por grado"
+                    "Yakusoku kumiuchi Ippon/Nihonme por grado",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2223,7 +2183,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Tomoe nage y Kuruma en progresión",
-                    "Repaso: Sokki controles de pierna"
+                    "Repaso: Sokki controles de pierna",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2273,29 +2234,32 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Repaso espaciado: Aruki waza y repta completo",
-                    "Happogan en grupo"
+                    "Happogan en grupo",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
                   "name": "Armas · Tanbo",
                   "minutes": 40,
                   "items": [
-                    "Defensas con tanbo contra ataques de tanto (6º)",
-                    "Hiki otoshi, Tsuki otoshi, Hiki taoshi, Uko arashi, Ganseki dome (6º)",
-                    "Kumite con tanbo (5º); aplicaciones con Tessen y Kunai (5º)",
-                    "Repaso: Tanbo waza 7º",
-                    "Repaso: Shishin bo aplicado a Ganseki dome e Hiki otoshi"
+                    "Defensas con tanbo contra ataques de tanto (6º Kyu).",
+                    "Hiki Otoshi, Tsuki Otoshi, Hiki Taoshi, Uko Arashi y Ganseki Dome (6º Kyu).",
+                    "Kumite con tanbo (5º Kyu).",
+                    "Aplicaciones con Tessen y Kunai (5º Kyu).",
+                    "Repaso de Tanbo Waza de 7º Kyu y aplicación de Shishin Bo a Ganseki Dome e Hiki Otoshi."
                   ]
                 },
                 {
@@ -2327,7 +2291,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                 },
                 {
                   "topic": "Tanbo",
-                  "gap": "8 sem."
+                  "gap": "1 sem."
                 },
                 {
                   "topic": "Tanto",
@@ -2365,7 +2329,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Yoko aruki con Tsuma geri"
+                    "Yoko aruki con Tsuma geri",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -2374,7 +2339,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Zuki ken, Shako ken, Shishin ken, Ude ken, Sanshin tsuki, Tai ken",
                     "Kyusho no kata: precisión sobre zonas vitales",
-                    "Tsuma geri desde Yoko aruki"
+                    "Tsuma geri desde Yoko aruki",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2382,7 +2348,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Aplicar Shako ken + Kubi nage",
-                    "Repaso: Ganseki nage / Ganseki otoshi"
+                    "Repaso: Ganseki nage / Ganseki otoshi",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2432,18 +2399,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Shinken taihen kihon Gyokko Ryu: Hira, Ichimonji, Jumonji",
-                    "Repaso: Shinken tobi"
+                    "Repaso: Shinken tobi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -2453,7 +2423,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Ku no giri: nueve direcciones de corte",
                     "Shomen giri, Do giri, Gyaku do giri, Age kiri, Kesa giri, Tsuki",
                     "Katsujinken: concepto",
-                    "Repaso: kamae de bokken"
+                    "Repaso: kamae de bokken",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2501,14 +2472,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Ukemi ante proyecciones reales: lectura del momento de caer"
+                    "Ukemi ante proyecciones reales: lectura del momento de caer",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Kihon happo completo con ataques variados"
+                    "Kihon happo completo con ataques variados",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2516,7 +2489,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Proyecciones 9º–6º: circuito de 6 estaciones",
-                    "Randori suave de agarre (Kumi kata) sin golpes"
+                    "Randori suave de agarre (Kumi kata) sin golpes",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2565,32 +2539,36 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 7,
               "day": "miercoles",
               "date": "2027-02-17",
-              "title": "Taihen ante tanto · Tanto IV: Kumiuchi",
+              "title": "Shinken tobi aplicados · Bokken III: Ukeru",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Sabaki y ukemi ante ataques de tanto encadenados",
-                    "Repaso: Nagare y Otoshi ukemi"
+                    "Shinken tobi ante Shomen, Kesa y Do giri reales (repaso 7 semanas)",
+                    "Sabaki fuera de línea ante tsuki",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanto",
+                  "name": "Armas · Bokken",
                   "minutes": 40,
                   "items": [
-                    "Cuchillo contra cuchillo; Ju kumiuchi tanto (5º)",
-                    "Muto dori: introducción desarmado contra cuchillo (4º)",
-                    "Repaso: Kiri y Kyusho"
+                    "Ukeru: Shomen uke, Do uke, Mawashi yoko uke, Tsuki uke, Gedan uke",
+                    "Cortes y defensas por parejas, a velocidad lenta",
+                    "Repaso: Ku no giri",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2660,14 +2638,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Desplazamientos en el suelo: rodillas, giro de cadera"
+                    "Desplazamientos en el suelo: rodillas, giro de cadera",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Repaso: Dakentai de 5º"
+                    "Repaso: Dakentai de 5º",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2676,7 +2656,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Ushiro jime, Kata ha jime, Hadaka jime",
                     "Do jime mae/ushiro y Ebi garami",
-                    "Gatame y Randori Suwari waza"
+                    "Gatame y Randori Suwari waza",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2726,18 +2707,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Nagare y Kaiten portando hanbo",
-                    "Repaso: Hicho kaiten"
+                    "Repaso: Hicho kaiten",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -2747,7 +2731,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Fudoken: Oniku daki I–IV, Kyokotsu kudaki, Ryo ashi dori; Kocho dori (5º)",
                     "Zenpo geri: Ashi kujiki, Ashi ori, Ashi garami, Ashi dori, Ashi gatame (5º)",
                     "4º–2º: Tate no kamae, Sanshin no taihen, Sukui uchi, Hangaeshi uchi, técnicas Munen muso (3º)",
-                    "Repaso: técnicas de 5º sobre Fudoken"
+                    "Repaso: técnicas de 5º sobre Fudoken",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2809,14 +2794,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Sabaki ante Mae geri recogiendo la pierna"
+                    "Sabaki ante Mae geri recogiendo la pierna",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Repaso: Shiho keri"
+                    "Repaso: Shiho keri",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2825,7 +2812,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Jigoku otoshi y Ushiro ashi dori",
                     "Uki otoshi y Koshi nage",
-                    "Ashi kansetsu; Te kansetsu: Oya goroshi y Ko goroshi"
+                    "Ashi kansetsu; Te kansetsu: Oya goroshi y Ko goroshi",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -2866,32 +2854,36 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 9,
               "day": "miercoles",
               "date": "2027-03-03",
-              "title": "Shinken tobi aplicados · Bokken III: Ukeru",
+              "title": "Taihen ante tanto · Tanto IV: Kumiuchi",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Shinken tobi ante Shomen, Kesa y Do giri reales (repaso 7 semanas)",
-                    "Sabaki fuera de línea ante tsuki"
+                    "Sabaki y ukemi ante ataques de tanto encadenados",
+                    "Repaso: Nagare y Otoshi ukemi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Bokken",
+                  "name": "Armas · Tanto",
                   "minutes": 40,
                   "items": [
-                    "Ukeru: Shomen uke, Do uke, Mawashi yoko uke, Tsuki uke, Gedan uke",
-                    "Cortes y defensas por parejas, a velocidad lenta",
-                    "Repaso: Ku no giri"
+                    "Cuchillo contra cuchillo; Ju kumiuchi tanto (5º)",
+                    "Muto dori: introducción desarmado contra cuchillo (4º)",
+                    "Repaso: Kiri y Kyusho",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -2943,14 +2935,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Tachi nagare y Yoko nagare como preparación"
+                    "Tachi nagare y Yoko nagare como preparación",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Tobi geri: Mae, Yoko y Mawashi"
+                    "Tobi geri: Mae, Yoko y Mawashi",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -2960,7 +2954,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Ryo ashi tomoe nage, Sumi gaeshi, Uki waza, Tawara gaeshi",
                     "Tachi / Yoko nagare bajo uke",
                     "Kani basami: explicación y demostración controlada (riesgo de rodilla)",
-                    "Repaso: Tomoe nage y Kuruma"
+                    "Repaso: Tomoe nage y Kuruma",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3006,18 +3001,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Desplazamientos entre puntos de ocultación (5º)",
-                    "Happogan y desplazamiento perceptivo"
+                    "Happogan y desplazamiento perceptivo",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3027,7 +3025,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Jo: medidas, materiales, origen",
                     "Te no uchi: Hon te gatana, Hon te tsuki, Gyakute",
                     "Kamae: Katayaburi, Munen muso, Otonashi, Chudan yoko ichimonji, Seigan, Waki, Hasso, Jodan, Gedan, Ihen, Kage",
-                    "Kihon: Shomen, Yokomen, Choku tsuki, Gedan kaeshi, Age uchi"
+                    "Kihon: Shomen, Yokomen, Choku tsuki, Gedan kaeshi, Age uchi",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3070,7 +3069,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kamae no kata y Kobudo kamae (4º–2º)"
+                    "Kamae no kata y Kobudo kamae (4º–2º)",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -3078,7 +3078,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Sanshin no kata",
-                    "Yakusoku kumiuchi por grado"
+                    "Yakusoku kumiuchi por grado",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3086,7 +3087,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Kihon happo",
-                    "Circuito: luxaciones 6º–5º, shime 6º–5º, sutemi"
+                    "Circuito: luxaciones 6º–5º, shime 6º–5º, sutemi",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3152,17 +3154,20 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Circuito: Kaiten no kata, Hicho kaiten, Shinken tobi, Shinken taihen, Shikko / Saguri aruki"
+                    "Circuito: Kaiten no kata, Hicho kaiten, Shinken tobi, Shinken taihen, Shikko / Saguri aruki",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3172,7 +3177,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Estación Tanbo: técnicas de 7º–6º",
                     "Estación Hanbo: Kihon happo y técnicas de 5º",
                     "Estación Tanto: kumiuchi",
-                    "Estación Bokken: kamae, kiri, uke"
+                    "Estación Bokken: kamae, kiri, uke",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3251,14 +3257,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Irimi y Tenkan: entrada y giro detrás de uke"
+                    "Irimi y Tenkan: entrada y giro detrás de uke",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Repaso: Hicho y Jumonji no kata"
+                    "Repaso: Hicho y Jumonji no kata",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3266,7 +3274,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Ushiro nage, Shiho nage, Irimi nage, Tenkan nage",
-                    "Repaso: Uki otoshi"
+                    "Repaso: Uki otoshi",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3316,19 +3325,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Dai kaiten / Dai sharin (opcional; requisito de 1º)",
                     "Kiten / Kuten opcional",
-                    "10º–7º: Mute kaiten y Hicho de repaso"
+                    "10º–7º: Mute kaiten y Hicho de repaso",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3338,7 +3350,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Bo dori: desarmado contra bo (5º); Bo contra bo y Ju kumiuchi (5º)",
                     "4º: Ryufu, Shibari koshi ori (2 hanbo), Ushiro dori tsuke iri, Taiboku taoshi, Bo gaeshi, Awase nage, Uchi taoshi",
                     "2º: Chin soku, O dori taoshi, Ashi kudaki, Sokki kudaki, Katate nage, Mawari dori, Rokai, Uchi mata, Otonashi, Tachi otoshi",
-                    "Repaso: Kihon happo hanbo"
+                    "Repaso: Kihon happo hanbo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3399,14 +3412,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Giros sobre el eje para Kaiten nage"
+                    "Giros sobre el eje para Kaiten nage",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Yakusoku kumiuchi de 4º, 3º y 2º; B y M repasan el suyo"
+                    "Yakusoku kumiuchi de 4º, 3º y 2º; B y M repasan el suyo",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3416,7 +3431,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Kaiten nage y Ura kaiten nage; Juji garami",
                     "Kubi kansetsu (con máxima precaución)",
                     "Repaso: Muso dori, Kannuki, Waki gatame",
-                    "Repaso: Gatame en el suelo al terminar Kaiten nage"
+                    "Repaso: Gatame en el suelo al terminar Kaiten nage",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3466,18 +3482,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Sabaki, Tobi y Kaiten para salir de la línea del sable",
-                    "Repaso: Shinken taihen Gyokko Ryu"
+                    "Repaso: Shinken taihen Gyokko Ryu",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3487,7 +3506,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Happo giri: corte en 8 direcciones",
                     "Kihon happo ken jutsu",
                     "Nana suburi",
-                    "Repaso: Ukeru"
+                    "Repaso: Ukeru",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3552,14 +3572,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Sabaki ante dos atacantes (enlaza con el miércoles de la semana 17)"
+                    "Sabaki ante dos atacantes (enlaza con el miércoles de la semana 17)",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "O mai: varios atacantes en círculo, ataques preestablecidos"
+                    "O mai: varios atacantes en círculo, ataques preestablecidos",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3567,7 +3589,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Hiza jime, Ebi jime, Hasami jime; Othen jime (3º)",
-                    "Repaso: shime de 5º"
+                    "Repaso: shime de 5º",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3609,18 +3632,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Kaiten encadenado con ataques (Tsuki y Keri al levantarse)",
-                    "Sabaki ante objeto flexible (cuerda)"
+                    "Sabaki ante objeto flexible (cuerda)",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3629,7 +3655,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Kusarifundo: características, Kusari nawa, formas de portar y desenfundar",
                     "Te no uchi; kamae: Ichimonji/Seigan, Kongo, Shizen, Tenchi, Shumoku, Ippu",
-                    "Kasumi (Naka furi) ura, omote, shomen, age; Kakoi uchi; Sukui uchi"
+                    "Kasumi (Naka furi) ura, omote, shomen, age; Kakoi uchi; Sukui uchi",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3674,7 +3701,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kobudo Ryu Ha no kamae (Kurai dori)"
+                    "Kobudo Ryu Ha no kamae (Kurai dori)",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -3682,7 +3710,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Sanshin no kata",
-                    "Kyusho no kata"
+                    "Kyusho no kata",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3690,7 +3719,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Kihon happo",
-                    "Take ori, Kote hineri"
+                    "Take ori, Kote hineri",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3743,34 +3773,37 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 17,
               "day": "miercoles",
               "date": "2027-04-28",
-              "title": "Taihen ante varios · Tanto V: Muto dori",
+              "title": "Kaiten con sable · Bokken V: Kaeshi waza y Kumiuchi",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Taihen ante dos o tres atacantes (enlaza con O mai del lunes)",
-                    "Repaso: Ukemi y Nagare"
+                    "Kaiten portando bokken (Kata no oshasite zenpo kaiten, A)",
+                    "Repaso: Shinken tobi",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Tanto",
+                  "name": "Armas · Bokken · Hanbo",
                   "minutes": 40,
                   "items": [
-                    "Muto dori kumiuchi: técnicas desarmado (4º)",
-                    "Gyaku waza kumiuchi: respuestas del adversario (4º)",
-                    "Técnicas avanzadas de kumiuchi tanto (3º–2º)",
-                    "Repaso: Ju kumiuchi tanto",
-                    "Repaso: defensas con tanbo ante tanto"
+                    "Renzoku waza y Kaeshi waza (5º)",
+                    "Happo biken Togakure Ryu (4º)",
+                    "Kumiuchi y Muto dori ante bokken (4º); Hanbo contra bokken (4º)",
+                    "4º–2º: Nuki tsuke, Noto y Chiburi como introducción a Iai (3º)",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3839,7 +3872,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Sabaki y Kaiten para salir de un cerco"
+                    "Sabaki y Kaiten para salir de un cerco",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -3847,7 +3881,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Ju kumiuchi (libre) a velocidad controlada",
-                    "Repaso: O mai"
+                    "Repaso: O mai",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -3856,7 +3891,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Sanindori: liberarse de tres o más agarres",
                     "Rakka y Iwa mawashi",
-                    "Randori Tachi waza"
+                    "Randori Tachi waza",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -3898,18 +3934,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Repaso espaciado: Tobi y Aruki waza",
-                    "Sabaki con kusari en mano"
+                    "Sabaki con kusari en mano",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -3919,7 +3958,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Happo furi, Henka ryote, Uchi otoshi, Shohatsu",
                     "Yukichigai y Yukichigai henka, Nage uchi",
                     "Yoko nagare, Yadome, Jodan uke, Uke nagashi",
-                    "Repaso: Kasumi, Kakoi y Sukui uchi"
+                    "Repaso: Kasumi, Kakoi y Sukui uchi",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -3985,7 +4025,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Kobudo kamae"
+                    "Kobudo kamae",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
@@ -3993,7 +4034,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 25,
                   "items": [
                     "Un kata de Ryu Ha según Manual BCD, relacionándolo con el Kihon happo",
-                    "Yakusoku kumiuchi de su grado"
+                    "Yakusoku kumiuchi de su grado",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -4002,7 +4044,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "items": [
                     "Aplicación del kata con henka",
                     "Repaso: Nage avanzado",
-                    "Repaso: Tomoe nage y sutemi de 5º, con uke de nivel alto"
+                    "Repaso: Tomoe nage y sutemi de 5º, con uke de nivel alto",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -4055,33 +4098,38 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 19,
               "day": "miercoles",
               "date": "2027-05-12",
-              "title": "Kaiten con sable · Bokken V: Kaeshi waza y Kumiuchi",
+              "title": "Taihen ante varios · Tanto V: Muto dori",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Kaiten portando bokken (Kata no oshasite zenpo kaiten, A)",
-                    "Repaso: Shinken tobi"
+                    "Taihen ante dos o tres atacantes (enlaza con O mai del lunes)",
+                    "Repaso: Ukemi y Nagare",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Bokken · Hanbo",
+                  "name": "Armas · Tanto",
                   "minutes": 40,
                   "items": [
-                    "Renzoku waza y Kaeshi waza (5º)",
-                    "Happo biken Togakure Ryu (4º)",
-                    "Kumiuchi y Muto dori ante bokken (4º); Hanbo contra bokken (4º)",
-                    "4º–2º: Nuki tsuke, Noto y Chiburi como introducción a Iai (3º)"
+                    "Muto dori kumiuchi: técnicas desarmado (4º)",
+                    "Gyaku waza kumiuchi: respuestas del adversario (4º)",
+                    "Técnicas avanzadas de kumiuchi tanto (3º–2º)",
+                    "Repaso: Ju kumiuchi tanto",
+                    "Repaso: defensas con tanbo ante tanto",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -4142,14 +4190,16 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Ukemi, Kaiten y Kamae no kata según grado"
+                    "Ukemi, Kaiten y Kamae no kata según grado",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Cada grupo presenta su temario: Kihon happo / Sanshin / Yakusoku"
+                    "Cada grupo presenta su temario: Kihon happo / Sanshin / Yakusoku",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
@@ -4157,7 +4207,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "minutes": 30,
                   "items": [
                     "Técnicas de Jutai jutsu de su grado y anterior",
-                    "Formato de examen: Rei, Shizen, línea paralela al tribunal"
+                    "Formato de examen: Rei, Shizen, línea paralela al tribunal",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -4231,18 +4282,21 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Paos/makiwara",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Fudoken, Shuto, Sokki Ken y Zenpo/Koho Geri contra paos y makiwara.",
+                    "Combinaciones de golpeo con tai sabaki, cambio de distancia y vuelta a kamae."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
                     "Jo taihen: entrenamiento corporal con jo",
-                    "Kaiten con jo; repaso Kaiten no kata"
+                    "Kaiten con jo; repaso Kaiten no kata",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
@@ -4253,7 +4307,8 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                     "Uke waza: Shomen, Yokomen, Tsuki, Gedan",
                     "Kumi jo",
                     "4º–2º: Kuji no ho, primeros kata (Dai ippo, Niho ippo)",
-                    "Repaso: kamae y kihon de jo"
+                    "Repaso: kamae y kihon de jo",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
@@ -4304,21 +4359,24 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "name": "Taihen jutsu",
                   "minutes": 15,
                   "items": [
-                    "Libre según necesidades del simulacro"
+                    "Libre según necesidades del simulacro",
+                    "Mae/Koho/Yoko Aruki y cambio de kamae aplicados a la entrada."
                   ]
                 },
                 {
                   "name": "Dakentai jutsu",
                   "minutes": 25,
                   "items": [
-                    "Correcciones del simulacro"
+                    "Correcciones del simulacro",
+                    "Fudoken, Shuto y Jodan/Gedan Uke encadenados con tai sabaki."
                   ]
                 },
                 {
                   "name": "Jutai jutsu",
                   "minutes": 30,
                   "items": [
-                    "Pase de grado o última práctica dirigida"
+                    "Pase de grado o última práctica dirigida",
+                    "Omote/Ura/Hon Gyaku enlazado con O Soto Nage o control en suelo."
                   ]
                 },
                 {
@@ -4358,24 +4416,28 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "provisional": true,
               "parts": [
                 {
-                  "name": "Calentamiento",
-                  "minutes": 10,
+                  "name": "Calentamiento · Carrera en círculos",
+                  "minutes": 15,
                   "items": [
-                    "Junan taiso y movilidad específica para el arma del día"
+                    "Carrera suave en círculos, alternando el sentido y la dirección por señal.",
+                    "Entradas y salidas en Shizen, Ichimonji, Hicho y Jumonji; movilidad articular."
                   ]
                 },
                 {
                   "name": "Taihen jutsu",
-                  "minutes": 35,
+                  "minutes": 30,
                   "items": [
-                    "Circuito final de Taihen por grado"
+                    "Circuito final de Taihen por grado",
+                    "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
+                    "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
                   "name": "Armas · Todas",
                   "minutes": 40,
                   "items": [
-                    "Cada alumno presenta las armas de su grado: Tanto y Tanbo (8º–7º), Hanbo (7º–2º), Bokken (6º–4º), Kusari (2º)"
+                    "Cada alumno presenta las armas de su grado: Tanto y Tanbo (8º–7º), Hanbo (7º–2º), Bokken (6º–4º), Kusari (2º)",
+                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
                   ]
                 },
                 {
