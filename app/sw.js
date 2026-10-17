@@ -22,6 +22,38 @@ const APP_SHELL = [
   "./src/search.js",
   "./src/sync-engine.js",
   "./src/utils.js",
+  "./buscyl/index.html",
+  "./buscyl/css/styles.css",
+  "./buscyl/js/app.js",
+  "./buscyl/js/bulk-export.js",
+  "./buscyl/js/data-loader.js",
+  "./buscyl/data/concesiones.json.gz",
+  "./buscyl/data/expediciones.manifest.json",
+  "./buscyl/data/expediciones-20260918T112027056Z-00001.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00002.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00003.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00004.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00005.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00006.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00007.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00008.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00009.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00010.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00011.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00012.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00013.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00014.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00015.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00016.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00017.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00018.json.gz",
+  "./buscyl/data/expediciones-20260918T112027056Z-00019.json.gz",
+  "./buscyl/data/frontend-config.json.gz",
+  "./buscyl/data/lineas.json.gz",
+  "./buscyl/data/meta.json.gz",
+  "./buscyl/data/municipios.json.gz",
+  "./buscyl/data/paradas.json.gz",
+  "./buscyl/data/rutas.json.gz",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
@@ -54,16 +86,17 @@ self.addEventListener("fetch", event => {
       fetch(request)
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => (await caches.match(request)) || caches.match("./index.html"))
     );
     return;
   }
 
+  const matchOptions = url.pathname.includes("/buscyl/data/") ? { ignoreSearch: true } : undefined;
   event.respondWith(
-    caches.match(request).then(cached => {
+    caches.match(request, matchOptions).then(cached => {
       const network = fetch(request)
         .then(response => {
           if (response.ok) {

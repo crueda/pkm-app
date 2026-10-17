@@ -60,3 +60,14 @@ El repositorio SHALL incluir un workflow que construya y publique `dist/` en Git
 - **AND** existe la variable `GOOGLE_CLIENT_ID`
 - **WHEN** se hace push a `main`
 - **THEN** el workflow ejecuta comprobaciones, genera el build y publica el artefacto.
+
+### Requirement: Visor Buscyl integrado
+
+La aplicación SHALL ofrecer Buscyl en el menú de aplicaciones y SHALL mostrar el visor web estático empaquetado en el espacio principal sin depender de Google Drive para alojar sus recursos.
+
+#### Scenario: Abrir Buscyl
+
+- **GIVEN** la aplicación está abierta
+- **WHEN** el usuario selecciona “Buscyl” en el menú de aplicaciones
+- **THEN** el visor de horarios y expediciones ocupa todo el panel principal
+- **AND** sus recursos locales se cargan bajo el mismo despliegue estático.

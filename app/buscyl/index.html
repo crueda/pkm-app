@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualizador de oferta</title>
+<link rel="icon" type="image/x-icon" href="https://jcylits.gmv.com/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Leaflet (mapas con OpenStreetMap, sin API key) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Datos generados por el backend Python como .json.gz comprimidos. -->
+<!-- data-loader.js los descarga y descomprime en el navegador (DecompressionStream) -->
+<!-- y expone los globals (CONCESIONES, MUNICIPIOS, …) que consume app.js. -->
+<script>window.__dataLoadErrors = [];</script>
+<script src="js/data-loader.js?v=20261016-chunked-expeditions2"></script>
+<link rel="stylesheet" href="css/styles.css?v=20261017-standalone1">
+</head>
+<body>
+<!-- ───────── Hero / buscador ───────── -->
+<section class="hero" id="hero">
+  <button class="hero-collapse" id="heroCollapse" aria-label="Mostrar/ocultar buscador" title="Mostrar/ocultar buscador">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+  <div class="hero-inner">
+    <h1>Visualizador <em>de oferta</em></h1>
+
+    <div class="search-tabs">
+      <button class="search-tab active" data-mode="municipio" onclick="setSearchTab('municipio')">Por municipio</button>
+      <button class="search-tab" data-mode="linea" onclick="setSearchTab('linea')">Por línea</button>
+      <button class="search-tab" data-mode="parada" onclick="setSearchTab('parada')">Por parada</button>
+      <button class="search-tab" data-mode="concesion" onclick="setSearchTab('concesion')">Por concesión</button>
+      <button class="search-tab" data-mode="operador" onclick="setSearchTab('operador')">Por operador</button>
+    </div>
+
+    <div class="search-box">
+      <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input type="text" class="search-input" id="municipioInput" placeholder="Escribe o selecciona un municipio…" autocomplete="off">
+      <button class="search-clear" id="searchClear" aria-label="Limpiar búsqueda" onclick="clearSearchInput()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <button class="search-btn" id="searchBtn">Consultar</button>
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+
+    <!-- Cadena de búsqueda (modos "Por municipio" y "Por parada"): 1 chip = paso por
+         ese municipio/parada; 2 o más = origen → pasos → destino, en el orden de los
+         chips. La rellena renderSearchChain() en js/app.js. -->
+    <div class="stops-chain" id="stopsChain" style="display:none;"></div>
+
+    <!-- Exportación masiva a Word desde un listado CSV de paradas (solo "Por parada").
+         El fichero se procesa en el navegador. Ver js/bulk-export.js. -->
+    <div class="bulk-export-bar" id="bulkExportBar" style="display:none;">
+      <span class="quick-label">Listado</span>
+      <button type="button" class="stops-chain-add" onclick="bulkSeleccionarFichero()"
+        title="Generar un único documento Word con la oferta de las paradas de un fichero CSV">
+        Exportar a Word un listado de paradas (CSV)…
+      </button>
+      <span class="stops-chain-hint">Una parada por línea: código público, o nombre y municipio · máx. 200</span>
+      <button type="button" class="recent-clear" onclick="bulkDescargarEjemplo()"
+        title="Descargar un fichero CSV de ejemplo con el formato admitido">Descargar ejemplo</button>
+      <input type="file" id="bulkCsvInput" accept=".csv,.txt,text/csv,text/plain" hidden onchange="bulkOnFileSelected(this)">
+    </div>
+
+    <div class="quick-municipios" id="quickMunicipios">
+      <span class="quick-label">Últimas búsquedas</span>
+    </div>
+  </div>
+</section>
+
+<!-- Aviso si los datos no están cargados (modo standalone) -->
+<div class="data-warning" id="dataWarning" style="display:none;">
+  <strong>Aviso:</strong> Los ficheros de datos no se han cargado.
+  Sirve esta web desde la carpeta <code>html/</code> con
+  <code>python -m http.server 8080</code> y abre <code>http://localhost:8080/index.html</code>.
+  Si vienes de una versión anterior, recarga sin caché con <code>Ctrl+F5</code>.
+</div>
+
+<!-- ───────── Resultados ───────── -->
+<section class="results-wrap" id="resultsWrap">
+
+  <!-- Estado inicial: sin búsqueda -->
+  <div class="empty-state-big" id="emptyState">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="10" r="3"/>
+      <path d="M12 2a8 8 0 0 0-8 8c0 4.4 8 12 8 12s8-7.6 8-12a8 8 0 0 0-8-8z"/>
+    </svg>
+    <h3 id="emptyStateTitle">Empieza buscando un municipio</h3>
+    <p id="emptyStateDesc">Escribe el nombre de cualquier municipio disponible en el buscador de arriba. Verás todas las líneas que pasan por sus paradas con sus horarios.</p>
+  </div>
+
+  <!-- Resultados (oculto hasta que haya búsqueda) -->
+  <div id="results" style="display:none;">
+
+    <div class="results-header">
+      <div>
+        <h2 id="resultsTitle">—</h2>
+        <div class="subtitle" id="resultsSubtitle">—</div>
+      </div>
+      <div class="results-header-actions">
+        <div class="results-meta">
+          <div class="meta-item">
+            <div class="num" id="metaLineas">0</div>
+            <div class="label">Líneas</div>
+          </div>
+          <div class="meta-item">
+            <div class="num" id="metaParadas">0</div>
+            <div class="label">Paradas</div>
+          </div>
+          <div class="meta-item">
+            <div class="num" id="metaConcesiones">0</div>
+            <div class="label">Concesiones</div>
+          </div>
+        </div>
+        <div class="results-btns">
+          <button class="btn-map btn-map-general" id="btnMapGeneral" onclick="openMapModalGeneral()" title="Ver todos los recorridos en el mapa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/>
+              <line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+            Mapa
+          </button>
+          <button class="btn-map btn-export" id="btnExportWord" onclick="exportSearchToWord()" title="Exportar los resultados de la búsqueda a Word">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 18 15 15"/>
+            </svg>
+            Exportar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <!-- ─── Filtros (sidebar) ─── -->
+      <aside class="filters">
+
+        <!-- Búsqueda temporal: día concreto (calendario) o por tipo de día -->
+        <div class="filter-group" id="fg-calendar">
+          <div class="filter-header" onclick="toggleFilterGroup('fg-calendar')">
+            <div class="filter-title">Búsqueda</div>
+            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-body">
+            <div class="search-mode-tabs" role="tablist">
+              <button type="button" class="search-mode-tab" data-mode="dia" onclick="setSearchMode('dia')" role="tab" aria-selected="false">Día concreto</button>
+              <button type="button" class="search-mode-tab is-active" data-mode="tipoDia" onclick="setSearchMode('tipoDia')" role="tab" aria-selected="true">Por tipo de día <span class="filter-count-badge" id="badgeTipoDia" style="display:none;">0</span></button>
+            </div>
+
+            <!-- Panel: Día concreto (calendario) -->
+            <div class="search-mode-panel" data-mode-panel="dia">
+              <div class="calendar" id="calendar">
+                <div class="cal-header">
+                  <button class="cal-nav" data-dir="-1" aria-label="Mes anterior">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <div class="cal-month" id="calMonth">—</div>
+                  <button class="cal-nav" data-dir="1" aria-label="Mes siguiente">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+                <div class="cal-weekdays">
+                  <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="cal-legend">
+                  <span class="legend-item"><span class="legend-dot has-service"></span>Con servicio</span>
+                  <span class="legend-item"><span class="legend-dot no-service"></span>Sin servicio</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel: Por tipo de día (selector de tipos) -->
+            <div class="search-mode-panel is-active" data-mode-panel="tipoDia">
+              <div class="filter-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" placeholder="Buscar tipo de día…" oninput="filterList(this, 'tipodia-list')">
+              </div>
+              <div class="filter-options" id="tipodia-list"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Concesión (poblada dinámicamente) -->
+        <div class="filter-group" id="fg-concesion">
+          <div class="filter-header" onclick="toggleFilterGroup('fg-concesion')">
+            <div class="filter-title">
+              Concesión
+              <span class="filter-count-badge" id="badgeConcesion" style="display:none;">0</span>
+            </div>
+            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-body">
+            <div class="filter-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Buscar concesión…" oninput="filterList(this, 'concesion-list')">
+            </div>
+            <div class="filter-options" id="concesion-list"></div>
+            <button class="filter-show-all" id="showAllConcesionesBtn" onclick="openConcesionModal()">
+              Ver todas las concesiones
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tipo de línea (poblada dinámicamente; solo visible si hay ≥2 tipos) -->
+        <div class="filter-group" id="fg-tipolinea" style="display:none;">
+          <div class="filter-header" onclick="toggleFilterGroup('fg-tipolinea')">
+            <div class="filter-title">
+              Tipo de línea
+              <span class="filter-count-badge" id="badgeTipoLinea" style="display:none;">0</span>
+            </div>
+            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-body">
+            <div class="filter-options" id="tipolinea-list"></div>
+          </div>
+        </div>
+
+        <!-- Parada (poblada dinámicamente) -->
+        <div class="filter-group" id="fg-parada">
+          <div class="filter-header" onclick="toggleFilterGroup('fg-parada')">
+            <div class="filter-title">Parada</div>
+            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-body">
+            <div class="filter-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Buscar parada…" oninput="filterList(this, 'parada-list')">
+            </div>
+            <div class="filter-options" id="parada-list"></div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ─── Lista de líneas ─── -->
+      <div class="lines-list" id="linesList">
+
+        <!-- Chips de filtros activos -->
+        <div class="active-filters" id="activeFilters" style="display:none;">
+          <span class="active-filters-label">Filtros activos</span>
+          <!-- Chips dinámicos -->
+          <button class="clear-all-filters" onclick="clearAllFilters()">Limpiar todo</button>
+        </div>
+
+        <!-- Tarjetas de línea -->
+        <div id="linesContainer"></div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ─── Modal de concesiones ─── -->
+<div class="modal-overlay" id="modalConcesion">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Filtrar por concesión</div>
+        <div style="font-size: 12px; color: var(--ink-soft); margin-top: 4px;" id="modalSubtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="closeConcesionModal()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-toolbar">
+        <div class="modal-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" placeholder="Buscar concesión por nombre o código…" oninput="filterModalList(this)">
+        </div>
+        <div class="modal-bulk">
+          <button onclick="bulkSelectModal(true)">Seleccionar todo</button>
+          <button onclick="bulkSelectModal(false)">Ninguna</button>
+        </div>
+      </div>
+
+      <div id="modal-concesion-list"></div>
+      <div class="filter-empty" id="modal-empty" style="display:none;">Sin resultados</div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-summary">
+        <strong id="modalSelectedCount">0</strong> de <span id="modalTotalCount">0</span> concesiones seleccionadas
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeConcesionModal()">Cancelar</button>
+        <button class="btn-primary" onclick="applyModalSelection()">Aplicar filtros</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal de la exportación masiva por listado de paradas ─── -->
+<div class="modal-overlay" id="modalBulkExport">
+  <div class="modal modal-bulk-export" role="dialog" aria-labelledby="bulkModalTitle">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="bulkModalTitle">Exportación por listado de paradas</div>
+        <div style="font-size: 12px; color: var(--ink-soft); margin-top: 4px;" id="bulkModalSubtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="bulkCerrarModal()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body" id="bulkModalBody"></div>
+
+    <div class="bulk-progress" id="bulkProgress" style="display:none;">
+      <div class="bulk-progress-track"><div class="bulk-progress-bar" id="bulkProgressBar"></div></div>
+      <div class="bulk-progress-text" id="bulkProgressText">—</div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-summary" id="bulkModalSummary">—</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="bulkCerrarModal()">Cancelar</button>
+        <button class="btn-secondary" id="bulkRecargarBtn" onclick="bulkSeleccionarFichero()">Cargar otro fichero</button>
+        <button class="btn-primary" id="bulkGenerarBtn" onclick="bulkGenerar()">Generar documento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal del mapa ─── -->
+<div class="map-modal-overlay" id="mapModal">
+  <div class="map-modal">
+    <div class="map-modal-header">
+      <div>
+        <div class="map-modal-title" id="mapModalTitle">Trayecto en el mapa</div>
+        <div class="map-modal-sub" id="mapModalSub">—</div>
+      </div>
+      <button class="map-modal-close" onclick="closeMapModal()" aria-label="Cerrar mapa">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="map-legend" id="mapLegend">
+        <div class="map-legend-item">
+          <span class="map-legend-dot" style="background: var(--accent);"></span>
+          <span>Paradas</span>
+        </div>
+        <div class="map-legend-item">
+          <span class="map-legend-line" style="background: var(--accent);"></span>
+          <span>Recorrido (aproximado)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js?v=20261017-standalone1"></script>
+<script src="js/bulk-export.js?v=20261017-standalone1"></script>
+</body>
+</html>

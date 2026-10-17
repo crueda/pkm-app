@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f6f7f2">
     <meta name="color-scheme" content="light dark">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src 'self' https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com">
     <title>Notas Drive</title>
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
@@ -38,6 +38,10 @@
               <button id="ninjutsu-button" class="apps-menu-item" type="button" role="menuitem" data-app="ninjutsu">
                 <span class="apps-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/><circle cx="12" cy="12" r="2.1"/></svg></span>
                 <span class="apps-menu-text"><strong>Ninjutsu</strong><small>Programación y entrenamientos</small></span>
+              </button>
+              <button id="buscyl-button" class="apps-menu-item" type="button" role="menuitem" data-app="buscyl">
+                <span class="apps-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 16V7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5V16"/><path d="M4 13h16v4H4zM7 9h4M14 9h3"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg></span>
+                <span class="apps-menu-text"><strong>Buscyl</strong><small>Horarios y expediciones de autobús</small></span>
               </button>
             </div>
           </div>
@@ -332,6 +336,19 @@
                 </article>
               </div>
             </section>
+          </section>
+
+          <section id="buscyl-view" class="buscyl-view" hidden aria-labelledby="buscyl-heading">
+            <h1 id="buscyl-heading" class="visually-hidden">Buscyl</h1>
+            <iframe
+              id="buscyl-frame"
+              class="buscyl-frame"
+              title="Buscyl · Visor de horarios y expediciones"
+              data-src="./buscyl/index.html"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              sandbox="allow-downloads allow-forms allow-popups allow-same-origin allow-scripts"
+            ></iframe>
           </section>
         </main>
       </div>

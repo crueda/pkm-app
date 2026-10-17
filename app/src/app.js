@@ -23,7 +23,7 @@ const config = Object.freeze({
 
 const elements = Object.fromEntries([
   "app-shell", "menu-button", "sidebar", "sidebar-scrim", "brand-name", "connect-button",
-  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "apps-button", "apps-menu", "recipes-button", "ninjutsu-button",
+  "favorites-button", "favorites-drawer", "favorites-scrim", "favorites-close-button", "favorites-list", "apps-button", "apps-menu", "recipes-button", "ninjutsu-button", "buscyl-button",
   "welcome-connect-button", "sync-status-button", "sync-label", "sync-dot", "theme-button",
   "search-input", "new-note-button", "new-folder-button", "import-button", "import-input",
   "note-list", "list-heading", "list-count", "folder-actions", "selected-folder-label", "folder-favorite-button", "folder-publish-button", "folder-rename-button", "folder-move-button", "folder-delete-button", "last-sync-label", "settings-button",
@@ -36,6 +36,7 @@ const elements = Object.fromEntries([
   "favorite-note-button", "delete-note-button",
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
+  "buscyl-view", "buscyl-frame",
   "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
@@ -86,6 +87,7 @@ const state = {
   selectedRecipeId: null,
   recipeFolderId: null,
   ninjutsuOpen: false,
+  buscylOpen: false,
   ninjutsuQuery: "",
   ninjutsuCategory: "all",
   selectedNinjutsuId: null,
@@ -578,11 +580,12 @@ function updatePreview(content) {
 
 function renderEditor({ preserveTextarea = false } = {}) {
   const note = currentNote();
-  const areaOpen = state.recipeOpen || state.ninjutsuOpen;
+  const areaOpen = state.recipeOpen || state.ninjutsuOpen || state.buscylOpen;
   elements["welcome-view"].hidden = areaOpen || Boolean(note);
   elements["editor-view"].hidden = areaOpen || !note;
   elements["recipes-view"].hidden = !state.recipeOpen;
   elements["ninjutsu-view"].hidden = !state.ninjutsuOpen;
+  elements["buscyl-view"].hidden = !state.buscylOpen;
   if (!note) return;
 
   elements["note-title-input"].value = noteDisplayName(note);
@@ -667,6 +670,7 @@ async function selectNote(fileId, { mode = "preview" } = {}) {
   await saveCurrentNote.flush();
   state.recipeOpen = false;
   state.ninjutsuOpen = false;
+  state.buscylOpen = false;
   updateAppsButton();
   state.selectedId = fileId;
   state.viewMode = mode === "edit" ? "edit" : "preview";
@@ -1263,9 +1267,13 @@ function renderRecipes() {
 
 function setRecipeView(open) {
   state.recipeOpen = open;
-  if (open) state.ninjutsuOpen = false;
+  if (open) {
+    state.ninjutsuOpen = false;
+    state.buscylOpen = false;
+  }
   elements["recipes-view"].hidden = !open;
   elements["ninjutsu-view"].hidden = true;
+  elements["buscyl-view"].hidden = true;
   elements["welcome-view"].hidden = open || Boolean(currentNote());
   elements["editor-view"].hidden = open || !currentNote();
   updateAppsButton();
@@ -1431,9 +1439,13 @@ function renderNinjutsu() {
 
 function setNinjutsuView(open) {
   state.ninjutsuOpen = open;
-  if (open) state.recipeOpen = false;
+  if (open) {
+    state.recipeOpen = false;
+    state.buscylOpen = false;
+  }
   elements["ninjutsu-view"].hidden = !open;
   elements["recipes-view"].hidden = true;
+  elements["buscyl-view"].hidden = true;
   elements["welcome-view"].hidden = open || Boolean(currentNote());
   elements["editor-view"].hidden = open || !currentNote();
   updateAppsButton();
@@ -1450,6 +1462,26 @@ function setNinjutsuView(open) {
     if (state.ninjutsuTab === "program") scrollSelectedSessionIntoView();
   });
   if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
+}
+
+function setBuscylView(open) {
+  state.buscylOpen = open;
+  if (open) {
+    state.recipeOpen = false;
+    state.ninjutsuOpen = false;
+  }
+  elements["buscyl-view"].hidden = !open;
+  elements["recipes-view"].hidden = true;
+  elements["ninjutsu-view"].hidden = true;
+  elements["welcome-view"].hidden = open || Boolean(currentNote());
+  elements["editor-view"].hidden = open || !currentNote();
+  updateAppsButton();
+  if (!open) {
+    renderEditor();
+    return;
+  }
+  const frame = elements["buscyl-frame"];
+  if (!frame.getAttribute("src")) frame.src = frame.dataset.src;
 }
 
 async function ensureNinjutsuTrainingFolder() {
@@ -1489,9 +1521,10 @@ async function createTraining() {
 }
 
 function updateAppsButton() {
-  elements["apps-button"].classList.toggle("active", state.recipeOpen || state.ninjutsuOpen);
+  elements["apps-button"].classList.toggle("active", state.recipeOpen || state.ninjutsuOpen || state.buscylOpen);
   elements["recipes-button"].classList.toggle("active", state.recipeOpen);
   elements["ninjutsu-button"].classList.toggle("active", state.ninjutsuOpen);
+  elements["buscyl-button"].classList.toggle("active", state.buscylOpen);
 }
 
 function setAppsMenuOpen(open, { restoreFocus = true } = {}) {
@@ -1999,6 +2032,11 @@ function bindEvents() {
     setAppsMenuOpen(false, { restoreFocus: false });
     setFavoritesOpen(false, { restoreFocus: false });
     setNinjutsuView(true);
+  });
+  elements["buscyl-button"].addEventListener("click", () => {
+    setAppsMenuOpen(false, { restoreFocus: false });
+    setFavoritesOpen(false, { restoreFocus: false });
+    setBuscylView(true);
   });
   elements["theme-button"].addEventListener("click", cycleTheme);
   elements["connect-button"].addEventListener("click", connectOrSync);
