@@ -238,11 +238,12 @@
             </header>
 
             <div class="ninjutsu-tabs" role="tablist" aria-label="Secciones de Ninjutsu">
-              <button id="ninjutsu-tab-program" class="ninjutsu-tab active" type="button" role="tab" aria-selected="true" aria-controls="ninjutsu-program-panel" data-ninjutsu-tab="program">Programación 2026–2027</button>
+              <button id="ninjutsu-tab-program" class="ninjutsu-tab active" type="button" role="tab" aria-selected="true" aria-controls="ninjutsu-program-panel" data-ninjutsu-tab="program">Programación</button>
+              <button id="ninjutsu-tab-training" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-training-panel" data-ninjutsu-tab="training">Entrenamiento</button>
               <button id="ninjutsu-tab-library" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-library-panel" data-ninjutsu-tab="library">Biblioteca</button>
             </div>
 
-            <section id="ninjutsu-program-panel" class="ninjutsu-panel" role="tabpanel" aria-labelledby="ninjutsu-tab-program">
+            <section id="ninjutsu-program-panel" class="ninjutsu-panel program-surface" role="tabpanel" aria-labelledby="ninjutsu-tab-program">
               <div class="program-layout">
                 <aside class="program-browser" aria-label="Sesiones de la programación">
                   <div class="program-browser-toolbar">
@@ -255,8 +256,11 @@
                   </div>
                   <nav id="program-week-list" class="program-week-list"></nav>
                 </aside>
+              </div>
+            </section>
 
-                <article id="program-session" class="program-session" aria-live="polite">
+            <section id="ninjutsu-training-panel" class="ninjutsu-panel program-surface" role="tabpanel" aria-labelledby="ninjutsu-tab-training" hidden>
+              <article id="program-session" class="program-session" aria-live="polite">
                   <header class="program-session-header">
                     <div class="program-session-heading">
                       <div id="program-session-badges" class="program-session-badges"></div>
@@ -286,8 +290,7 @@
                     <label class="program-free-label" for="program-notes-input">Notas</label>
                     <textarea id="program-notes-input" class="program-textarea program-free-input" data-free-field="notes" rows="4" placeholder="Asistentes, qué funcionó, qué repetir, pendientes…"></textarea>
                   </section>
-                </article>
-              </div>
+              </article>
             </section>
 
             <section id="ninjutsu-library-panel" class="ninjutsu-panel" role="tabpanel" aria-labelledby="ninjutsu-tab-library" hidden>

@@ -26,6 +26,13 @@ The application SHALL expose a single applications button next to the favorites 
 
 The application SHALL bundle the 2026–2027 annual programming as read-only data and SHALL let the user browse every session by trimester and week, filter by weekday and jump to the next session, skipping the sessions cancelled because of a public holiday.
 
+#### Scenario: Open a programmed training
+
+- **WHEN** the user selects a session in the Programación tab
+- **THEN** the application opens the Entrenamiento tab
+- **AND** shows the selected session using the full available content width
+- **AND** keeps Programación, Entrenamiento and Biblioteca as three independently selectable tabs
+
 #### Scenario: Edit a session
 
 - **WHEN** the user edits the blocks or personal notes of a session

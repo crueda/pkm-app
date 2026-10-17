@@ -1937,7 +1937,7 @@ button:disabled,
 .ninjutsu-panel[hidden] { display: none; }
 
 /* Ninjutsu · programación anual */
-.program-layout {
+.program-surface {
   --program-lunes: #2e4a7d;
   --program-lunes-soft: #e6ebf4;
   --program-miercoles: #556a2f;
@@ -1947,14 +1947,8 @@ button:disabled,
   --program-review: #8a6214;
   --program-review-soft: #f4ebd6;
   --program-warning: #c2412f;
-  max-width: 1220px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 1.7fr);
-  gap: 16px;
-  align-items: start;
 }
-:root[data-theme="dark"] .program-layout {
+:root[data-theme="dark"] .program-surface {
   --program-lunes: #93aee0;
   --program-lunes-soft: #1f2a3d;
   --program-miercoles: #afc282;
@@ -1965,6 +1959,10 @@ button:disabled,
   --program-review-soft: #352b16;
   --program-warning: #f07a66;
 }
+.program-layout {
+  max-width: 1220px;
+  margin: 0 auto;
+}
 .program-browser,
 .program-session {
   border: 1px solid var(--border);
@@ -1972,13 +1970,14 @@ button:disabled,
   background: var(--surface);
   box-shadow: var(--shadow);
 }
-.program-browser { position: sticky; top: 0; overflow: hidden; }
+.program-browser { overflow: hidden; }
 .program-browser-toolbar { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--border); }
 .program-browser-toolbar .secondary-button { min-height: 32px; padding-inline: 12px; }
 .program-day-filter { display: flex; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-muted); }
 .program-filter-button { min-height: 30px; padding: 0 11px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
 .program-filter-button.active { background: var(--text); color: var(--surface); }
-.program-week-list { max-height: min(72vh, 760px); padding: 0 8px 12px; overflow: auto; }
+.program-week-list { max-height: min(72vh, 760px); padding: 0 8px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 0 12px; overflow: auto; }
+.program-trimester { min-width: 0; }
 .program-trimester h3 { position: sticky; top: 0; z-index: 1; margin: 0; padding: 12px 6px 6px; background: var(--surface); font-size: 12px; font-weight: 760; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
 .program-week { padding: 4px 0 6px; border-bottom: 1px solid var(--border); }
 .program-week:last-child { border-bottom: 0; }
@@ -2021,7 +2020,7 @@ button:disabled,
 .program-chip.code { background: var(--program-lunes-soft); color: var(--program-lunes); font-size: 12px; }
 .program-chip.code.miercoles { background: var(--program-miercoles-soft); color: var(--program-miercoles); }
 
-.program-session { min-width: 0; overflow: hidden; }
+.program-session { max-width: 1220px; min-width: 0; margin: 0 auto; overflow: hidden; }
 .program-session-header { padding: clamp(18px, 3vw, 28px); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); }
 .program-session-heading { min-width: 0; }
 .program-session-badges { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -2081,9 +2080,7 @@ button:disabled,
 .program-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 @media (max-width: 860px) {
-  .program-layout { grid-template-columns: 1fr; }
-  .program-browser { position: static; }
-  .program-week-list { max-height: 300px; }
+  .program-week-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .program-session-header { flex-direction: column; }
   .program-session-actions { width: 100%; justify-content: stretch; }
   .program-session-actions > button { flex: 1 1 auto; }
@@ -2092,6 +2089,7 @@ button:disabled,
 @media (max-width: 700px) {
   .ninjutsu-tabs { overflow-x: auto; }
   .ninjutsu-tab { white-space: nowrap; }
+  .program-week-list { max-height: min(68vh, 620px); grid-template-columns: 1fr; }
   .program-levels div { grid-template-columns: 54px 1fr; }
 }
 

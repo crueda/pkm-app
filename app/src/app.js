@@ -36,7 +36,7 @@ const elements = Object.fromEntries([
   "favorite-note-button", "delete-note-button",
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
-  "ninjutsu-tab-program", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
+  "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-open", "training-timer-pill-close", "training-timer-pill-label",
@@ -1521,17 +1521,21 @@ function handleAppsMenuKeydown(event) {
 }
 
 function setNinjutsuTab(tab) {
-  state.ninjutsuTab = tab === "library" ? "library" : "program";
+  state.ninjutsuTab = ["program", "training", "library"].includes(tab) ? tab : "program";
   renderNinjutsu();
   if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
-  else scrollSelectedSessionIntoView();
+  else if (state.ninjutsuTab === "program") scrollSelectedSessionIntoView();
 }
 
 function renderNinjutsuTabs() {
-  const program = state.ninjutsuTab === "program";
-  elements["ninjutsu-program-panel"].hidden = !program;
-  elements["ninjutsu-library-panel"].hidden = program;
-  for (const [tab, active] of [[elements["ninjutsu-tab-program"], program], [elements["ninjutsu-tab-library"], !program]]) {
+  const tabs = [
+    ["program", elements["ninjutsu-tab-program"], elements["ninjutsu-program-panel"]],
+    ["training", elements["ninjutsu-tab-training"], elements["ninjutsu-training-panel"]],
+    ["library", elements["ninjutsu-tab-library"], elements["ninjutsu-library-panel"]]
+  ];
+  for (const [name, tab, panel] of tabs) {
+    const active = state.ninjutsuTab === name;
+    panel.hidden = !active;
     tab.classList.toggle("active", active);
     tab.setAttribute("aria-selected", String(active));
   }
@@ -1616,7 +1620,8 @@ function selectProgramSession(code) {
   if (state.programEditing) saveSessionEdits.flush();
   state.selectedSessionCode = code;
   state.programEditing = false;
-  renderProgram();
+  setNinjutsuTab("training");
+  requestAnimationFrame(() => elements["ninjutsu-tab-training"].focus({ preventScroll: true }));
 }
 
 function scrollSelectedSessionIntoView() {
@@ -1882,11 +1887,14 @@ function renderProgramHeader(session) {
 }
 
 function renderProgram() {
-  if (!state.ninjutsuOpen || state.ninjutsuTab !== "program") return;
+  if (!state.ninjutsuOpen || !["program", "training"].includes(state.ninjutsuTab)) return;
   const session = selectedProgramSession();
   if (!session) return;
   state.selectedSessionCode = session.code;
-  renderProgramList();
+  if (state.ninjutsuTab === "program") {
+    renderProgramList();
+    return;
+  }
   renderProgramHeader(session);
   const body = elements["program-session-body"];
   const mode = state.programEditing ? "edit" : "view";
@@ -2052,7 +2060,7 @@ function bindEvents() {
     if (note) selectNote(note.id);
   });
   elements["new-training-button"].addEventListener("click", createTraining);
-  for (const tab of [elements["ninjutsu-tab-program"], elements["ninjutsu-tab-library"]]) {
+  for (const tab of [elements["ninjutsu-tab-program"], elements["ninjutsu-tab-training"], elements["ninjutsu-tab-library"]]) {
     tab.addEventListener("click", () => setNinjutsuTab(tab.dataset.ninjutsuTab));
   }
   for (const button of document.querySelectorAll("[data-program-filter]")) {
@@ -2066,7 +2074,6 @@ function bindEvents() {
     if (!next) return;
     if (state.programFilter !== "all" && state.programFilter !== next.day) state.programFilter = "all";
     selectProgramSession(next.code);
-    scrollSelectedSessionIntoView();
   });
   elements["program-edit-button"].addEventListener("click", () => {
     if (state.programEditing) saveSessionEdits.flush();
@@ -2427,8 +2434,9 @@ function stopTrainingTimer() {
     if (status?.finished) {
       state.selectedSessionCode = session.code;
       state.programEditing = true;
+      if (state.ninjutsuOpen) state.ninjutsuTab = "training";
     }
-    if (state.ninjutsuOpen) renderProgram();
+    if (state.ninjutsuOpen) renderNinjutsu();
   }
 }
 
