@@ -148,18 +148,15 @@ svg {
 
 .ninjutsu-header {
   max-width: 1220px;
-  margin: 0 auto 20px;
+  min-height: 38px;
+  margin: 0 auto 12px;
   padding-right: 52px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
+  align-items: center;
   position: relative;
 }
 
-.ninjutsu-header .eyebrow { margin-top: 0; }
-.ninjutsu-header h1 { margin: 0; font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.045em; }
-.ninjutsu-intro { max-width: 680px; margin: 8px 0 0; color: var(--text-muted); }
+.ninjutsu-header .eyebrow { margin: 0; }
 .ninjutsu-free-training-button {
   position: absolute;
   top: 0;
@@ -327,8 +324,6 @@ svg {
   .recipes-layout { grid-template-columns: 1fr; min-height: 0; }
   .recipe-list { max-height: 240px; overflow: auto; }
   .ninjutsu-view { padding: 18px 14px 80px; }
-  .ninjutsu-header { align-items: flex-start; flex-direction: column; }
-  .ninjutsu-header .primary-button { width: 100%; }
   .ninjutsu-stats { grid-template-columns: 1fr 1fr; }
   .ninjutsu-stat:last-child { grid-column: 1 / -1; }
   .ninjutsu-layout { min-height: 0; grid-template-columns: 1fr; }
