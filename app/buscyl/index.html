@@ -21,7 +21,7 @@
 <body>
 <!-- ───────── Hero / buscador ───────── -->
 <section class="hero" id="hero">
-  <button class="hero-collapse" id="heroCollapse" aria-label="Mostrar/ocultar buscador" title="Mostrar/ocultar buscador">
+  <button class="hero-collapse" id="heroCollapse" type="button" aria-label="Mostrar/ocultar buscador" title="Mostrar/ocultar buscador">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="18 15 12 9 6 15"/>
     </svg>
@@ -30,11 +30,11 @@
     <h1>Visualizador <em>de oferta</em></h1>
 
     <div class="search-tabs">
-      <button class="search-tab active" data-mode="municipio" onclick="setSearchTab('municipio')">Por municipio</button>
-      <button class="search-tab" data-mode="linea" onclick="setSearchTab('linea')">Por línea</button>
-      <button class="search-tab" data-mode="parada" onclick="setSearchTab('parada')">Por parada</button>
-      <button class="search-tab" data-mode="concesion" onclick="setSearchTab('concesion')">Por concesión</button>
-      <button class="search-tab" data-mode="operador" onclick="setSearchTab('operador')">Por operador</button>
+      <button class="search-tab active" type="button" data-mode="municipio" onclick="setSearchTab('municipio')">Por municipio</button>
+      <button class="search-tab" type="button" data-mode="linea" onclick="setSearchTab('linea')">Por línea</button>
+      <button class="search-tab" type="button" data-mode="parada" onclick="setSearchTab('parada')">Por parada</button>
+      <button class="search-tab" type="button" data-mode="concesion" onclick="setSearchTab('concesion')">Por concesión</button>
+      <button class="search-tab" type="button" data-mode="operador" onclick="setSearchTab('operador')">Por operador</button>
     </div>
 
     <div class="search-box">
@@ -43,10 +43,10 @@
         <path d="m21 21-4.3-4.3"/>
       </svg>
       <input type="text" class="search-input" id="municipioInput" placeholder="Escribe o selecciona un municipio…" autocomplete="off">
-      <button class="search-clear" id="searchClear" aria-label="Limpiar búsqueda" onclick="clearSearchInput()">
+      <button class="search-clear" id="searchClear" type="button" aria-label="Limpiar búsqueda" onclick="clearSearchInput()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-      <button class="search-btn" id="searchBtn">Consultar</button>
+      <button class="search-btn" id="searchBtn" type="button">Consultar</button>
       <div class="autocomplete" id="autocomplete"></div>
     </div>
 
