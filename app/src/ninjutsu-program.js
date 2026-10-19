@@ -1,10 +1,10 @@
-// Generado a partir de «Programación anual 2026–2027 · Nin Jutsu Budo Taijutsu v4.html», convertido y validado como Markdown.
+// Actualizado desde «Programacion_anual_2026-2027_Nin_Jutsu.docx», convertido y validado como Markdown.
 // Contenido base de solo lectura: las modificaciones del usuario se guardan aparte.
 export const NINJUTSU_PROGRAM = Object.freeze({
   "id": "2026-2027",
   "title": "Programación anual 2026–2027",
   "subtitle": "Nin Jutsu Budo Taijutsu · 10º a 2º Kyu · lunes y miércoles de 21:00 a 22:30",
-  "source": "Programa de Grados BCD, edición 2024",
+  "source": "Programación anual 2026-2027 · Nin Jutsu Budo Taijutsu · Universitario I",
   "trimesters": [
     {
       "id": "t1",
@@ -2087,7 +2087,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 4,
               "day": "miercoles",
               "date": "2027-01-27",
-              "title": "Shikko y desplazamiento perceptivo · Shishin bo",
+              "title": "Shikko y desplazamiento perceptivo",
               "instructor": "Julio",
               "provisional": true,
               "parts": [
@@ -2111,13 +2111,12 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   ]
                 },
                 {
-                  "name": "Armas · Shishin bo",
+                  "name": "Armas · Tanbo (repaso)",
                   "minutes": 40,
                   "items": [
-                    "Shishin bo: Uke waza (Shuto, Jodan, Nagare omote/ura, Gedan, Gedan kake)",
-                    "Ate waza (Hacho ken, Boshi ken, Kiten ken, Tetsui ken) y Tsukami a brazos y piernas",
-                    "Eda koppo; aplicaciones Ganseki dome, Hiki otoshi, Ude kujiki desde la base de tanbo",
-                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
+                    "Repaso de agarres, kamae, Uchi y Uke Waza de Tanbo.",
+                    "Tanbo Waza con entrada, distancia, control y recuperación de guardia.",
+                    "Aplicación técnica por parejas, adaptada al grado."
                   ]
                 },
                 {
@@ -2138,7 +2137,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   "gap": "6 sem."
                 }
               ],
-              "note": "Shishin bo en paralelo al trabajo de tanbo, como indica el programa."
+              "note": "Repaso de Tanbo conforme a la programación anual."
             }
           ]
         },
@@ -2996,7 +2995,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 10,
               "day": "miercoles",
               "date": "2027-03-10",
-              "title": "Puntos de ocultación · Jo I",
+              "title": "Trabajo de ocultación y espacios · repaso de Bokken",
               "instructor": "Julio",
               "provisional": true,
               "parts": [
@@ -3019,14 +3018,12 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   ]
                 },
                 {
-                  "name": "Armas · Jo",
+                  "name": "Armas · Bokken (repaso)",
                   "minutes": 40,
                   "items": [
-                    "Jo: medidas, materiales, origen",
-                    "Te no uchi: Hon te gatana, Hon te tsuki, Gyakute",
-                    "Kamae: Katayaburi, Munen muso, Otonashi, Chudan yoko ichimonji, Seigan, Waki, Hasso, Jodan, Gedan, Ihen, Kage",
-                    "Kihon: Shomen, Yokomen, Choku tsuki, Gedan kaeshi, Age uchi",
-                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
+                    "Repaso de kamae, Kiri, Ukeru y Ma Ai con Bokken.",
+                    "Trabajo de ocultación, lectura del espacio y distancia larga.",
+                    "Aplicación técnica por parejas con control y recuperación de guardia."
                   ]
                 },
                 {
@@ -4277,7 +4274,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 20,
               "day": "miercoles",
               "date": "2027-05-19",
-              "title": "Jo taihen · Jo II",
+              "title": "Repaso general",
               "instructor": "Julio",
               "provisional": true,
               "parts": [
@@ -4290,25 +4287,22 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   ]
                 },
                 {
-                  "name": "Taihen jutsu",
+                  "name": "Taihen jutsu · repaso",
                   "minutes": 30,
                   "items": [
-                    "Jo taihen: entrenamiento corporal con jo",
-                    "Kaiten con jo; repaso Kaiten no kata",
+                    "Repaso de desplazamientos, kaiten, ukemi y recuperación de kamae.",
+                    "Adaptación de taihen al nivel de cada alumno.",
                     "Happo Tai Sabaki, Yoko Aruki y Kaiten enlazados con el tema del día.",
                     "Repaso sin armas: Kamae, Ukemi y una técnica de control o proyección ya trabajada."
                   ]
                 },
                 {
-                  "name": "Armas · Jo",
+                  "name": "Armas · repaso general",
                   "minutes": 40,
                   "items": [
-                    "Toma katate uchi, Hachi no kaeshi, Juji kaeshi",
-                    "Uke waza: Shomen, Yokomen, Tsuki, Gedan",
-                    "Kumi jo",
-                    "4º–2º: Kuji no ho, primeros kata (Dai ippo, Niho ippo)",
-                    "Repaso: kamae y kihon de jo",
-                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
+                    "Repaso de armas y contenidos técnicos trabajados durante el curso.",
+                    "Kamae, distancia, Uchi/Uke Waza y aplicación por parejas.",
+                    "Preparación para el simulacro de examen por grados."
                   ]
                 },
                 {
@@ -4411,7 +4405,7 @@ export const NINJUTSU_PROGRAM = Object.freeze({
               "week": 21,
               "day": "miercoles",
               "date": "2027-05-26",
-              "title": "Repaso final: simulacro de armas",
+              "title": "Repaso general y pases de grado",
               "instructor": "Carlos",
               "provisional": true,
               "parts": [
@@ -4433,11 +4427,12 @@ export const NINJUTSU_PROGRAM = Object.freeze({
                   ]
                 },
                 {
-                  "name": "Armas · Todas",
+                  "name": "Integración y pases de grado",
                   "minutes": 40,
                   "items": [
-                    "Cada alumno presenta las armas de su grado: Tanto y Tanbo (8º–7º), Hanbo (7º–2º), Bokken (6º–4º), Kusari (2º)",
-                    "Kamae, Uchi/Uke Waza y aplicación por parejas con entrada, distancia y recuperación de guardia."
+                    "Repaso general de movimiento, golpeo, controles, proyecciones y armas.",
+                    "Pases de grado con adecuación al nivel, seguridad y control.",
+                    "Integración de kamae, distancia, continuidad y recuperación de guardia."
                   ]
                 },
                 {
