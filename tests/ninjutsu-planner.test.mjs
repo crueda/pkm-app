@@ -196,3 +196,12 @@ test("el programa de tanbo arranca el 14 de octubre y el lunes festivo queda can
   assert.equal(tanbo[0].date, "2026-10-14");
   assert.match(tanbo[0].parts.find(part => part.name === "Armas · Tanbo").items[0], /características, medidas, partes y Te no Uchi/);
 });
+
+test("la programación anual actualizada elimina Jo y Shishin bo de las sesiones de repaso", () => {
+  assert.equal(findProgramSession("X4").title, "Shikko y desplazamiento perceptivo");
+  assert.equal(findProgramSession("X4").parts[2].name, "Armas · Tanbo (repaso)");
+  assert.equal(findProgramSession("X10").title, "Trabajo de ocultación y espacios · repaso de Bokken");
+  assert.equal(findProgramSession("X10").parts[2].name, "Armas · Bokken (repaso)");
+  assert.equal(findProgramSession("X20").title, "Repaso general");
+  assert.equal(findProgramSession("X21").title, "Repaso general y pases de grado");
+});

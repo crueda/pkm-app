@@ -68,7 +68,38 @@ const STATE = {
 
   // UI
   recentSearches: [],
+  resultLimit: 200,
 };
+
+const RESULT_BATCH_SIZE = 200;
+
+function resetResultLimit() {
+  STATE.resultLimit = RESULT_BATCH_SIZE;
+}
+
+function limitedExpeditions(expeditions) {
+  const all = Array.isArray(expeditions) ? expeditions : [];
+  return {
+    visible: all.slice(0, STATE.resultLimit),
+    total: all.length,
+  };
+}
+
+function moreResultsHtml(total, visible) {
+  if (visible >= total) return '';
+  const next = Math.min(RESULT_BATCH_SIZE, total - visible);
+  return `
+    <div class="results-load-more">
+      <span>Mostrando ${visible.toLocaleString('es-ES')} de ${total.toLocaleString('es-ES')} expediciones.</span>
+      <button type="button" class="btn-primary" onclick="showMoreResults()">Mostrar ${next.toLocaleString('es-ES')} más</button>
+    </div>
+  `;
+}
+
+function showMoreResults() {
+  STATE.resultLimit += RESULT_BATCH_SIZE;
+  renderCurrentResults();
+}
 
 // Insignia "A demanda" para paradas que solo se atienden bajo petición.
 const DEMANDA_BADGE = '<span class="demanda-tag" title="Parada a demanda: solo se atiende si se solicita previamente">A demanda</span>';
@@ -868,6 +899,7 @@ function runSearchParadas(paradas) {
   STATE.filters.concesiones = new Set();
   STATE.filters.tiposLinea = new Set();
   STATE.filters.paradaId = null;
+  resetResultLimit();
 
   const areaSets = selectedParadaAreaSets();
 
@@ -1009,11 +1041,12 @@ function renderParadaExpediciones(rutas, _expsAll) {
   const container = document.getElementById('linesContainer');
   if (!container) return;
 
-  const exps = paradaSearchActive() ? filteredExpedicionesParada() : _expsAll;
+  const allExps = paradaSearchActive() ? filteredExpedicionesParada() : _expsAll;
+  const { visible: exps, total: totalExps } = limitedExpeditions(allExps);
   const areaSets = selectedParadaAreaSets();
 
   const bannerExp = document.getElementById('bannerExpeds');
-  if (bannerExp) bannerExp.textContent = `${exps.length} expediciones`;
+  if (bannerExp) bannerExp.textContent = `${totalExps} expediciones`;
 
   // Agrupar por ruta, y dentro ordenar por hora de salida
   const expsByRuta = new Map();
@@ -1069,7 +1102,7 @@ function renderParadaExpediciones(rutas, _expsAll) {
     `;
   }).join('');
 
-  container.innerHTML = `<div class="linea-results-wrap">${html}</div>`;
+  container.innerHTML = `<div class="linea-results-wrap">${html}${moreResultsHtml(totalExps, exps.length)}</div>`;
 
   // Bindear expansión
   container.querySelectorAll('.linea-exp-row').forEach(row => {
@@ -1229,6 +1262,7 @@ function runSearchConcesion(concesion) {
   STATE.filters.concesiones = new Set();
   STATE.filters.tiposLinea = new Set();
   STATE.filters.paradaId = null;
+  resetResultLimit();
 
   // Líneas y expediciones de esta concesión
   const lineas = STATE.data.lineas.filter(l => l.concesionId === concesion.id);
@@ -1328,8 +1362,9 @@ function renderLineGroupedExpediciones(lineas, rutas, exps) {
   const container = document.getElementById('linesContainer');
   if (!container) return;
 
+  const { visible: visibleExps, total: totalExps } = limitedExpeditions(exps);
   const bannerExp = document.getElementById('bannerExpeds');
-  if (bannerExp) bannerExp.textContent = `${exps.length} expediciones`;
+  if (bannerExp) bannerExp.textContent = `${totalExps} expediciones`;
 
   if (exps.length === 0) {
     container.innerHTML = `<div class="no-results-msg">No hay expediciones con los filtros seleccionados.</div>`;
@@ -1338,7 +1373,7 @@ function renderLineGroupedExpediciones(lineas, rutas, exps) {
 
   // Agrupar expediciones por línea, y dentro por ruta
   const expsByRuta = new Map();
-  for (const e of exps) {
+  for (const e of visibleExps) {
     if (!expsByRuta.has(e.rutaId)) expsByRuta.set(e.rutaId, []);
     expsByRuta.get(e.rutaId).push(e);
   }
@@ -1392,7 +1427,7 @@ function renderLineGroupedExpediciones(lineas, rutas, exps) {
     `;
   }).filter(Boolean).join('');
 
-  container.innerHTML = `<div class="linea-results-wrap">${html}</div>`;
+  container.innerHTML = `<div class="linea-results-wrap">${html}${moreResultsHtml(totalExps, visibleExps.length)}</div>`;
 
   // Bindear expansión
   container.querySelectorAll('.linea-exp-row').forEach(row => {
@@ -1435,6 +1470,7 @@ function runSearchOperador(operador) {
   STATE.filters.concesiones = new Set();
   STATE.filters.tiposLinea = new Set();
   STATE.filters.paradaId = null;
+  resetResultLimit();
 
   const concesionIds = new Set(operador.concesionIds);
   const lineas = STATE.data.lineas
@@ -1615,6 +1651,7 @@ function runSearchMunicipios(municipios) {
   STATE.filters.concesiones = new Set();
   STATE.filters.tiposLinea = new Set();
   STATE.filters.paradaId = null;
+  resetResultLimit();
 
   // Restaurar filtros que pueden estar ocultos si veníamos de otro modo
   const pg = document.getElementById('fg-parada');
@@ -1731,6 +1768,7 @@ function runSearchLinea(linea) {
   STATE.filters.concesiones = new Set();
   STATE.filters.tiposLinea = new Set();
   STATE.filters.paradaId = null;
+  resetResultLimit();
 
   // Expediciones de esta línea
   const exps = STATE.data.expediciones.filter(e => e.lineaId === linea.id);
@@ -1828,11 +1866,12 @@ function renderLineaExpediciones(linea, rutas, _expsAll) {
   const container = document.getElementById('linesContainer');
   if (!container) return;
 
-  const exps = STATE.selectedLinea ? filteredExpedicionesLinea() : _expsAll;
+  const allExps = STATE.selectedLinea ? filteredExpedicionesLinea() : _expsAll;
+  const { visible: exps, total: totalExps } = limitedExpeditions(allExps);
 
   // Actualizar banner
   const bannerExp = document.getElementById('bannerExpeds');
-  if (bannerExp) bannerExp.textContent = `${exps.length} expediciones`;
+  if (bannerExp) bannerExp.textContent = `${totalExps} expediciones`;
 
   // Agrupar expediciones por rutaId
   const expsByRuta = new Map();
@@ -1871,7 +1910,7 @@ function renderLineaExpediciones(linea, rutas, _expsAll) {
     `;
   }).join('');
 
-  container.innerHTML = `<div class="linea-results-wrap">${html}</div>`;
+  container.innerHTML = `<div class="linea-results-wrap">${html}${moreResultsHtml(totalExps, exps.length)}</div>`;
 
   // Bindear eventos de expansión
   container.querySelectorAll('.linea-exp-row').forEach(row => {
@@ -2167,28 +2206,33 @@ function fusionarExpedicionesDuplicadas(expediciones) {
 }
 
 function buildDaysWithService() {
-  // Para cada día del mes actual visible, comprobar si alguna expedición circula
-  // Estrategia: recorrer expediciones una sola vez y marcar todos sus días dentro de validez
+  // The calendar only needs the currently visible month.
   STATE.daysWithService = new Set();
+  const year = Number.isInteger(STATE.calYear) ? STATE.calYear : new Date().getFullYear();
+  const month = Number.isInteger(STATE.calMonth) ? STATE.calMonth : new Date().getMonth();
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const firstKey = formatDateKey(first);
+  const lastKey = formatDateKey(last);
+  const daysInMonth = last.getDate();
   for (const exp of STATE.indexes.currentExpediciones) {
     for (const periodo of periodosExpedicion(exp)) {
       if (!periodo.desde || !periodo.hasta) continue;
       const ds = periodo.diasSemana;
-      if (!ds) continue;
-      if (!Object.values(ds).some(v => v)) continue; // periodo sin días, ignorar
-
-      const desde = new Date(periodo.desde + 'T00:00:00');
-      const hasta = new Date(periodo.hasta + 'T00:00:00');
-      if (isNaN(desde) || isNaN(hasta)) continue;
-
-      for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
-        const dow = d.getDay();           // 0=domingo
-        const dowKey = DOW_KEYS[dow === 0 ? 6 : dow - 1]; // map a lunes-domingo
-        if (ds[dowKey]) {
-          STATE.daysWithService.add(formatDateKey(d));
-        }
+      if (!ds || !Object.values(ds).some(Boolean)) continue;
+      const desdeKey = periodo.desde > firstKey ? periodo.desde : firstKey;
+      const hastaKey = periodo.hasta < lastKey ? periodo.hasta : lastKey;
+      if (desdeKey > hastaKey) continue;
+      const desde = dateFromKey(desdeKey);
+      const hasta = dateFromKey(hastaKey);
+      if (!desde || !hasta) continue;
+      for (let d = desde; d <= hasta; d.setDate(d.getDate() + 1)) {
+        const dow = d.getDay();
+        const dowKey = DOW_KEYS[dow === 0 ? 6 : dow - 1];
+        if (ds[dowKey]) STATE.daysWithService.add(formatDateKey(d));
       }
     }
+    if (STATE.daysWithService.size === daysInMonth) break;
   }
 }
 
@@ -2404,7 +2448,8 @@ function renderSidebar() {
 
 function renderLines() {
   // Filtrar expediciones por todos los filtros activos
-  const expsVisibles = filteredExpediciones();
+  const allVisibleExps = filteredExpediciones();
+  const { visible: expsVisibles, total: totalExps } = limitedExpeditions(allVisibleExps);
 
   // Agrupar expediciones por línea
   const expsByLinea = new Map();
@@ -2437,7 +2482,8 @@ function renderLines() {
     return;
   }
 
-  container.innerHTML = lineasVisibles.map(linea => renderLineCard(linea, expsByLinea.get(linea.id))).join('');
+  container.innerHTML = lineasVisibles.map(linea => renderLineCard(linea, expsByLinea.get(linea.id))).join('')
+    + moreResultsHtml(totalExps, expsVisibles.length);
   renderActiveFiltersChips();
 }
 
@@ -2892,6 +2938,7 @@ function renderCurrentResults() {
 }
 
 function refreshUiAfterFilterChange() {
+  resetResultLimit();
   updateFilterBadge('badgeTipoDia', STATE.filters.tiposDia.size);
   updateFilterBadge('badgeConcesion', STATE.filters.concesiones.size);
   updateFilterBadge('badgeTipoLinea', STATE.filters.tiposLinea.size);
@@ -2934,6 +2981,7 @@ function initCalendarForMunicipio() {
   STATE.searchMode = 'tipoDia';
   STATE.selectedDate = null;
   applySearchModeUI('tipoDia');
+  buildDaysWithService();
   renderCalendar();
 }
 
@@ -2953,6 +3001,7 @@ function applySearchModeUI(mode) {
 function setSearchMode(mode) {
   if (mode !== 'dia' && mode !== 'tipoDia') return;
   STATE.searchMode = mode;
+  resetResultLimit();
   if (mode === 'dia') {
     // Evita el estado incoherente "Día concreto" sin fecha: ese estado mostraba
     // expediciones de toda la ventana y hacía que desapareciesen al cambiar de día.
@@ -3028,6 +3077,7 @@ function renderCalendar() {
     btn.addEventListener('click', () => {
       const [y, m, day] = btn.dataset.date.split('-').map(Number);
       STATE.selectedDate = new Date(y, m - 1, day);
+      resetResultLimit();
       renderCalendar();
       renderSidebar();
       renderCurrentResults();
@@ -3041,6 +3091,7 @@ document.querySelectorAll('.cal-nav').forEach(btn => {
     STATE.calMonth += dir;
     if (STATE.calMonth > 11) { STATE.calMonth = 0; STATE.calYear++; }
     if (STATE.calMonth < 0) { STATE.calMonth = 11; STATE.calYear--; }
+    buildDaysWithService();
     renderCalendar();
   });
 });
