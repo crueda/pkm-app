@@ -640,7 +640,9 @@ function selectMunicipio(munId) {
   addMunicipioToChain(mun);
 }
 
-function triggerSearch() {
+function triggerSearch(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   if (STATE.searchTab === 'linea') { triggerSearchLinea(); return; }
   if (STATE.searchTab === 'parada') { triggerSearchParada(); return; }
   if (STATE.searchTab === 'concesion') { triggerSearchConcesion(); return; }
@@ -4208,7 +4210,7 @@ async function initializeApp() {
   // Las pestañas del buscador ya tienen onclick="setSearchTab(...)" inline
 
   // Botón Consultar
-  document.getElementById('searchBtn').addEventListener('click', triggerSearch);
+  document.getElementById('searchBtn').addEventListener('click', event => triggerSearch(event));
 
   // Hero colapsable
   document.getElementById('heroCollapse').addEventListener('click', () => {
