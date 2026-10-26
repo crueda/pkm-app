@@ -1,4 +1,4 @@
-const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 
 function waitForGoogleIdentity(timeoutMs = 15_000) {
   return new Promise((resolve, reject) => {
@@ -41,7 +41,7 @@ export class GoogleOAuthClient extends EventTarget {
     const oauth2 = await waitForGoogleIdentity();
     this.tokenClient = oauth2.initTokenClient({
       client_id: this.clientId,
-      scope: DRIVE_FILE_SCOPE,
+      scope: DRIVE_SCOPE,
       include_granted_scopes: true,
       callback: response => this.#handleTokenResponse(response),
       error_callback: error => this.#handlePopupError(error)
@@ -104,7 +104,7 @@ export class GoogleOAuthClient extends EventTarget {
     const expiresInSeconds = Number(response.expires_in || 3600);
     this.expiresAt = Date.now() + expiresInSeconds * 1000;
     this.dispatchEvent(new CustomEvent("authchange", {
-      detail: { connected: true, expiresAt: this.expiresAt, scope: response.scope || DRIVE_FILE_SCOPE }
+      detail: { connected: true, expiresAt: this.expiresAt, scope: response.scope || DRIVE_SCOPE }
     }));
     pending?.resolve(response);
   }
@@ -118,4 +118,4 @@ export class GoogleOAuthClient extends EventTarget {
   }
 }
 
-export { DRIVE_FILE_SCOPE };
+export { DRIVE_SCOPE };

@@ -4,6 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
+import { NinjutsuAdjustmentsWriter } from "./ninjutsu-adjustments.js";
 import { attendanceHistory, attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
 import { applyRosterSeed, mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "./ninjutsu-roster-import.js";
 import { NINJUTSU_ROSTER_SEED } from "./ninjutsu-roster-seed.js";
@@ -21,7 +22,8 @@ const config = Object.freeze({
   appName: window.NOTES_APP_CONFIG?.appName ?? "Notas Drive",
   vaultName: window.NOTES_APP_CONFIG?.vaultName ?? "NotesVault",
   buildVersion: window.NOTES_APP_CONFIG?.buildVersion ?? "development",
-  maxImportFiles: Number(window.NOTES_APP_CONFIG?.maxImportFiles ?? 2000)
+  maxImportFiles: Number(window.NOTES_APP_CONFIG?.maxImportFiles ?? 2000),
+  ninjutsuAdjustmentsFolderId: window.NOTES_APP_CONFIG?.ninjutsuAdjustmentsFolderId ?? ""
 });
 
 const elements = Object.fromEntries([
@@ -41,7 +43,7 @@ const elements = Object.fromEntries([
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "buscyl-view", "buscyl-frame",
   "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-students", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-students-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
-  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
+  "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "program-save-adjustments-button", "program-adjustments-state", "timer-notices", "program-start-button", "program-start-label",
   "program-attendance", "program-attendance-summary", "program-attendance-list", "program-attendance-empty", "program-all-present-button", "program-manage-students-button",
   "student-form", "student-name-input", "student-grade-input", "student-import-button", "student-import-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content", "attendance-history", "attendance-history-summary", "attendance-history-table",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
@@ -58,6 +60,7 @@ const elements = Object.fromEntries([
 const db = new LocalDatabase();
 const auth = new GoogleOAuthClient(config.googleClientId);
 const drive = new GoogleDriveApi(() => auth.getAccessToken());
+const adjustmentsWriter = new NinjutsuAdjustmentsWriter(drive, config.ninjutsuAdjustmentsFolderId);
 const publisher = new DrivePublisher(drive);
 const syncEngine = new SyncEngine({
   db,
@@ -107,6 +110,7 @@ const state = {
   ninjutsuAttendance: {},
   selectedStudentId: null,
   exportingSession: false,
+  savingAdjustments: false,
   trainingTimer: null,
   timerVisible: false
 };
@@ -1928,7 +1932,19 @@ function handleSessionEditInput(event) {
     const index = Number(target.dataset.partMinutes);
     if (edit.parts[index]) edit.parts[index].minutes = parseMinutes(target.value, edit.parts[index].minutes);
   } else if (target.dataset.freeField) {
-    edit[target.dataset.freeField] = target.value;
+    const field = target.dataset.freeField;
+    const changed = field === "adjustments"
+      ? String(edit.adjustments ?? edit.notes ?? "") !== target.value
+      : String(edit[field] ?? "") !== target.value;
+    edit[field] = target.value;
+    if (field === "adjustments") {
+      delete edit.notes;
+      if (changed) {
+        edit.adjustmentsDocumentId = null;
+        edit.adjustmentsDocumentName = null;
+        edit.adjustmentsSyncError = null;
+      }
+    }
     if (target.dataset.freeField === "notices") target.closest(".program-free-box").classList.toggle("filled", Boolean(target.value.trim()));
   }
   else {
@@ -2005,6 +2021,16 @@ function renderFreeFields(session) {
     requestAnimationFrame(() => autoSizeTextarea(textarea));
   }
   elements["program-notices-input"].closest(".program-free-box").classList.toggle("filled", Boolean(effective.notices.trim()));
+  const edit = state.sessionEdits[session.code];
+  const button = elements["program-save-adjustments-button"];
+  const status = elements["program-adjustments-state"];
+  button.disabled = state.savingAdjustments;
+  button.textContent = state.savingAdjustments ? "Guardando…" : "Guardar";
+  status.classList.toggle("error", Boolean(edit?.adjustmentsSyncError));
+  if (state.savingAdjustments) status.textContent = "Guardando en el documento del día y en la ficha del curso…";
+  else if (edit?.adjustmentsDocumentName) status.textContent = `Guardado en ${edit.adjustmentsDocumentName}`;
+  else if (edit?.adjustmentsSyncError) status.textContent = `Copia del curso guardada · Documento directo pendiente: ${edit.adjustmentsSyncError}`;
+  else status.textContent = effective.adjustments.trim() ? "Guardado localmente; pulsa Guardar para enviarlo a Drive." : "";
 }
 
 function gradeSelect(value, label, onChange) {
@@ -2112,7 +2138,7 @@ function renderStudentDetail(student) {
   content.hidden = !student;
   content.replaceChildren();
   if (!student) return;
-  const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance);
+  const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance, { sessionEdits: state.sessionEdits });
   const header = document.createElement("header");
   header.className = "student-detail-header";
   const titleBlock = document.createElement("div");
@@ -2201,6 +2227,29 @@ function renderStudentDetail(student) {
     blocksSection.append(message);
   }
 
+  const adjustmentsSection = document.createElement("section");
+  adjustmentsSection.className = "student-progress-section";
+  const adjustmentsTitle = document.createElement("h4");
+  adjustmentsTitle.textContent = "Ajustes realizados en sus sesiones";
+  adjustmentsSection.append(adjustmentsTitle);
+  const adjustmentRecords = progress.history.filter(record => record.adjustments);
+  if (adjustmentRecords.length) {
+    const list = document.createElement("ul");
+    for (const record of adjustmentRecords) {
+      const item = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = `${record.code} · `;
+      item.append(strong, record.adjustments);
+      list.append(item);
+    }
+    adjustmentsSection.append(list);
+  } else {
+    const message = document.createElement("p");
+    message.className = "student-progress-empty";
+    message.textContent = "Todavía no hay ajustes anotados en las sesiones a las que asistió.";
+    adjustmentsSection.append(message);
+  }
+
   const historySection = document.createElement("section");
   historySection.className = "student-progress-section";
   const historyTitle = document.createElement("h4");
@@ -2229,7 +2278,7 @@ function renderStudentDetail(student) {
     history.append(message);
   }
   historySection.append(history);
-  content.append(header, metrics, gradeSection, blocksSection, historySection);
+  content.append(header, metrics, gradeSection, blocksSection, adjustmentsSection, historySection);
 }
 
 function renderStudents() {
@@ -2248,7 +2297,7 @@ function renderStudents() {
   elements["student-count"].textContent = String(roster.length);
   const list = elements["student-list"];
   list.replaceChildren(...roster.map(student => {
-    const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance);
+    const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance, { sessionEdits: state.sessionEdits });
     const button = document.createElement("button");
     button.type = "button";
     button.className = `student-list-item${student.id === state.selectedStudentId ? " selected" : ""}`;
@@ -2406,9 +2455,9 @@ function removeStudent(student) {
 
 async function resetSelectedSession() {
   const session = selectedProgramSession();
-  if (!session || !confirm(`¿Restaurar los bloques de ${session.code} al contenido original de la programación? Se perderán tus añadidos; los avisos y notas se conservan.`)) return;
+  if (!session || !confirm(`¿Restaurar los bloques de ${session.code} al contenido original de la programación? Se perderán tus añadidos; los avisos y ajustes se conservan.`)) return;
   const previous = state.sessionEdits[session.code] ?? {};
-  const kept = Object.fromEntries(["exportedFileId", "exportedAt", "notices", "notes"].filter(key => previous[key]).map(key => [key, previous[key]]));
+  const kept = Object.fromEntries(["exportedFileId", "exportedAt", "notices", "adjustments", "notes", "adjustmentsDocumentId", "adjustmentsDocumentName", "adjustmentsSyncedAt"].filter(key => previous[key]).map(key => [key, previous[key]]));
   if (Object.keys(kept).length) state.sessionEdits[session.code] = { ...createSessionEdit(session), ...kept };
   else delete state.sessionEdits[session.code];
   await saveSessionEdits.flush();
@@ -2428,31 +2477,98 @@ async function ensureProgramExportFolder() {
   return folder;
 }
 
+async function persistSessionBackup(session) {
+  await saveSessionEdits.flush();
+  const folder = await ensureProgramExportFolder();
+  const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
+  await saveWeekWords.flush();
+  const markdown = sessionToMarkdown(session, edit, NINJUTSU_PROGRAM, hasWeekWord(session) ? weekWord(session.week, state.weekWords) : null);
+  const existing = findExportedSessionNote(state.files, folder, session, edit);
+  let noteId = existing?.id;
+  if (existing) await syncEngine.updateNote(existing.id, markdown);
+  else noteId = (await syncEngine.createNote(folder.id, sessionExportBaseName(session), markdown)).id;
+  state.sessionEdits[session.code] = { ...edit, exportedFileId: noteId, exportedAt: new Date().toISOString() };
+  await saveSessionEdits.flush();
+  await refreshLocalFiles();
+  requestSyncSoon();
+  return noteId;
+}
+
 async function exportSelectedSession() {
   const session = selectedProgramSession();
   if (!session || state.exportingSession) return;
   state.exportingSession = true;
   renderProgramHeader(session);
   try {
-    await saveSessionEdits.flush();
-    const folder = await ensureProgramExportFolder();
-    const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
-    await saveWeekWords.flush();
-    const markdown = sessionToMarkdown(session, edit, NINJUTSU_PROGRAM, hasWeekWord(session) ? weekWord(session.week, state.weekWords) : null);
-    const existing = findExportedSessionNote(state.files, folder, session, edit);
-    let noteId = existing?.id;
-    if (existing) await syncEngine.updateNote(existing.id, markdown);
-    else noteId = (await syncEngine.createNote(folder.id, sessionExportBaseName(session), markdown)).id;
-    state.sessionEdits[session.code] = { ...edit, exportedFileId: noteId, exportedAt: new Date().toISOString() };
-    await saveSessionEdits.flush();
-    await refreshLocalFiles();
-    requestSyncSoon();
+    await persistSessionBackup(session);
     showToast(state.connected ? `${session.code} exportada a Drive` : `${session.code} exportada; se subirá a Drive al conectar`);
   } catch (error) {
     showToast(error.message || "No se pudo exportar la sesión", "error");
   } finally {
     state.exportingSession = false;
     renderProgram();
+  }
+}
+
+async function saveSelectedAdjustments() {
+  const session = selectedProgramSession();
+  if (!session || state.savingAdjustments) return;
+  const edit = state.sessionEdits[session.code] ?? createSessionEdit(session);
+  edit.adjustments = elements["program-notes-input"].value;
+  edit.updatedAt = new Date().toISOString();
+  state.sessionEdits[session.code] = edit;
+  state.savingAdjustments = true;
+  renderFreeFields(session);
+  await saveSessionEdits.flush();
+
+  let directResult = null;
+  let directError = null;
+  let backupError = null;
+  try {
+    if (!navigator.onLine) throw new Error("Sin conexión");
+    if (!isGoogleClientIdConfigured(config.googleClientId)) throw new Error("Falta configurar el Client ID de Google");
+    if (!auth.hasValidToken()) await auth.requestAccessToken();
+    state.connected = true;
+    updateConnectButtons();
+    directResult = await adjustmentsWriter.save(session, edit.adjustments);
+  } catch (error) {
+    directError = error;
+    if (error instanceof AuthExpiredError || error?.code === "auth_expired") {
+      auth.markExpired();
+      state.connected = false;
+      updateConnectButtons();
+    }
+  }
+
+  try {
+    await persistSessionBackup(session);
+  } catch (error) {
+    backupError = error;
+  }
+
+  const current = state.sessionEdits[session.code] ?? edit;
+  state.sessionEdits[session.code] = directResult ? {
+    ...current,
+    adjustmentsDocumentId: directResult.file.id,
+    adjustmentsDocumentName: directResult.file.name,
+    adjustmentsSyncedAt: new Date().toISOString(),
+    adjustmentsSyncError: null
+  } : {
+    ...current,
+    adjustmentsDocumentId: null,
+    adjustmentsDocumentName: null,
+    adjustmentsSyncError: directError?.message || "No se pudo actualizar el documento del día"
+  };
+  await saveSessionEdits.flush();
+  state.savingAdjustments = false;
+  renderProgram();
+
+  if (directResult) {
+    showToast(`Ajustes guardados en ${directResult.file.name}${backupError ? "" : " y en la ficha del curso"}`);
+  } else if (!backupError) {
+    showToast(`Ajustes guardados en la ficha del curso. Documento directo pendiente: ${directError?.message || "error desconocido"}`, "error", 8000);
+  } else {
+    showToast(`Ajustes guardados solo en este dispositivo: ${directError?.message || backupError.message}`, "error", 8000);
   }
 }
 
@@ -2585,6 +2701,7 @@ function bindEvents() {
   });
   elements["program-reset-button"].addEventListener("click", resetSelectedSession);
   elements["program-export-button"].addEventListener("click", exportSelectedSession);
+  elements["program-save-adjustments-button"].addEventListener("click", saveSelectedAdjustments);
   elements["program-session-body"].addEventListener("input", handleSessionEditInput);
   elements["program-notices-input"].addEventListener("input", handleSessionEditInput);
   elements["program-word"].addEventListener("input", handleWeekWordInput);

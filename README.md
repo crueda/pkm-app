@@ -7,7 +7,7 @@ PWA local-first para leer, crear, editar, organizar y buscar notas Markdown alma
 Este ZIP contiene un MVP funcional con:
 
 - login y consentimiento mediante la ventana oficial de Google;
-- scope OAuth mínimo `drive.file`;
+- consentimiento OAuth `drive` para sincronizar la bóveda y el documento de entrenamiento compartido configurado;
 - creación o descubrimiento de `NotesVault`;
 - notas `.md` y carpetas reales en Google Drive;
 - lectura, creación, autosave, renombrado y papelera;
@@ -16,7 +16,7 @@ Este ZIP contiene un MVP funcional con:
 - detección conservadora de conflictos por versión;
 - bloqueo preventivo al autorizar una cuenta de Google distinta;
 - importación de carpetas Markdown desde escritorio;
-- menú de aplicaciones con vistas específicas para recetas y para el área de Ninjutsu, que incluye la programación anual 2026–2027 editable por sesión y exportable a Drive, búsqueda recursiva, filtros por sección y creación guiada de entrenamientos;
+- menú de aplicaciones con vistas específicas para recetas y para el área de Ninjutsu, que incluye la programación anual 2026–2027 editable por sesión, ajustes guardados en el Word o Google Docs del día con respaldo Markdown, seguimiento por alumno, búsqueda recursiva, filtros por sección y creación guiada de entrenamientos;
 - renderizado seguro de Markdown y enlaces `[[wiki]]` básicos;
 - publicación explícita de copias de notas o carpetas con enlace de lectura, apertura y copia al portapapeles;
 - manifest, iconos y Service Worker para instalación como PWA;
@@ -31,7 +31,7 @@ El código estático y el OAuth Client ID pueden ser públicos. No se incluyen e
 - contraseñas;
 - Client Secrets;
 - access tokens o refresh tokens;
-- un ID fijo de tu carpeta de Drive;
+- IDs de la bóveda o de notas privadas; la carpeta compartida de ajustes puede configurarse explícitamente por su ID público de Drive;
 - IDs fijos de notas;
 - contenido Markdown.
 
@@ -96,6 +96,7 @@ APP_NAME="Mis notas" \
 VAULT_NAME="NotesVault" \
 BUILD_VERSION="release-1" \
 GOOGLE_CLIENT_ID="...apps.googleusercontent.com" \
+NINJUTSU_ADJUSTMENTS_FOLDER_ID="..." \
 npm run build
 ```
 

@@ -58,7 +58,10 @@ test("calcula asistencia, bloques trabajados e indicaciones del grado", () => {
     X40: { ana: "absent" },
     L41: { ana: "present" }
   };
-  const progress = studentProgress(students[0], programSessions(), attendance, { today: "2026-10-05" });
+  const progress = studentProgress(students[0], programSessions(), attendance, {
+    today: "2026-10-05",
+    sessionEdits: { L41: { adjustments: "Ana trabajó una variante de omote gyaku" } }
+  });
   assert.equal(progress.offered, 3);
   assert.equal(progress.marked, 3);
   assert.equal(progress.present, 2);
@@ -70,6 +73,7 @@ test("calcula asistencia, bloques trabajados e indicaciones del grado", () => {
   assert.ok(progress.gradeSessions > 0);
   assert.ok(progress.gradeFocus.some(focus => focus.sessionCode === "L41"));
   assert.deepEqual(progress.history.map(record => record.code), ["L41", "X40", "L40"]);
+  assert.equal(progress.history[0].adjustments, "Ana trabajó una variante de omote gyaku");
 });
 
 test("resume el histórico del grupo por sesión impartida", () => {

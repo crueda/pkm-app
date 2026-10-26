@@ -147,6 +147,8 @@ export class GoogleDriveApi {
         pageSize: String(pageSize),
         orderBy
       });
+      parameters.set("includeItemsFromAllDrives", "true");
+      parameters.set("supportsAllDrives", "true");
       if (pageToken) parameters.set("pageToken", pageToken);
       const result = await this.request(`${DRIVE_API}/files?${parameters}`);
       files.push(...(result.files ?? []));
@@ -265,6 +267,30 @@ export class GoogleDriveApi {
     });
   }
 
+  async importAsGoogleDocument(name, parentId, blob) {
+    const boundary = `notes_${crypto.randomUUID()}`;
+    const metadata = {
+      name,
+      mimeType: "application/vnd.google-apps.document",
+      parents: parentId ? [parentId] : undefined
+    };
+    const body = new Blob([
+      `--${boundary}\r\n`,
+      "Content-Type: application/json; charset=UTF-8\r\n\r\n",
+      JSON.stringify(metadata),
+      `\r\n--${boundary}\r\n`,
+      `Content-Type: ${blob.type || "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}\r\n\r\n`,
+      blob,
+      `\r\n--${boundary}--`
+    ], { type: `multipart/related; boundary=${boundary}` });
+    const parameters = new URLSearchParams({ uploadType: "multipart", fields: FILE_FIELDS, supportsAllDrives: "true" });
+    return this.request(`${DRIVE_UPLOAD_API}/files?${parameters}`, {
+      method: "POST",
+      headers: { "Content-Type": `multipart/related; boundary=${boundary}` },
+      body
+    });
+  }
+
   async downloadText(fileId) {
     const response = await this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?alt=media`);
     return response.text();
@@ -272,6 +298,12 @@ export class GoogleDriveApi {
 
   async downloadBlob(fileId) {
     const response = await this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?alt=media`);
+    return response.blob();
+  }
+
+  async exportFile(fileId, mimeType) {
+    const parameters = new URLSearchParams({ mimeType });
+    const response = await this.request(`${DRIVE_API}/files/${encodeURIComponent(fileId)}/export?${parameters}`);
     return response.blob();
   }
 
@@ -285,7 +317,7 @@ export class GoogleDriveApi {
   }
 
   async updateFileContent(fileId, blob, mimeType = "application/octet-stream") {
-    const parameters = new URLSearchParams({ uploadType: "media", fields: FILE_FIELDS });
+    const parameters = new URLSearchParams({ uploadType: "media", fields: FILE_FIELDS, supportsAllDrives: "true" });
     return this.request(`${DRIVE_UPLOAD_API}/files/${encodeURIComponent(fileId)}?${parameters}`, {
       method: "PATCH",
       headers: { "Content-Type": mimeType },

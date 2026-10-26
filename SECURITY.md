@@ -27,18 +27,20 @@ El OAuth Client ID identifica a la aplicación, pero no autoriza acceso a una cu
 - Se obtiene mediante Google Identity Services después de una acción del usuario.
 - Solo se guarda en una propiedad JavaScript en memoria.
 - No se escribe en localStorage, IndexedDB, Cache Storage, URLs ni Service Worker.
-- Se envía únicamente en `Authorization: Bearer ...` a `www.googleapis.com`.
+- Se envía únicamente en `Authorization: Bearer ...` a las APIs oficiales `www.googleapis.com` y `docs.googleapis.com`.
 - Se descarta al caducar, revocar o recargar la aplicación.
 
 ## Permisos Drive
 
-El MVP solicita únicamente:
+La integración de ajustes de Ninjutsu solicita:
 
 ```text
-https://www.googleapis.com/auth/drive.file
+https://www.googleapis.com/auth/drive
 ```
 
-No solicita acceso general `drive`. La app usa `permissions.create` exclusivamente cuando el usuario publica una copia: concede lectura `anyone` sin descubrimiento público a esa copia, nunca a `NotesVault` ni al archivo original.
+Este permiso permite localizar y actualizar el documento del entrenamiento dentro de una carpeta compartida fija. El token sigue siendo efímero y vive únicamente en memoria. La app limita sus escrituras normales a `NotesVault`, las copias que el usuario publica y el documento del día identificado de forma inequívoca por fecha o código. Para Word, Drive conserva una nueva versión después de la conversión temporal; revisa el formato tras el primer uso.
+
+La app usa `permissions.create` exclusivamente cuando el usuario publica una copia: concede lectura `anyone` sin descubrimiento público a esa copia, nunca a `NotesVault` ni al archivo original.
 
 La carpeta raíz debe crearse en Mi unidad y no dentro de una carpeta ya compartida. Revisa periódicamente el panel de compartición de `NotesVault`.
 

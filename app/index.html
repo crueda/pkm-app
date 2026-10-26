@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f6f7f2">
     <meta name="color-scheme" content="light dark">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src 'self' https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://www.googleapis.com https://docs.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src 'self' https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com">
     <title>Notas Drive</title>
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
@@ -307,8 +307,12 @@
                   </section>
                   <div id="program-session-body" class="program-session-body"></div>
                   <section class="program-free-box notes">
-                    <label class="program-free-label" for="program-notes-input">Notas</label>
-                    <textarea id="program-notes-input" class="program-textarea program-free-input" data-free-field="notes" rows="4" placeholder="Asistentes, qué funcionó, qué repetir, pendientes…"></textarea>
+                    <div class="program-free-heading">
+                      <label class="program-free-label" for="program-notes-input">Ajustes</label>
+                      <button id="program-save-adjustments-button" class="secondary-button compact" type="button">Guardar</button>
+                    </div>
+                    <textarea id="program-notes-input" class="program-textarea program-free-input" data-free-field="adjustments" rows="4" placeholder="Cambios realizados, trabajo individual, qué repetir y pendientes…"></textarea>
+                    <p id="program-adjustments-state" class="program-adjustments-state" aria-live="polite"></p>
                   </section>
               </article>
             </section>

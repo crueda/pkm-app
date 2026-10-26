@@ -59,7 +59,7 @@ El botón de cuadrícula, junto a la estrella de favoritos, abre el menú de apl
 
 ## Área de Ninjutsu
 
-Abre **Ninjutsu** desde el menú de aplicaciones. La vista tiene dos pestañas.
+Abre **Ninjutsu** desde el menú de aplicaciones. La vista tiene cuatro pestañas: programación, entrenamiento, alumnado y biblioteca.
 
 ### Programación 2026–2027
 
@@ -68,11 +68,13 @@ Incluye las 60 sesiones de la programación anual (semanas 40 de 2026 a 21 de 20
 - La lista se agrupa por trimestre y semana; filtra por **Lunes** o **Miércoles** y pulsa **Hoy** para ir a la próxima sesión.
 - Los días no lectivos aparecen marcados como **No lectivo**, y las sesiones que se caen por un festivo (como el lunes 12 de octubre) salen tachadas con la etiqueta **Sin clase**, indican el motivo y se saltan al buscar la próxima sesión.
 - En las semanas que imparte Carlos aparece la tarjeta **Palabra de la semana**, compartida por el lunes y el miércoles de esa semana. Ya incluye *Shoshin* (semana 40) e *Ichigo ichie* (semana 41) y *Ganbatte* (semana 44); en el resto escribe la palabra y su explicación directamente en la tarjeta. Debajo se listan las palabras de semanas anteriores, y la palabra se incluye al exportar la sesión a Drive.
-- Cada sesión tiene dos cuadros de texto libre que se rellenan directamente, sin pulsar **Editar**: **Avisos** (arriba, en rojo cuando tiene contenido; material, cambios, ausencias…) y **Notas** (abajo; asistentes, qué funcionó, pendientes…). Se guardan solos en este dispositivo, se incluyen al exportar a Drive y los avisos se muestran también en el temporizador. **Restaurar original** no los borra.
+- Cada sesión tiene dos cuadros de texto libre que se rellenan directamente, sin pulsar **Editar**: **Avisos** (arriba, en rojo cuando tiene contenido; material, cambios, ausencias…) y **Ajustes** (abajo; cambios realizados, trabajo individual, qué repetir y pendientes). Los avisos se muestran también en el temporizador. **Restaurar original** no borra ninguno de los dos.
+- **Guardar**, junto a Ajustes, busca en la carpeta compartida el Word o Google Docs cuyo nombre contiene la fecha o el código de la sesión y actualiza su sección **Ajustes realizados**. Si es Word, la app lo convierte temporalmente y devuelve el resultado al mismo archivo; Drive mantiene su historial de versiones. La operación también actualiza una copia Markdown de la sesión. Si el documento no existe, hay varios candidatos o falla la conversión, la copia Markdown y el registro local actúan como respaldo.
+- Los ajustes de una sesión se muestran en el progreso de los alumnos marcados como presentes, de forma que queden incluidos al revisar el trabajo acumulado durante el curso.
 - **Editar** convierte cada bloque (calentamiento, taihen, dakentai, jutai, armas, cierre) en un cuadro de texto con un elemento por línea, permite ajustar los minutos de cada bloque. Los cambios se guardan solos en este dispositivo y lo añadido se resalta en ocre.
 - **Restaurar original** descarta tus cambios de esa sesión.
 - **Empezar** abre el temporizador a pantalla completa: muestra el bloque que toca según el tiempo transcurrido, la cuenta atrás del bloque, sus contenidos, el siguiente bloque y una barra con todos los bloques (pulsa uno para saltar a él). Avisa con sonido y vibración en cada cambio de bloque y mantiene la pantalla encendida mientras está abierto.
-- **Pausar/Reanudar** (o la barra espaciadora), **Anterior** y **Siguiente** controlan el avance. Puedes minimizarlo: una pastilla flotante abajo a la izquierda sigue mostrando el bloque y el tiempo, y el entrenamiento continúa aunque recargues la app. Pulsa la pastilla para volver al temporizador o su **✕** para terminar el entrenamiento y quitarla de en medio sin abrirlo. Al terminar, **Cerrar y anotar** abre el editor de la sesión para añadir tus notas antes de exportarla.
+- **Pausar/Reanudar** (o la barra espaciadora), **Anterior** y **Siguiente** controlan el avance. Puedes minimizarlo: una pastilla flotante abajo a la izquierda sigue mostrando el bloque y el tiempo, y el entrenamiento continúa aunque recargues la app. Pulsa la pastilla para volver al temporizador o su **✕** para terminar el entrenamiento y quitarla de en medio sin abrirlo. Al terminar, **Cerrar y anotar** abre el editor de la sesión para añadir los ajustes antes de guardarla.
 - **Exportar a Drive** genera una nota Markdown con la sesión completa en `201 - NINJUTSU/03 - Entrenamientos/Programación 2026-2027`, por ejemplo `2026-10-05 - L41 - Kihon happo I- Ichimonji no kata.md`. Si ya existe, **Actualizar en Drive** la sobrescribe con la versión actual. Sin conexión, la nota queda pendiente y se sube en la próxima sincronización.
 
 ### Biblioteca

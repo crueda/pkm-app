@@ -134,7 +134,7 @@ function offeredSessions(sessions, today) {
   return sessions.filter(session => !session.cancelled && session.date <= today);
 }
 
-export function studentProgress(student, sessions, attendance, { today = new Date().toLocaleDateString("sv-SE") } = {}) {
+export function studentProgress(student, sessions, attendance, { today = new Date().toLocaleDateString("sv-SE"), sessionEdits = {} } = {}) {
   const records = normalizeAttendance(attendance);
   const offered = offeredSessions(sessions, today);
   const marked = offered.filter(session => ATTENDANCE_STATUSES.has(records[session.code]?.[student.id]));
@@ -181,7 +181,10 @@ export function studentProgress(student, sessions, attendance, { today = new Dat
       code: session.code,
       date: session.date,
       title: session.title,
-      status: records[session.code][student.id]
+      status: records[session.code][student.id],
+      adjustments: records[session.code][student.id] === "present"
+        ? String(sessionEdits[session.code]?.adjustments ?? sessionEdits[session.code]?.notes ?? "").trim()
+        : ""
     })).sort((left, right) => right.date.localeCompare(left.date))
   };
 }

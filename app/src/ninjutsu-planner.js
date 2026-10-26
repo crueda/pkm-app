@@ -47,25 +47,25 @@ function cloneParts(parts = []) {
 }
 
 export function createSessionEdit(session) {
-  return { parts: cloneParts(session.parts), notices: "", notes: "", updatedAt: null };
+  return { parts: cloneParts(session.parts), notices: "", adjustments: "", updatedAt: null };
 }
 
 export function effectiveSession(session, edit = null) {
-  if (!edit) return { ...session, parts: cloneParts(session.parts), notices: "", notes: "" };
+  if (!edit) return { ...session, parts: cloneParts(session.parts), notices: "", adjustments: "" };
   return {
     ...session,
     parts: cloneParts(edit.parts?.length ? edit.parts : session.parts),
     notices: String(edit.notices ?? ""),
-    notes: String(edit.notes ?? "")
+    adjustments: String(edit.adjustments ?? edit.notes ?? "")
   };
 }
 
 export function isSessionEdited(session, edit = null) {
   if (!edit) return false;
-  return Boolean(String(edit.notices ?? "").trim() || String(edit.notes ?? "").trim()) || arePartsEdited(session, edit);
+  return Boolean(String(edit.notices ?? "").trim() || String(edit.adjustments ?? edit.notes ?? "").trim()) || arePartsEdited(session, edit);
 }
 
-// Solo los bloques: avisos y notas no cuentan como cambios a restaurar.
+// Solo los bloques: avisos y ajustes no cuentan como cambios a restaurar.
 export function arePartsEdited(session, edit = null) {
   if (!edit) return false;
   const parts = edit.parts ?? session.parts;
@@ -234,8 +234,8 @@ export function sessionToMarkdown(session, edit = null, program = NINJUTSU_PROGR
     lines.push("");
   }
   if (session.note) lines.push(`> ${session.note}`, "");
-  lines.push("## Notas del entrenamiento");
-  lines.push(effective.notes.trim() || "- ");
+  lines.push("## Ajustes realizados");
+  lines.push(effective.adjustments.trim() || "- ");
   lines.push("");
   return lines.join("\n");
 }

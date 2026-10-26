@@ -11,8 +11,8 @@ Esta operación se realiza una sola vez por despliegue.
 ## 2. Activar Google Drive API
 
 1. Abre **APIs & Services → Library**.
-2. Busca **Google Drive API**.
-3. Pulsa **Enable**.
+2. Busca **Google Drive API** y **Google Docs API**.
+3. Pulsa **Enable** en ambas.
 
 ## 3. Configurar Google Auth Platform
 
@@ -20,13 +20,13 @@ Esta operación se realiza una sola vez por despliegue.
 2. Configura el nombre de la aplicación, correo de soporte y datos de contacto.
 3. Para una cuenta personal, utiliza audiencia **External**.
 4. Durante las pruebas, añade tu cuenta como test user.
-5. Añade únicamente el scope:
+5. Añade el scope:
 
 ```text
-https://www.googleapis.com/auth/drive.file
+https://www.googleapis.com/auth/drive
 ```
 
-No añadas `https://www.googleapis.com/auth/drive`.
+La aplicación necesita este permiso para localizar el documento del día dentro de la carpeta compartida de Ninjutsu. Google lo clasifica como restringido; para una aplicación personal mantenla limitada a tus usuarios de prueba o completa la verificación requerida antes de distribuirla.
 
 Para uso diario conviene pasar el proyecto a estado de producción; revisa las condiciones actuales de Google para el tipo de audiencia y número de usuarios.
 
@@ -73,6 +73,12 @@ O para el build:
 GOOGLE_CLIENT_ID="1234567890-abc.apps.googleusercontent.com" npm run build
 ```
 
+La carpeta de ajustes puede sustituirse en el build:
+
+```bash
+NINJUTSU_ADJUSTMENTS_FOLDER_ID="ID_DE_LA_CARPETA" npm run build
+```
+
 El Client ID aparecerá en `dist/config.js`; es normal y público por diseño.
 
 ## 6. Configurar GitHub
@@ -101,15 +107,18 @@ Valor:
 
 Usa **Variables**, no Secrets, porque el valor termina en JavaScript público de todos modos.
 
+Opcionalmente crea también `NINJUTSU_ADJUSTMENTS_FOLDER_ID` si quieres sustituir la carpeta de entrenamientos incluida por defecto.
+
 ## 7. Verificación
 
 1. Abre la aplicación desde un origen autorizado.
 2. Pulsa **Continuar con Google**.
 3. Comprueba que la ventana pertenece a Google.
-4. Autoriza el permiso limitado.
+4. Autoriza el acceso a Drive solicitado para la carpeta compartida.
 5. Verifica en Drive que aparece una carpeta privada `NotesVault`.
 6. Crea una nota y comprueba que es un `.md`.
 7. Revisa la compartición de la carpeta: no debe incluir acceso público.
+8. En Ninjutsu, escribe un ajuste y comprueba que se actualiza el documento del día y la copia Markdown de la sesión.
 
 ## Errores comunes
 

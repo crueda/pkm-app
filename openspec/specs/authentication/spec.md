@@ -26,16 +26,16 @@ La aplicación SHALL iniciar Google Identity Services únicamente después de un
 - **THEN** la aplicación permanece operativa con su caché local
 - **AND** muestra un estado desconectado sin borrar notas ni cambios pendientes.
 
-### Requirement: Permiso mínimo de Drive
+### Requirement: Permiso de Drive para documentos compartidos
 
-La aplicación SHALL solicitar exclusivamente el scope `https://www.googleapis.com/auth/drive.file` para el MVP.
+La aplicación SHALL solicitar el scope `https://www.googleapis.com/auth/drive` para localizar y actualizar el documento de entrenamiento configurado dentro de una carpeta compartida.
 
-#### Scenario: Consentimiento limitado
+#### Scenario: Consentimiento para la carpeta de entrenamientos
 
 - **GIVEN** el usuario autoriza la aplicación
 - **WHEN** Google entrega el access token
-- **THEN** el token permite operar únicamente sobre archivos creados o abiertos para la aplicación
-- **AND** la aplicación no solicita acceso general a todo Google Drive.
+- **THEN** el token permite localizar el documento correspondiente por fecha o código
+- **AND** la aplicación limita sus escrituras a la bóveda, las copias publicadas y ese documento de entrenamiento.
 
 ### Requirement: Token efímero
 

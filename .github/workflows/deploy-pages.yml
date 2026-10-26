@@ -38,6 +38,7 @@ jobs:
       - name: Check, test and build
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          NINJUTSU_ADJUSTMENTS_FOLDER_ID: ${{ vars.NINJUTSU_ADJUSTMENTS_FOLDER_ID }}
           BUILD_VERSION: ${{ github.sha }}
         run: npm run check
 

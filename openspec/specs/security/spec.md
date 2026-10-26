@@ -19,7 +19,7 @@ La aplicación SHALL contener únicamente valores públicos o configurables en s
 
 ### Requirement: IDs de Drive descubiertos tras autorizar
 
-La aplicación SHALL descubrir el ID de la bóveda y de los archivos después de obtener autorización y SHALL evitar incorporarlos al código fuente o configuración de despliegue.
+La aplicación SHALL descubrir el ID de la bóveda y de las notas después de obtener autorización. MAY incorporar a la configuración el ID no secreto de una carpeta compartida elegida explícitamente como destino de ajustes de Ninjutsu.
 
 #### Scenario: Dispositivo nuevo
 

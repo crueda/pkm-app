@@ -65,16 +65,17 @@ test("convierte texto en elementos y detecta lo añadido", () => {
   assert.equal(isSessionEdited(session, edit), true);
   assert.deepEqual([...addedItems(session.parts[0], edit.parts[0].items)], ["Juego de reflejos"]);
   assert.equal(findProgramSession("L41").parts[0].items.includes("Juego de reflejos"), false);
-  const notesOnly = { ...createSessionEdit(session), notes: "Asistentes: 8" };
+  const { adjustments: _discarded, ...legacyEdit } = createSessionEdit(session);
+  const notesOnly = { ...legacyEdit, notes: "Asistentes: 8" };
   assert.equal(isSessionEdited(session, notesOnly), true);
-  assert.equal(effectiveSession(session, notesOnly).notes, "Asistentes: 8");
+  assert.equal(effectiveSession(session, notesOnly).adjustments, "Asistentes: 8");
 });
 
 test("exporta la sesión editada como nota de entrenamiento", () => {
   const session = findProgramSession("L41");
   const edit = createSessionEdit(session);
   edit.parts[1].items.push("Ukemi extra");
-  edit.notes = "- Asistentes: 8";
+  edit.adjustments = "- Asistentes: 8";
   const markdown = sessionToMarkdown(session, edit);
   assert.match(markdown, /^---\ntipo: entrenamiento\n/);
   assert.match(markdown, /sesion: L41/);
@@ -83,7 +84,7 @@ test("exporta la sesión editada como nota de entrenamiento", () => {
   assert.match(markdown, /# L41 · Kihon happo I, Shuto y Koho Geri/);
   assert.match(markdown, /## Taihen jutsu \(15′\)\n(- .+\n)*- Ukemi extra\n/);
   assert.match(markdown, /## Niveles\n- \*\*10º–7º:\*\*/);
-  assert.match(markdown, /## Notas del entrenamiento\n- Asistentes: 8\n/);
+  assert.match(markdown, /## Ajustes realizados\n- Asistentes: 8\n/);
   assert.match(sessionToMarkdown(findProgramSession("L45")), /> Sin clase: festivo del 2 de noviembre\./);
   assert.equal(sessionExportBaseName(session), "2026-10-05 - L41 - Kihon happo I, Shuto y Koho Geri");
   assert.equal(PROGRAM_EXPORT_FOLDER_NAME, "Programación 2026-2027");
@@ -149,17 +150,17 @@ test("cambiar los minutos de un bloque marca la sesión como editada", () => {
   assert.equal(isSessionEdited(session, edit), true);
 });
 
-test("avisos y notas se guardan aparte de los bloques y se exportan", async () => {
+test("avisos y ajustes se guardan aparte de los bloques y se exportan", async () => {
   const { arePartsEdited } = await import("../app/src/ninjutsu-planner.js");
   const session = findProgramSession("L40");
-  const edit = { ...createSessionEdit(session), notices: "Traer tanbo", notes: "Vinieron 8" };
+  const edit = { ...createSessionEdit(session), notices: "Traer tanbo", adjustments: "Vinieron 8" };
   assert.equal(isSessionEdited(session, edit), true);
   assert.equal(arePartsEdited(session, edit), false);
   const effective = effectiveSession(session, edit);
   assert.equal(effective.notices, "Traer tanbo");
   const markdown = sessionToMarkdown(session, edit);
   assert.match(markdown, /## Avisos\nTraer tanbo\n/);
-  assert.match(markdown, /## Notas del entrenamiento\nVinieron 8\n/);
+  assert.match(markdown, /## Ajustes realizados\nVinieron 8\n/);
   assert.ok(markdown.indexOf("## Avisos") < markdown.indexOf("## Calentamiento"));
 });
 

@@ -12,6 +12,7 @@ const vaultName = process.env.VAULT_NAME?.trim() || "NotesVault";
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim() || "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID";
 const buildVersion = process.env.BUILD_VERSION?.trim() || `${packageJson.version}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 const assetVersion = encodeURIComponent(buildVersion);
+const ninjutsuAdjustmentsFolderId = process.env.NINJUTSU_ADJUSTMENTS_FOLDER_ID?.trim() || "1fwhNB-wBu3TGlZsOru9REs7l114V-We0";
 
 async function listFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -46,7 +47,8 @@ const configSource = `window.NOTES_APP_CONFIG = Object.freeze(${JSON.stringify({
   appName,
   vaultName,
   buildVersion,
-  maxImportFiles: 2000
+  maxImportFiles: 2000,
+  ninjutsuAdjustmentsFolderId
 }, null, 2)});\n`;
 await writeFile(path.join(distDir, "config.js"), configSource, "utf8");
 
