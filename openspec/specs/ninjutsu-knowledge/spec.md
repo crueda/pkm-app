@@ -90,10 +90,17 @@ The application SHALL let the user maintain a private, device-local Ninjutsu ros
 - **AND** the user can later change the grade or remove the student and their attendance marks
 - **AND** the roster remains only in the local IndexedDB settings
 
+#### Scenario: Load the bundled group
+
+- **WHEN** the application opens on a device that has not yet loaded the bundled Group A roster
+- **THEN** it adds the bundled students, identified only by first name and surname initials, and their recorded attendance
+- **AND** keeps any existing student with the same name and any attendance mark already recorded on the device
+- **AND** does not load the bundled roster again on that device, so removed students stay removed
+
 #### Scenario: Import the attendance spreadsheet
 
 - **WHEN** the user picks an `.xlsx` attendance sheet in the Alumnado tab
-- **THEN** the application reads it in the browser, adds or matches each student by full name and ignores the DNI column
+- **THEN** the application reads it in the browser, adds or matches each student by first name and surname initials and ignores the DNI column
 - **AND** maps each month and day column to the programmed session on that date
 - **AND** records present for checked cells and absent for unchecked ones only in past sessions where at least one student is checked, leaving the rest pending
 - **AND** keeps the imported data only in the local IndexedDB settings

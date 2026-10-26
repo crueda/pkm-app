@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 
 import { createStudent } from "../app/src/ninjutsu-attendance.js";
 import { programSessions } from "../app/src/ninjutsu-planner.js";
-import { mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "../app/src/ninjutsu-roster-import.js";
+import { applyRosterSeed, mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "../app/src/ninjutsu-roster-import.js";
+import { NINJUTSU_ROSTER_SEED } from "../app/src/ninjutsu-roster-seed.js";
 
 const sessions = programSessions();
 
@@ -72,18 +73,18 @@ test("lee un Excel con cadenas compartidas, booleanos y celdas fusionadas", asyn
   assert.deepEqual(parsed[3], [null, "Ana María", true, "x & y"]);
 });
 
-test("convierte la hoja de asistencia en marcas por sesión sin guardar el DNI", () => {
+test("convierte la hoja de asistencia en marcas por sesión con iniciales y sin DNI", () => {
   const imported = parseAttendanceSheet(rows, { sessions, today: "2026-10-26" });
   assert.deepEqual(imported.sessions, ["L41", "X42"]);
   assert.deepEqual(imported.students, [
-    { name: "Ana Pérez Gil", marks: { L41: "present", X42: "present" } },
-    { name: "Luis Ruiz", marks: { L41: "absent", X42: "present" } }
+    { name: "Ana P. G.", marks: { L41: "present", X42: "present" } },
+    { name: "Luis R.", marks: { L41: "absent", X42: "present" } }
   ]);
-  assert.equal(JSON.stringify(imported).includes("00000000T"), false);
+  assert.equal(/00000000T|Pérez|Ruiz/.test(JSON.stringify(imported)), false);
 });
 
 test("fusiona el Excel con el alumnado existente sin duplicar nombres", () => {
-  const existing = createStudent({ id: "ana", name: "ana perez gil", grade: "9-kyu", now: "2026-09-01T00:00:00.000Z" });
+  const existing = createStudent({ id: "ana", name: "ana p. g.", grade: "9-kyu", now: "2026-09-01T00:00:00.000Z" });
   const imported = parseAttendanceSheet(rows, { sessions, today: "2026-10-26" });
   const result = mergeImportedAttendance([existing], { L41: { ana: "absent" } }, imported, { createId: () => "luis", now: "2026-10-26T00:00:00.000Z" });
   assert.deepEqual(result.roster.map(student => [student.id, student.grade]), [["ana", "9-kyu"], ["luis", "sin-grado"]]);
@@ -94,4 +95,24 @@ test("fusiona el Excel con el alumnado existente sin duplicar nombres", () => {
 test("rechaza archivos que no son Excel o no tienen columna de nombre", async () => {
   await assert.rejects(readXlsxRows(new TextEncoder().encode("hola").buffer), /no es un Excel/);
   assert.throws(() => parseAttendanceSheet([["DNI"]], { sessions }), /NOMBRE/);
+});
+
+test("incluye el grupo A solo con iniciales y asistencias de sesiones programadas", () => {
+  const codes = new Set(sessions.map(session => session.code));
+  assert.equal(NINJUTSU_ROSTER_SEED.students.length, 11);
+  assert.ok(NINJUTSU_ROSTER_SEED.students.every(student => /^[\p{L} ]+?( \p{Lu}\.)+$/u.test(student.name)));
+  assert.ok(Object.keys(NINJUTSU_ROSTER_SEED.attendance).every(code => codes.has(code)));
+  assert.equal(/\d{8}/.test(JSON.stringify(NINJUTSU_ROSTER_SEED)), false);
+});
+
+test("aplica el grupo incluido sin duplicar alumnos ni pisar marcas locales", () => {
+  const seed = {
+    students: [{ id: "seed-ana", name: "Ana P. G." }, { id: "seed-luis", name: "Luis R." }],
+    attendance: { L41: { "seed-ana": "present", "seed-luis": "absent" } }
+  };
+  const existing = createStudent({ id: "local-ana", name: "Ana P. G.", grade: "8-kyu", now: "2026-09-01T00:00:00.000Z" });
+  const result = applyRosterSeed([existing], { L41: { "local-ana": "absent" } }, seed, { now: "2026-10-26T00:00:00.000Z" });
+  assert.deepEqual(result.roster.map(student => [student.id, student.grade]), [["local-ana", "8-kyu"], ["seed-luis", "sin-grado"]]);
+  assert.deepEqual(result.attendance, { L41: { "local-ana": "absent", "seed-luis": "absent" } });
+  assert.deepEqual(applyRosterSeed(result.roster, result.attendance, seed), result);
 });

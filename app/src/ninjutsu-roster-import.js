@@ -132,6 +132,12 @@ function isPresent(value) {
   return ["true", "verdadero", "si", "x", "1", "presente"].includes(plain(value));
 }
 
+export function abbreviatedName(firstName, surnames = []) {
+  const initials = surnames.map(surname => normalizeStudentName(surname ?? "")).filter(Boolean).map(surname => `${surname[0].toLocaleUpperCase("es")}.`);
+  const name = normalizeStudentName(firstName ?? "");
+  return name ? normalizeStudentName([name, ...initials].join(" ")) : "";
+}
+
 export function studentKey(name) {
   return plain(normalizeStudentName(name));
 }
@@ -155,7 +161,7 @@ export function parseAttendanceSheet(rows, { sessions, today = new Date().toLoca
     if (session) columns.push({ index, session });
   });
   const students = rows.slice(headerIndex + 1).flatMap(row => {
-    const name = normalizeStudentName([row[nameColumn], ...surnameColumns.map(index => row[index])].filter(Boolean).join(" "));
+    const name = abbreviatedName(row[nameColumn], surnameColumns.map(index => row[index]));
     return name ? [{ name, row }] : [];
   });
   const taken = columns.filter(({ index, session }) => session.date <= today && students.some(({ row }) => isPresent(row[index])));
@@ -191,4 +197,28 @@ export function mergeImportedAttendance(roster, attendance, imported, { createId
     }
   }
   return { roster: normalizeRoster(nextRoster), attendance: nextAttendance, added, matched: imported.students.length - added, marks, sessions: imported.sessions.length };
+}
+
+export function applyRosterSeed(roster, attendance, seed, { now = new Date().toISOString() } = {}) {
+  const nextRoster = normalizeRoster(roster);
+  const byId = new Map(nextRoster.map(student => [student.id, student]));
+  const byKey = new Map(nextRoster.map(student => [studentKey(student.name), student]));
+  const resolved = new Map();
+  for (const entry of seed.students) {
+    let student = byId.get(entry.id) ?? byKey.get(studentKey(entry.name));
+    if (!student) {
+      student = createStudent({ name: entry.name, id: entry.id, now });
+      nextRoster.push(student);
+      byKey.set(studentKey(student.name), student);
+    }
+    resolved.set(entry.id, student.id);
+  }
+  let nextAttendance = normalizeAttendance(attendance);
+  for (const [sessionCode, records] of Object.entries(seed.attendance)) {
+    for (const [seedId, status] of Object.entries(records)) {
+      const studentId = resolved.get(seedId);
+      if (studentId && !nextAttendance[sessionCode]?.[studentId]) nextAttendance = updateAttendance(nextAttendance, sessionCode, studentId, status);
+    }
+  }
+  return { roster: normalizeRoster(nextRoster), attendance: nextAttendance };
 }

@@ -5,7 +5,8 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
-import { mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "./ninjutsu-roster-import.js";
+import { applyRosterSeed, mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "./ninjutsu-roster-import.js";
+import { NINJUTSU_ROSTER_SEED } from "./ninjutsu-roster-seed.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
 import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, hasWeekWord, isSessionEdited, itemsFromText, previousWeekWords, programSessions, weekWord, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
@@ -1591,6 +1592,8 @@ const ROSTER_KEY = "ninjutsuRoster:v1";
 
 const ATTENDANCE_KEY = `ninjutsuAttendance:${NINJUTSU_PROGRAM.id}`;
 
+const ROSTER_SEED_KEY = `ninjutsuRosterSeed:${NINJUTSU_PROGRAM.id}`;
+
 const saveWeekWords = debounce(async () => {
   try {
     await db.setSetting(WEEK_WORDS_KEY, state.weekWords);
@@ -1629,16 +1632,27 @@ function renderWeekWord(session) {
 async function loadSessionEdits() {
   if (state.sessionEditsLoaded) return;
   try {
-    const [stored, words, roster, attendance] = await Promise.all([
+    const [stored, words, roster, attendance, seedVersion] = await Promise.all([
       db.getSetting(SESSION_EDITS_KEY, {}),
       db.getSetting(WEEK_WORDS_KEY, {}),
       db.getSetting(ROSTER_KEY, []),
-      db.getSetting(ATTENDANCE_KEY, {})
+      db.getSetting(ATTENDANCE_KEY, {}),
+      db.getSetting(ROSTER_SEED_KEY, 0)
     ]);
     state.sessionEdits = stored && typeof stored === "object" ? stored : {};
     state.weekWords = words && typeof words === "object" ? words : {};
     state.ninjutsuRoster = normalizeRoster(roster);
     state.ninjutsuAttendance = normalizeAttendance(attendance);
+    if (seedVersion !== NINJUTSU_ROSTER_SEED.version) {
+      const seeded = applyRosterSeed(state.ninjutsuRoster, state.ninjutsuAttendance, NINJUTSU_ROSTER_SEED);
+      state.ninjutsuRoster = seeded.roster;
+      state.ninjutsuAttendance = seeded.attendance;
+      await Promise.all([
+        db.setSetting(ROSTER_KEY, state.ninjutsuRoster),
+        db.setSetting(ATTENDANCE_KEY, state.ninjutsuAttendance),
+        db.setSetting(ROSTER_SEED_KEY, NINJUTSU_ROSTER_SEED.version)
+      ]);
+    }
     state.selectedStudentId = state.ninjutsuRoster[0]?.id ?? null;
   } catch {
     state.sessionEdits = {};

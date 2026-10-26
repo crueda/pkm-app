@@ -15,6 +15,7 @@ const APP_SHELL = [
   "./src/markdown.js",
   "./src/ninjutsu-attendance.js",
   "./src/ninjutsu-roster-import.js",
+  "./src/ninjutsu-roster-seed.js",
   "./src/ninjutsu.js",
   "./src/ninjutsu-planner.js",
   "./src/ninjutsu-program.js",
