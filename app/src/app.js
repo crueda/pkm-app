@@ -1644,7 +1644,7 @@ async function loadSessionEdits() {
     state.ninjutsuRoster = normalizeRoster(roster);
     state.ninjutsuAttendance = normalizeAttendance(attendance);
     if (seedVersion !== NINJUTSU_ROSTER_SEED.version) {
-      const seeded = applyRosterSeed(state.ninjutsuRoster, state.ninjutsuAttendance, NINJUTSU_ROSTER_SEED);
+      const seeded = applyRosterSeed(state.ninjutsuRoster, state.ninjutsuAttendance, NINJUTSU_ROSTER_SEED, { addMissing: !seedVersion });
       state.ninjutsuRoster = seeded.roster;
       state.ninjutsuAttendance = seeded.attendance;
       await Promise.all([

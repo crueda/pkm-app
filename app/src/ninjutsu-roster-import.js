@@ -199,7 +199,8 @@ export function mergeImportedAttendance(roster, attendance, imported, { createId
   return { roster: normalizeRoster(nextRoster), attendance: nextAttendance, added, matched: imported.students.length - added, marks, sessions: imported.sessions.length };
 }
 
-export function applyRosterSeed(roster, attendance, seed, { now = new Date().toISOString() } = {}) {
+// addMissing=false actualiza un dispositivo que ya cargó una versión anterior sin recuperar alumnos que se eliminaron.
+export function applyRosterSeed(roster, attendance, seed, { now = new Date().toISOString(), addMissing = true } = {}) {
   const nextRoster = normalizeRoster(roster);
   const byId = new Map(nextRoster.map(student => [student.id, student]));
   const byKey = new Map(nextRoster.map(student => [studentKey(student.name), student]));
@@ -207,9 +208,13 @@ export function applyRosterSeed(roster, attendance, seed, { now = new Date().toI
   for (const entry of seed.students) {
     let student = byId.get(entry.id) ?? byKey.get(studentKey(entry.name));
     if (!student) {
-      student = createStudent({ name: entry.name, id: entry.id, now });
+      if (!addMissing) continue;
+      student = createStudent({ name: entry.name, grade: entry.grade, id: entry.id, now });
       nextRoster.push(student);
       byKey.set(studentKey(student.name), student);
+    } else if (entry.grade && student.grade === "sin-grado") {
+      student.grade = entry.grade;
+      student.updatedAt = now;
     }
     resolved.set(entry.id, student.id);
   }

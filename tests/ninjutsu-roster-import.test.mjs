@@ -116,3 +116,27 @@ test("aplica el grupo incluido sin duplicar alumnos ni pisar marcas locales", ()
   assert.deepEqual(result.attendance, { L41: { "local-ana": "absent", "seed-luis": "absent" } });
   assert.deepEqual(applyRosterSeed(result.roster, result.attendance, seed), result);
 });
+
+test("rellena grados del grupo incluido sin pisar los locales ni recuperar alumnos eliminados", () => {
+  const seed = {
+    students: [{ id: "seed-ana", name: "Ana P. G.", grade: "4-kyu" }, { id: "seed-luis", name: "Luis R.", grade: "10-kyu" }, { id: "seed-eva", name: "Eva M.", grade: "10-kyu" }],
+    attendance: { L41: { "seed-eva": "present" } }
+  };
+  const roster = [
+    createStudent({ id: "seed-ana", name: "Ana P. G.", now: "2026-09-01T00:00:00.000Z" }),
+    createStudent({ id: "seed-luis", name: "Luis R.", grade: "9-kyu", now: "2026-09-01T00:00:00.000Z" })
+  ];
+  const update = applyRosterSeed(roster, {}, seed, { addMissing: false, now: "2026-10-26T00:00:00.000Z" });
+  assert.deepEqual(update.roster.map(student => [student.id, student.grade]), [["seed-ana", "4-kyu"], ["seed-luis", "9-kyu"]]);
+  assert.deepEqual(update.attendance, {});
+  const fresh = applyRosterSeed([], {}, seed);
+  assert.deepEqual(fresh.roster.map(student => student.grade), ["4-kyu", "10-kyu", "10-kyu"]);
+});
+
+test("el grupo incluido trae los grados actuales", () => {
+  const grades = Object.fromEntries(NINJUTSU_ROSTER_SEED.students.map(student => [student.name, student.grade]));
+  assert.equal(grades["Alejandro M. V."], "4-kyu");
+  assert.equal(grades["Laura S. M."], "4-kyu");
+  assert.equal(grades["Antonio Tomás C. B."], "4-kyu");
+  assert.equal(Object.values(grades).filter(grade => grade === "10-kyu").length, 8);
+});
