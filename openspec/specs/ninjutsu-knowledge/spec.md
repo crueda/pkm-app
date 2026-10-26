@@ -112,6 +112,13 @@ The application SHALL let the user maintain a private, device-local Ninjutsu ros
 - **AND** the user can mark the whole group present in one action
 - **AND** the session list and header summarize the recorded attendance
 
+#### Scenario: Review the group attendance history
+
+- **WHEN** the user opens the Alumnado tab
+- **THEN** the application shows a grid with every active student as a row and every non-cancelled session up to today as a column
+- **AND** marks each cell as present, absent or not marked, with per-student and per-session totals
+- **AND** opens the session when its column header is selected and the student's detail when their name is selected
+
 #### Scenario: Review progress for an exam
 
 - **WHEN** the user selects a student in the Alumnado tab

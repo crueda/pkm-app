@@ -2169,6 +2169,29 @@ button:disabled,
 .student-history-status { font-weight: 720; }
 .student-history-row.present .student-history-status { color: #24733b; }
 .student-history-row.absent .student-history-status { color: var(--danger); }
+.attendance-history { padding: clamp(18px, 3vw, 26px); border-bottom: 1px solid var(--border); }
+.attendance-history-header { margin-bottom: 14px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 6px 16px; }
+.attendance-history-header h3 { margin: 4px 0 0; }
+.attendance-history-summary { margin: 0; color: var(--text-muted); font-size: 13px; }
+.attendance-history-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.attendance-history-table { min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+.attendance-history-table th, .attendance-history-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.attendance-history-table tfoot > tr > * { border-bottom: 0; color: var(--text-muted); font-weight: 720; }
+.attendance-history-table thead th { background: var(--surface-muted); font-weight: 720; }
+.attendance-history-name { position: sticky; left: 0; z-index: 1; min-width: 140px; max-width: 200px; border-right: 1px solid var(--border); background: var(--surface); text-align: left !important; }
+.attendance-history-table thead .attendance-history-name, .attendance-history-table tfoot .attendance-history-name { background: var(--surface-muted); }
+.attendance-history-name button { max-width: 100%; padding: 0; overflow: hidden; border: 0; background: none; color: var(--text); font: inherit; font-weight: 650; text-align: left; text-overflow: ellipsis; cursor: pointer; }
+.attendance-history-name button:hover { color: var(--accent); }
+.attendance-history-session { padding: 0; display: grid; gap: 1px; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; }
+.attendance-history-session strong { font-weight: 720; }
+.attendance-history-session span { color: var(--text-muted); font-size: 10px; font-weight: 600; }
+.attendance-history-session:hover strong { color: var(--accent); }
+.attendance-history-mark { min-width: 44px; font-size: 14px; font-weight: 760; }
+.attendance-history-mark.present { background: #dcefe1; color: #226b38; }
+.attendance-history-mark.absent { color: var(--danger); }
+.attendance-history-mark.pending { color: var(--text-muted); }
+:root[data-theme="dark"] .attendance-history-mark.present { background: #193923; color: #8bd2a0; }
+.attendance-history-total { padding-inline: 12px !important; border-left: 1px solid var(--border); font-weight: 720; }
 
 @media (max-width: 920px) {
   .program-attendance-list { grid-template-columns: 1fr; }

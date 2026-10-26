@@ -91,6 +91,25 @@ export function sessionAttendanceSummary(roster, attendance, sessionCode) {
   return { rows, present, absent, pending: rows.filter(row => row.status === "pending") };
 }
 
+export function attendanceHistory(roster, sessions, attendance, { today = new Date().toLocaleDateString("sv-SE") } = {}) {
+  const records = normalizeAttendance(attendance);
+  const offered = offeredSessions(sessions, today);
+  const rows = normalizeRoster(roster).filter(student => student.active).map(student => {
+    const cells = offered.map(session => records[session.code]?.[student.id] ?? "pending");
+    const present = cells.filter(status => status === "present").length;
+    const absent = cells.filter(status => status === "absent").length;
+    return { student, cells, present, absent, rate: present + absent ? Math.round((present / (present + absent)) * 100) : 0 };
+  });
+  return {
+    sessions: offered.map((session, index) => ({
+      ...session,
+      present: rows.filter(row => row.cells[index] === "present").length,
+      absent: rows.filter(row => row.cells[index] === "absent").length
+    })),
+    rows
+  };
+}
+
 function gradeRank(value) {
   return GRADE_BY_VALUE.get(value)?.rank ?? 11;
 }

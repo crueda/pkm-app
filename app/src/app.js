@@ -4,7 +4,7 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
-import { attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
+import { attendanceHistory, attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
 import { applyRosterSeed, mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "./ninjutsu-roster-import.js";
 import { NINJUTSU_ROSTER_SEED } from "./ninjutsu-roster-seed.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
@@ -43,7 +43,7 @@ const elements = Object.fromEntries([
   "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-students", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-students-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "program-attendance", "program-attendance-summary", "program-attendance-list", "program-attendance-empty", "program-all-present-button", "program-manage-students-button",
-  "student-form", "student-name-input", "student-grade-input", "student-import-button", "student-import-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content",
+  "student-form", "student-name-input", "student-grade-input", "student-import-button", "student-import-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content", "attendance-history", "attendance-history-summary", "attendance-history-table",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-open", "training-timer-pill-close", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -2271,6 +2271,84 @@ function renderStudents() {
     list.append(message);
   }
   renderStudentDetail(roster.find(student => student.id === state.selectedStudentId) ?? null);
+  renderAttendanceHistory();
+}
+
+const HISTORY_MARKS = { present: ["✓", "Presente"], absent: ["✗", "Ausente"], pending: ["·", "Sin marcar"] };
+
+function historyCell(tag, text, className = "") {
+  const cell = document.createElement(tag);
+  if (className) cell.className = className;
+  cell.textContent = text;
+  return cell;
+}
+
+function renderAttendanceHistory() {
+  const history = attendanceHistory(state.ninjutsuRoster, programSessions(), state.ninjutsuAttendance);
+  const table = elements["attendance-history-table"];
+  const totalPresent = history.rows.reduce((total, row) => total + row.present, 0);
+  const totalMarked = totalPresent + history.rows.reduce((total, row) => total + row.absent, 0);
+  elements["attendance-history"].hidden = !history.rows.length;
+  elements["attendance-history-summary"].textContent = `${history.sessions.length} sesiones hasta hoy · ${totalMarked ? Math.round((totalPresent / totalMarked) * 100) : 0}% de asistencia media`;
+  if (!history.rows.length) {
+    table.replaceChildren();
+    return;
+  }
+  const headRow = document.createElement("tr");
+  headRow.append(historyCell("th", "Alumno", "attendance-history-name"));
+  for (const session of history.sessions) {
+    const th = document.createElement("th");
+    th.scope = "col";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "attendance-history-session";
+    button.title = `${session.code} · ${session.title}`;
+    button.append(historyCell("strong", formatSessionDate(session)), historyCell("span", session.code));
+    button.addEventListener("click", () => selectProgramSession(session.code));
+    th.append(button);
+    headRow.append(th);
+  }
+  headRow.append(historyCell("th", "Total", "attendance-history-total"));
+  const head = document.createElement("thead");
+  head.append(headRow);
+
+  const body = document.createElement("tbody");
+  for (const row of history.rows) {
+    const tr = document.createElement("tr");
+    const name = document.createElement("th");
+    name.scope = "row";
+    name.className = "attendance-history-name";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = row.student.name;
+    button.addEventListener("click", () => {
+      state.selectedStudentId = row.student.id;
+      renderStudents();
+      elements["student-detail"].scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    name.append(button);
+    tr.append(name);
+    row.cells.forEach((status, index) => {
+      const [mark, label] = HISTORY_MARKS[status];
+      const cell = historyCell("td", mark, `attendance-history-mark ${status}`);
+      cell.title = `${row.student.name} · ${history.sessions[index].code}: ${label}`;
+      tr.append(cell);
+    });
+    tr.append(historyCell("td", `${row.present}/${row.present + row.absent}`, "attendance-history-total"));
+    body.append(tr);
+  }
+
+  const footRow = document.createElement("tr");
+  footRow.append(historyCell("th", "Presentes", "attendance-history-name"));
+  for (const session of history.sessions) footRow.append(historyCell("td", session.present || session.absent ? String(session.present) : "–"));
+  footRow.append(historyCell("td", String(totalPresent), "attendance-history-total"));
+  const foot = document.createElement("tfoot");
+  foot.append(footRow);
+  table.replaceChildren(head, body, foot);
+  const scroller = table.parentElement;
+  requestAnimationFrame(() => {
+    scroller.scrollLeft = scroller.scrollWidth;
+  });
 }
 
 function addStudent(event) {

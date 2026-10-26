@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  attendanceHistory,
   attendanceRows,
   createStudent,
   gradeLabel,
@@ -69,4 +70,15 @@ test("calcula asistencia, bloques trabajados e indicaciones del grado", () => {
   assert.ok(progress.gradeSessions > 0);
   assert.ok(progress.gradeFocus.some(focus => focus.sessionCode === "L41"));
   assert.deepEqual(progress.history.map(record => record.code), ["L41", "X40", "L40"]);
+});
+
+test("resume el histórico del grupo por sesión impartida", () => {
+  const sessions = programSessions().filter(session => ["L41", "X41", "L42", "X42"].includes(session.code));
+  const attendance = { L41: { ana: "present", luis: "absent" }, X41: { ana: "present" } };
+  const history = attendanceHistory(students, sessions, attendance, { today: "2026-10-14" });
+  assert.deepEqual(history.sessions.map(session => [session.code, session.present, session.absent]), [["L41", 1, 1], ["X41", 1, 0], ["X42", 0, 0]]);
+  assert.deepEqual(history.rows.map(row => [row.student.id, row.cells, row.present, row.absent, row.rate]), [
+    ["ana", ["present", "present", "pending"], 2, 0, 100],
+    ["luis", ["absent", "pending", "pending"], 0, 1, 0]
+  ]);
 });
