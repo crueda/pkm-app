@@ -4,8 +4,9 @@ import { AuthExpiredError, GoogleDriveApi } from "./drive-api.js";
 import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
+import { attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
-import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, hasWeekWord, isSessionEdited, itemsFromText, previousWeekWords, weekWord, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
+import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, hasWeekWord, isSessionEdited, itemsFromText, previousWeekWords, programSessions, weekWord, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
 import { initialCollapsedFolderIds, joinPath, noteDisplayName, sortFilesForTree } from "./path-utils.js";
 import { DrivePublisher } from "./publisher.js";
@@ -37,8 +38,10 @@ const elements = Object.fromEntries([
   "recipes-view", "recipes-path-label", "recipe-search-input", "recipe-list", "recipe-form", "recipe-title-input", "recipe-ingredients-input", "recipe-preparation-input", "new-recipe-button", "save-recipe-button", "delete-recipe-button", "recipe-save-state", "recipes-layout",
   "ninjutsu-view", "ninjutsu-path-label", "ninjutsu-search-input", "ninjutsu-stats", "ninjutsu-categories", "ninjutsu-result-list", "ninjutsu-result-count", "ninjutsu-detail", "ninjutsu-empty", "ninjutsu-document", "ninjutsu-document-category", "ninjutsu-document-title", "ninjutsu-document-path", "ninjutsu-document-content", "open-ninjutsu-note-button", "new-training-button",
   "buscyl-view", "buscyl-frame",
-  "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
+  "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-students", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-students-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
+  "program-attendance", "program-attendance-summary", "program-attendance-list", "program-attendance-empty", "program-all-present-button", "program-manage-students-button",
+  "student-form", "student-name-input", "student-grade-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-open", "training-timer-pill-close", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -98,6 +101,9 @@ const state = {
   sessionEdits: {},
   sessionEditsLoaded: false,
   weekWords: {},
+  ninjutsuRoster: [],
+  ninjutsuAttendance: {},
+  selectedStudentId: null,
   exportingSession: false,
   trainingTimer: null,
   timerVisible: false
@@ -1396,6 +1402,7 @@ function renderNinjutsu() {
   if (!state.ninjutsuOpen) return;
   renderNinjutsuTabs();
   renderProgram();
+  if (state.ninjutsuTab === "students") renderStudents();
   const folder = ninjutsuFolder();
   const notes = ninjutsuNotes(state.files, folder);
   const categories = ninjutsuCategories(state.files, folder);
@@ -1458,7 +1465,7 @@ function setNinjutsuView(open) {
   if (!state.selectedSessionCode) state.selectedSessionCode = currentOrNextSession()?.code ?? null;
   renderNinjutsu();
   loadSessionEdits().then(() => {
-    renderProgram();
+    renderNinjutsu();
     if (state.ninjutsuTab === "program") scrollSelectedSessionIntoView();
   });
   if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
@@ -1554,7 +1561,7 @@ function handleAppsMenuKeydown(event) {
 }
 
 function setNinjutsuTab(tab) {
-  state.ninjutsuTab = ["program", "training", "library"].includes(tab) ? tab : "program";
+  state.ninjutsuTab = ["program", "training", "students", "library"].includes(tab) ? tab : "program";
   renderNinjutsu();
   if (state.ninjutsuTab === "library") requestAnimationFrame(() => elements["ninjutsu-search-input"].focus());
   else if (state.ninjutsuTab === "program") scrollSelectedSessionIntoView();
@@ -1564,6 +1571,7 @@ function renderNinjutsuTabs() {
   const tabs = [
     ["program", elements["ninjutsu-tab-program"], elements["ninjutsu-program-panel"]],
     ["training", elements["ninjutsu-tab-training"], elements["ninjutsu-training-panel"]],
+    ["students", elements["ninjutsu-tab-students"], elements["ninjutsu-students-panel"]],
     ["library", elements["ninjutsu-tab-library"], elements["ninjutsu-library-panel"]]
   ];
   for (const [name, tab, panel] of tabs) {
@@ -1577,6 +1585,10 @@ function renderNinjutsuTabs() {
 const SESSION_EDITS_KEY = `ninjutsuSessionEdits:${NINJUTSU_PROGRAM.id}`;
 
 const WEEK_WORDS_KEY = `ninjutsuWeekWords:${NINJUTSU_PROGRAM.id}`;
+
+const ROSTER_KEY = "ninjutsuRoster:v1";
+
+const ATTENDANCE_KEY = `ninjutsuAttendance:${NINJUTSU_PROGRAM.id}`;
 
 const saveWeekWords = debounce(async () => {
   try {
@@ -1616,15 +1628,36 @@ function renderWeekWord(session) {
 async function loadSessionEdits() {
   if (state.sessionEditsLoaded) return;
   try {
-    const [stored, words] = await Promise.all([db.getSetting(SESSION_EDITS_KEY, {}), db.getSetting(WEEK_WORDS_KEY, {})]);
+    const [stored, words, roster, attendance] = await Promise.all([
+      db.getSetting(SESSION_EDITS_KEY, {}),
+      db.getSetting(WEEK_WORDS_KEY, {}),
+      db.getSetting(ROSTER_KEY, []),
+      db.getSetting(ATTENDANCE_KEY, {})
+    ]);
     state.sessionEdits = stored && typeof stored === "object" ? stored : {};
     state.weekWords = words && typeof words === "object" ? words : {};
+    state.ninjutsuRoster = normalizeRoster(roster);
+    state.ninjutsuAttendance = normalizeAttendance(attendance);
+    state.selectedStudentId = state.ninjutsuRoster[0]?.id ?? null;
   } catch {
     state.sessionEdits = {};
     state.weekWords = {};
+    state.ninjutsuRoster = [];
+    state.ninjutsuAttendance = {};
   }
   state.sessionEditsLoaded = true;
 }
+
+const saveNinjutsuPeople = debounce(async () => {
+  try {
+    await Promise.all([
+      db.setSetting(ROSTER_KEY, state.ninjutsuRoster),
+      db.setSetting(ATTENDANCE_KEY, state.ninjutsuAttendance)
+    ]);
+  } catch (error) {
+    showToast(error.message || "No se pudo guardar la asistencia", "error");
+  }
+}, 250);
 
 const saveSessionEdits = debounce(async () => {
   try {
@@ -1727,6 +1760,8 @@ function renderProgramList() {
         flags.append(instructorChip(session));
         if (session.cancelled) flags.append(createChip("Sin clase", "cancelled"));
         else if (session.nonTeaching) flags.append(createChip("No lectivo", "warning"));
+        const attendance = sessionAttendanceSummary(state.ninjutsuRoster, state.ninjutsuAttendance, session.code);
+        if (attendance.present.length || attendance.absent.length) flags.append(createChip(`${attendance.present.length}/${attendance.rows.length} presentes`, "attendance"));
         if (isSessionEdited(session, state.sessionEdits[session.code])) flags.append(createChip("Editada", "edited"));
         if (exportedNoteFor(session, folder)) flags.append(createChip("En Drive", "exported"));
         button.append(top, title, flags);
@@ -1899,6 +1934,8 @@ function renderProgramHeader(session) {
   badges.replaceChildren(createChip(session.code, `code ${session.day}`), instructorChip(session, { long: true }));
   if (session.done) badges.append(createChip("Impartida", "done"));
   if (edited) badges.append(createChip("Editada", "edited"));
+  const attendance = sessionAttendanceSummary(state.ninjutsuRoster, state.ninjutsuAttendance, session.code);
+  if (attendance.present.length || attendance.absent.length) badges.append(createChip(`${attendance.present.length} presentes · ${attendance.absent.length} ausentes`, "attendance"));
   elements["program-session-title"].textContent = session.title;
   elements["program-session-meta"].textContent = `${formatSessionDate(session, { long: true })} · 21:00–22:30 · ${sessionTotalMinutes(effectiveSession(session, edit).parts)} min · ${session.trimesterName} · semana ${session.week}`;
   elements["program-edit-button"].textContent = state.programEditing ? "Hecho" : "Editar";
@@ -1933,6 +1970,7 @@ function renderProgram() {
   const mode = state.programEditing ? "edit" : "view";
   renderFreeFields(session);
   renderWeekWord(session);
+  renderProgramAttendance(session);
   if (mode === "edit" && body.dataset.mode === "edit" && body.dataset.session === session.code) return;
   body.dataset.mode = mode;
   body.dataset.session = session.code;
@@ -1952,6 +1990,303 @@ function renderFreeFields(session) {
     requestAnimationFrame(() => autoSizeTextarea(textarea));
   }
   elements["program-notices-input"].closest(".program-free-box").classList.toggle("filled", Boolean(effective.notices.trim()));
+}
+
+function gradeSelect(value, label, onChange) {
+  const select = document.createElement("select");
+  select.className = "student-grade-select";
+  select.setAttribute("aria-label", label);
+  for (const grade of NINJUTSU_GRADES) {
+    const option = document.createElement("option");
+    option.value = grade.value;
+    option.textContent = grade.label;
+    option.selected = grade.value === value;
+    select.append(option);
+  }
+  select.addEventListener("change", onChange);
+  return select;
+}
+
+function setStudentGrade(studentId, grade) {
+  state.ninjutsuRoster = state.ninjutsuRoster.map(student => student.id === studentId
+    ? { ...student, grade, updatedAt: new Date().toISOString() }
+    : student);
+  saveNinjutsuPeople();
+  renderStudents();
+  renderProgram();
+}
+
+function markAttendance(sessionCode, studentId, status) {
+  state.ninjutsuAttendance = updateAttendance(state.ninjutsuAttendance, sessionCode, studentId, status);
+  saveNinjutsuPeople();
+  const session = findProgramSession(sessionCode);
+  if (session) {
+    renderProgramAttendance(session);
+    renderProgramHeader(session);
+  }
+}
+
+function attendanceStatusButton(row, sessionCode, status, label) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `attendance-status ${status}${row.status === status ? " active" : ""}`;
+  button.textContent = label;
+  button.setAttribute("aria-pressed", String(row.status === status));
+  button.setAttribute("aria-label", `${label}: ${row.name}`);
+  button.addEventListener("click", () => markAttendance(sessionCode, row.id, status === "pending" ? null : status));
+  return button;
+}
+
+function renderProgramAttendance(session) {
+  const section = elements["program-attendance"];
+  section.hidden = Boolean(session.cancelled);
+  if (section.hidden) return;
+  const summary = sessionAttendanceSummary(state.ninjutsuRoster, state.ninjutsuAttendance, session.code);
+  elements["program-attendance-summary"].textContent = summary.rows.length
+    ? `${summary.present.length} presentes · ${summary.absent.length} ausentes · ${summary.pending.length} pendientes`
+    : "Sin alumnado registrado";
+  elements["program-attendance-empty"].hidden = Boolean(summary.rows.length);
+  elements["program-all-present-button"].disabled = !summary.rows.length;
+  const list = elements["program-attendance-list"];
+  list.replaceChildren(...summary.rows.map(row => {
+    const item = document.createElement("article");
+    item.className = "program-attendance-row";
+    const identity = document.createElement("div");
+    identity.className = "program-attendance-person";
+    const name = document.createElement("strong");
+    name.textContent = row.name;
+    const grade = document.createElement("span");
+    grade.textContent = gradeLabel(row.grade);
+    identity.append(name, grade);
+    const controls = document.createElement("div");
+    controls.className = "attendance-status-group";
+    controls.setAttribute("role", "group");
+    controls.setAttribute("aria-label", `Asistencia de ${row.name}`);
+    controls.append(
+      attendanceStatusButton(row, session.code, "present", "Presente"),
+      attendanceStatusButton(row, session.code, "absent", "Ausente"),
+      attendanceStatusButton(row, session.code, "pending", "Pendiente")
+    );
+    item.append(identity, controls);
+    return item;
+  }));
+}
+
+function metricCard(value, label, progress = null) {
+  const card = document.createElement("div");
+  card.className = "student-metric";
+  const strong = document.createElement("strong");
+  strong.textContent = value;
+  const span = document.createElement("span");
+  span.textContent = label;
+  card.append(strong, span);
+  if (progress !== null) {
+    const bar = document.createElement("progress");
+    bar.max = 100;
+    bar.value = progress;
+    bar.setAttribute("aria-label", `${label}: ${progress}%`);
+    card.append(bar);
+  }
+  return card;
+}
+
+function renderStudentDetail(student) {
+  const empty = elements["student-detail-empty"];
+  const content = elements["student-detail-content"];
+  empty.hidden = Boolean(student);
+  content.hidden = !student;
+  content.replaceChildren();
+  if (!student) return;
+  const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance);
+  const header = document.createElement("header");
+  header.className = "student-detail-header";
+  const titleBlock = document.createElement("div");
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = "Seguimiento para examen";
+  const title = document.createElement("h3");
+  title.textContent = student.name;
+  const note = document.createElement("p");
+  note.textContent = "Resumen orientativo basado en las sesiones marcadas; la valoración técnica final corresponde al instructor.";
+  titleBlock.append(eyebrow, title, note);
+  const actions = document.createElement("div");
+  actions.className = "student-detail-actions";
+  actions.append(gradeSelect(student.grade, `Grado actual de ${student.name}`, event => setStudentGrade(student.id, event.target.value)));
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "text-button danger-text";
+  remove.textContent = "Eliminar";
+  remove.addEventListener("click", () => removeStudent(student));
+  actions.append(remove);
+  header.append(titleBlock, actions);
+
+  const metrics = document.createElement("section");
+  metrics.className = "student-metrics";
+  metrics.append(
+    metricCard(`${progress.present}/${progress.marked}`, "sesiones asistidas", progress.attendanceRate),
+    metricCard(`${progress.attendedBlocks}/${progress.availableBlocks}`, "bloques del programa", progress.blockCoverage),
+    metricCard(`${progress.gradePresent}/${progress.gradeSessions}`, `sesiones con trabajo de ${gradeLabel(student.grade)}`),
+    metricCard(String(progress.pending), "sesiones pasadas sin marcar")
+  );
+
+  const gradeSection = document.createElement("section");
+  gradeSection.className = "student-progress-section";
+  const gradeTitle = document.createElement("h4");
+  gradeTitle.textContent = `Trabajo específico de ${gradeLabel(student.grade)}`;
+  gradeSection.append(gradeTitle);
+  if (progress.gradeFocus.length) {
+    const list = document.createElement("ul");
+    for (const focus of progress.gradeFocus) {
+      const item = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = `${focus.sessionCode} · `;
+      item.append(strong, focus.text);
+      list.append(item);
+    }
+    gradeSection.append(list);
+  } else {
+    const message = document.createElement("p");
+    message.className = "student-progress-empty";
+    message.textContent = student.grade === "sin-grado"
+      ? "Fija el grado actual para identificar el trabajo específico de examen."
+      : "Todavía no hay sesiones asistidas con una adaptación explícita para este grado.";
+    gradeSection.append(message);
+  }
+
+  const blocksSection = document.createElement("section");
+  blocksSection.className = "student-progress-section";
+  const blocksTitle = document.createElement("h4");
+  blocksTitle.textContent = "Bloques y contenidos trabajados";
+  blocksSection.append(blocksTitle);
+  if (progress.blocks.length) {
+    const list = document.createElement("div");
+    list.className = "student-block-list";
+    for (const block of progress.blocks) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      const name = document.createElement("strong");
+      name.textContent = block.name;
+      const meta = document.createElement("span");
+      meta.textContent = `${block.sessions.length} sesiones · ${block.minutes} min`;
+      summary.append(name, meta);
+      const items = document.createElement("ul");
+      for (const text of block.items) {
+        const item = document.createElement("li");
+        item.textContent = text;
+        items.append(item);
+      }
+      details.append(summary, items);
+      list.append(details);
+    }
+    blocksSection.append(list);
+  } else {
+    const message = document.createElement("p");
+    message.className = "student-progress-empty";
+    message.textContent = "Marca alguna asistencia para empezar a construir su historial de bloques.";
+    blocksSection.append(message);
+  }
+
+  const historySection = document.createElement("section");
+  historySection.className = "student-progress-section";
+  const historyTitle = document.createElement("h4");
+  historyTitle.textContent = "Historial de asistencia";
+  historySection.append(historyTitle);
+  const history = document.createElement("div");
+  history.className = "student-history";
+  for (const record of progress.history) {
+    const row = document.createElement("div");
+    row.className = `student-history-row ${record.status}`;
+    const status = document.createElement("span");
+    status.className = "student-history-status";
+    status.textContent = record.status === "present" ? "Presente" : "Ausente";
+    const session = document.createElement("span");
+    session.textContent = `${record.code} · ${record.title}`;
+    const date = document.createElement("time");
+    date.dateTime = record.date;
+    date.textContent = formatSessionDate(record);
+    row.append(status, session, date);
+    history.append(row);
+  }
+  if (!progress.history.length) {
+    const message = document.createElement("p");
+    message.className = "student-progress-empty";
+    message.textContent = "Aún no hay asistencias marcadas.";
+    history.append(message);
+  }
+  historySection.append(history);
+  content.append(header, metrics, gradeSection, blocksSection, historySection);
+}
+
+function renderStudents() {
+  const gradeInput = elements["student-grade-input"];
+  if (!gradeInput.childElementCount) {
+    for (const grade of NINJUTSU_GRADES) {
+      const option = document.createElement("option");
+      option.value = grade.value;
+      option.textContent = grade.label;
+      gradeInput.append(option);
+    }
+  }
+  const roster = normalizeRoster(state.ninjutsuRoster).filter(student => student.active);
+  state.ninjutsuRoster = roster;
+  if (!roster.some(student => student.id === state.selectedStudentId)) state.selectedStudentId = roster[0]?.id ?? null;
+  elements["student-count"].textContent = String(roster.length);
+  const list = elements["student-list"];
+  list.replaceChildren(...roster.map(student => {
+    const progress = studentProgress(student, programSessions(), state.ninjutsuAttendance);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `student-list-item${student.id === state.selectedStudentId ? " selected" : ""}`;
+    button.setAttribute("aria-current", student.id === state.selectedStudentId ? "true" : "false");
+    const name = document.createElement("strong");
+    name.textContent = student.name;
+    const meta = document.createElement("span");
+    meta.textContent = `${gradeLabel(student.grade)} · ${progress.present} asistencias · ${progress.attendedBlocks} bloques`;
+    button.append(name, meta);
+    button.addEventListener("click", () => {
+      state.selectedStudentId = student.id;
+      renderStudents();
+    });
+    return button;
+  }));
+  if (!roster.length) {
+    const message = document.createElement("p");
+    message.className = "students-list-empty";
+    message.textContent = "Añade el primer alumno para comenzar.";
+    list.append(message);
+  }
+  renderStudentDetail(roster.find(student => student.id === state.selectedStudentId) ?? null);
+}
+
+function addStudent(event) {
+  event.preventDefault();
+  try {
+    const id = globalThis.crypto?.randomUUID?.() ?? `student-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const student = createStudent({ name: elements["student-name-input"].value, grade: elements["student-grade-input"].value, id });
+    state.ninjutsuRoster = normalizeRoster([...state.ninjutsuRoster, student]);
+    state.selectedStudentId = student.id;
+    elements["student-name-input"].value = "";
+    saveNinjutsuPeople();
+    renderStudents();
+    showToast(`${student.name} añadido al grupo`);
+  } catch (error) {
+    showToast(error.message || "No se pudo añadir el alumno", "error");
+  }
+}
+
+function removeStudent(student) {
+  if (!confirm(`¿Eliminar a “${student.name}” y sus marcas de asistencia de este dispositivo?`)) return;
+  state.ninjutsuRoster = state.ninjutsuRoster.filter(candidate => candidate.id !== student.id);
+  state.ninjutsuAttendance = Object.fromEntries(Object.entries(state.ninjutsuAttendance).flatMap(([sessionCode, records]) => {
+    const next = { ...records };
+    delete next[student.id];
+    return Object.keys(next).length ? [[sessionCode, next]] : [];
+  }));
+  state.selectedStudentId = state.ninjutsuRoster[0]?.id ?? null;
+  saveNinjutsuPeople();
+  renderStudents();
+  renderProgram();
+  showToast(`${student.name} eliminado`);
 }
 
 async function resetSelectedSession() {
@@ -2098,9 +2433,21 @@ function bindEvents() {
     if (note) selectNote(note.id);
   });
   elements["new-training-button"].addEventListener("click", createTraining);
-  for (const tab of [elements["ninjutsu-tab-program"], elements["ninjutsu-tab-training"], elements["ninjutsu-tab-library"]]) {
+  for (const tab of [elements["ninjutsu-tab-program"], elements["ninjutsu-tab-training"], elements["ninjutsu-tab-students"], elements["ninjutsu-tab-library"]]) {
     tab.addEventListener("click", () => setNinjutsuTab(tab.dataset.ninjutsuTab));
   }
+  elements["student-form"].addEventListener("submit", addStudent);
+  elements["program-manage-students-button"].addEventListener("click", () => setNinjutsuTab("students"));
+  elements["program-all-present-button"].addEventListener("click", () => {
+    const session = selectedProgramSession();
+    if (!session) return;
+    for (const student of attendanceRows(state.ninjutsuRoster, state.ninjutsuAttendance, session.code)) {
+      state.ninjutsuAttendance = updateAttendance(state.ninjutsuAttendance, session.code, student.id, "present");
+    }
+    saveNinjutsuPeople();
+    renderProgramAttendance(session);
+    renderProgramHeader(session);
+  });
   for (const button of document.querySelectorAll("[data-program-filter]")) {
     button.addEventListener("click", () => {
       state.programFilter = button.dataset.programFilter;

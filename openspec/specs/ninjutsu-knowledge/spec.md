@@ -31,7 +31,7 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **WHEN** the user selects a session in the Programación tab
 - **THEN** the application opens the Entrenamiento tab
 - **AND** shows the selected session using the full available content width
-- **AND** keeps Programación, Entrenamiento and Biblioteca as three independently selectable tabs
+- **AND** keeps Programación, Entrenamiento, Alumnado and Biblioteca as independently selectable tabs
 
 #### Scenario: Edit a session
 
@@ -78,6 +78,32 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 - **AND** signals each block change with sound and vibration and keeps the screen awake while visible
 - **AND** supports pausing, skipping to the previous, next or any block, and minimizing to a floating indicator that can either reopen the timer or end the training and dismiss itself
 - **AND** keeps running across reloads until the user ends it
+
+### Requirement: Local student and attendance tracking
+
+The application SHALL let the user maintain a private, device-local Ninjutsu roster with each student's current grade, record present, absent or pending attendance for every programmed session, and derive progress from the blocks and grade adaptations in the sessions attended. It SHALL NOT require or store a national identity number.
+
+#### Scenario: Manage the roster
+
+- **WHEN** the user adds a student and selects a grade
+- **THEN** the student appears in the Alumnado tab
+- **AND** the user can later change the grade or remove the student and their attendance marks
+- **AND** the roster remains only in the local IndexedDB settings
+
+#### Scenario: Take attendance
+
+- **WHEN** the user opens a programmed training session
+- **THEN** every active student can be marked present, absent or pending
+- **AND** the user can mark the whole group present in one action
+- **AND** the session list and header summarize the recorded attendance
+
+#### Scenario: Review progress for an exam
+
+- **WHEN** the user selects a student in the Alumnado tab
+- **THEN** the application shows their attendance rate and unmarked past sessions
+- **AND** lists the distinct program blocks, minutes and contents from sessions they attended
+- **AND** highlights the attended sessions whose level adaptation matches the student's current grade
+- **AND** identifies the result as an orientation rather than a final technical assessment
 
 ### Requirement: Recursive library discovery
 

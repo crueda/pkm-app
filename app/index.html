@@ -244,6 +244,7 @@
             <div class="ninjutsu-tabs" role="tablist" aria-label="Secciones de Ninjutsu">
               <button id="ninjutsu-tab-program" class="ninjutsu-tab active" type="button" role="tab" aria-selected="true" aria-controls="ninjutsu-program-panel" data-ninjutsu-tab="program">Programación</button>
               <button id="ninjutsu-tab-training" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-training-panel" data-ninjutsu-tab="training">Entrenamiento</button>
+              <button id="ninjutsu-tab-students" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-students-panel" data-ninjutsu-tab="students">Alumnado</button>
               <button id="ninjutsu-tab-library" class="ninjutsu-tab" type="button" role="tab" aria-selected="false" aria-controls="ninjutsu-library-panel" data-ninjutsu-tab="library">Biblioteca</button>
             </div>
 
@@ -279,6 +280,21 @@
                     </div>
                   </header>
                   <p id="program-export-state" class="program-export-state"></p>
+                  <section id="program-attendance" class="program-attendance" aria-labelledby="program-attendance-heading">
+                    <header class="program-attendance-header">
+                      <div>
+                        <p class="eyebrow">Control de asistencia</p>
+                        <h3 id="program-attendance-heading">Asistentes de esta sesión</h3>
+                        <p id="program-attendance-summary" class="program-attendance-summary"></p>
+                      </div>
+                      <div class="program-attendance-actions">
+                        <button id="program-all-present-button" class="secondary-button compact" type="button">Todos presentes</button>
+                        <button id="program-manage-students-button" class="text-button" type="button">Gestionar alumnado</button>
+                      </div>
+                    </header>
+                    <div id="program-attendance-list" class="program-attendance-list"></div>
+                    <p id="program-attendance-empty" class="program-attendance-empty" hidden>Añade alumnos en la pestaña Alumnado para pasar lista.</p>
+                  </section>
                   <section id="program-word" class="program-word" hidden>
                     <p class="program-word-eyebrow">Palabra de la semana</p>
                     <input id="program-word-input" class="program-word-input" type="text" data-word-field="word" autocomplete="off" spellcheck="false" placeholder="Escribe la palabra de esta semana" aria-label="Palabra de la semana">
@@ -295,6 +311,41 @@
                     <textarea id="program-notes-input" class="program-textarea program-free-input" data-free-field="notes" rows="4" placeholder="Asistentes, qué funcionó, qué repetir, pendientes…"></textarea>
                   </section>
               </article>
+            </section>
+
+            <section id="ninjutsu-students-panel" class="ninjutsu-panel students-surface" role="tabpanel" aria-labelledby="ninjutsu-tab-students" hidden>
+              <header class="students-header">
+                <div>
+                  <p class="eyebrow">Seguimiento local y privado</p>
+                  <h2>Alumnado y progreso</h2>
+                  <p>El grado, la asistencia y el progreso se guardan solo en este dispositivo. Los DNIs no son necesarios y no se almacenan.</p>
+                </div>
+                <form id="student-form" class="student-form">
+                  <label class="field-label" for="student-name-input">Nombre y apellidos</label>
+                  <div class="student-form-row">
+                    <input id="student-name-input" class="student-name-input" type="text" maxlength="120" autocomplete="off" required placeholder="Nombre del alumno">
+                    <select id="student-grade-input" class="student-grade-input" aria-label="Grado actual"></select>
+                    <button class="primary-button" type="submit">Añadir</button>
+                  </div>
+                </form>
+              </header>
+              <div class="students-layout">
+                <aside class="students-browser" aria-label="Lista de alumnos">
+                  <div class="students-list-heading">
+                    <strong>Alumnos activos</strong>
+                    <span id="student-count" class="count-badge">0</span>
+                  </div>
+                  <nav id="student-list" class="student-list" aria-live="polite"></nav>
+                </aside>
+                <article id="student-detail" class="student-detail" aria-live="polite">
+                  <div id="student-detail-empty" class="student-detail-empty">
+                    <div class="ninjutsu-empty-icon" aria-hidden="true">生</div>
+                    <h3>Selecciona un alumno</h3>
+                    <p>Verás su asistencia, los bloques del programa que ha trabajado y el contenido específico de su grado.</p>
+                  </div>
+                  <div id="student-detail-content" hidden></div>
+                </article>
+              </div>
             </section>
 
             <section id="ninjutsu-library-panel" class="ninjutsu-panel" role="tabpanel" aria-labelledby="ninjutsu-tab-library" hidden>

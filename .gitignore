@@ -4,3 +4,5 @@ dist/
 .env
 .env.local
 coverage/
+# Conversión local del Excel de asistencia: contiene datos personales y no se publica.
+docs/NINJUTSU_A.md

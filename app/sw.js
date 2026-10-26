@@ -13,6 +13,7 @@ const APP_SHELL = [
   "./src/editor-format.js",
   "./src/favorites.js",
   "./src/markdown.js",
+  "./src/ninjutsu-attendance.js",
   "./src/ninjutsu.js",
   "./src/ninjutsu-planner.js",
   "./src/ninjutsu-program.js",
