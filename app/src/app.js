@@ -5,6 +5,7 @@ import { formatMarkdown } from "./editor-format.js";
 import { favoriteFiles, normalizeFavoriteIds, toggleFavoriteId } from "./favorites.js";
 import { renderMarkdown } from "./markdown.js";
 import { attendanceRows, createStudent, gradeLabel, NINJUTSU_GRADES, normalizeAttendance, normalizeRoster, sessionAttendanceSummary, studentProgress, updateAttendance } from "./ninjutsu-attendance.js";
+import { mergeImportedAttendance, parseAttendanceSheet, readXlsxRows } from "./ninjutsu-roster-import.js";
 import { findNinjutsuAreaFolder, findNinjutsuFolder, findNinjutsuTrainingFolder, NINJUTSU_FOLDERS, ninjutsuCategories, ninjutsuNotes, parseNinjutsuNote, searchNinjutsuNotes, trainingNoteTemplate } from "./ninjutsu.js";
 import { addedItems, createSessionEdit, currentOrNextSession, effectiveSession, findExportedSessionNote, findProgramSession, formatSessionDate, formatClock, arePartsEdited, hasWeekWord, isSessionEdited, itemsFromText, previousWeekWords, programSessions, weekWord, NINJUTSU_PROGRAM, parseMinutes, sessionTotalMinutes, timerElapsedMs, trainingTimerState, PROGRAM_EXPORT_FOLDER_NAME, sessionExportBaseName, sessionToMarkdown } from "./ninjutsu-planner.js";
 import { findPkmFolder, findRecipeFolder, findRecipeResourcesFolder, parseRecipe, recipeMatches, serializeRecipe } from "./recipes.js";
@@ -41,7 +42,7 @@ const elements = Object.fromEntries([
   "ninjutsu-tab-program", "ninjutsu-tab-training", "ninjutsu-tab-students", "ninjutsu-tab-library", "ninjutsu-program-panel", "ninjutsu-training-panel", "ninjutsu-students-panel", "ninjutsu-library-panel", "program-today-button", "program-week-list",
   "program-session", "program-session-badges", "program-session-title", "program-session-meta", "program-edit-button", "program-reset-button", "program-export-button", "program-export-state", "program-session-body", "program-word", "program-word-input", "program-word-text", "program-word-history", "program-notices-input", "program-notes-input", "timer-notices", "program-start-button", "program-start-label",
   "program-attendance", "program-attendance-summary", "program-attendance-list", "program-attendance-empty", "program-all-present-button", "program-manage-students-button",
-  "student-form", "student-name-input", "student-grade-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content",
+  "student-form", "student-name-input", "student-grade-input", "student-import-button", "student-import-input", "student-count", "student-list", "student-detail", "student-detail-empty", "student-detail-content",
   "training-timer", "timer-session-label", "timer-total", "timer-minimize-button", "timer-step", "timer-part-name", "timer-clock", "timer-part-meta", "timer-segments", "timer-items", "timer-next",
   "timer-prev-button", "timer-pause-button", "timer-next-button", "timer-stop-button", "training-timer-pill", "training-timer-pill-open", "training-timer-pill-close", "training-timer-pill-label",
   "create-dialog", "create-form", "create-kind", "create-eyebrow", "create-title", "create-name", "create-parent",
@@ -2252,7 +2253,7 @@ function renderStudents() {
   if (!roster.length) {
     const message = document.createElement("p");
     message.className = "students-list-empty";
-    message.textContent = "Añade el primer alumno para comenzar.";
+    message.textContent = "Añade el primer alumno o importa el Excel de asistencia.";
     list.append(message);
   }
   renderStudentDetail(roster.find(student => student.id === state.selectedStudentId) ?? null);
@@ -2271,6 +2272,28 @@ function addStudent(event) {
     showToast(`${student.name} añadido al grupo`);
   } catch (error) {
     showToast(error.message || "No se pudo añadir el alumno", "error");
+  }
+}
+
+async function importStudentsFromExcel(event) {
+  const [file] = event.target.files ?? [];
+  event.target.value = "";
+  if (!file) return;
+  try {
+    const imported = parseAttendanceSheet(await readXlsxRows(await file.arrayBuffer()), { sessions: programSessions() });
+    if (!imported.students.length) throw new Error("El Excel no contiene alumnos");
+    const result = mergeImportedAttendance(state.ninjutsuRoster, state.ninjutsuAttendance, imported, {
+      createId: () => globalThis.crypto?.randomUUID?.() ?? `student-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    });
+    state.ninjutsuRoster = result.roster;
+    state.ninjutsuAttendance = result.attendance;
+    state.selectedStudentId ??= result.roster[0]?.id ?? null;
+    await saveNinjutsuPeople.flush();
+    renderStudents();
+    renderProgram();
+    showToast(`${result.added} alumnos nuevos, ${result.matched} actualizados · ${result.marks} marcas en ${result.sessions} sesiones`);
+  } catch (error) {
+    showToast(error.message || "No se pudo importar el Excel", "error");
   }
 }
 
@@ -2437,6 +2460,8 @@ function bindEvents() {
     tab.addEventListener("click", () => setNinjutsuTab(tab.dataset.ninjutsuTab));
   }
   elements["student-form"].addEventListener("submit", addStudent);
+  elements["student-import-button"].addEventListener("click", () => elements["student-import-input"].click());
+  elements["student-import-input"].addEventListener("change", importStudentsFromExcel);
   elements["program-manage-students-button"].addEventListener("click", () => setNinjutsuTab("students"));
   elements["program-all-present-button"].addEventListener("click", () => {
     const session = selectedProgramSession();

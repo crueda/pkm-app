@@ -90,6 +90,14 @@ The application SHALL let the user maintain a private, device-local Ninjutsu ros
 - **AND** the user can later change the grade or remove the student and their attendance marks
 - **AND** the roster remains only in the local IndexedDB settings
 
+#### Scenario: Import the attendance spreadsheet
+
+- **WHEN** the user picks an `.xlsx` attendance sheet in the Alumnado tab
+- **THEN** the application reads it in the browser, adds or matches each student by full name and ignores the DNI column
+- **AND** maps each month and day column to the programmed session on that date
+- **AND** records present for checked cells and absent for unchecked ones only in past sessions where at least one student is checked, leaving the rest pending
+- **AND** keeps the imported data only in the local IndexedDB settings
+
 #### Scenario: Take attendance
 
 - **WHEN** the user opens a programmed training session

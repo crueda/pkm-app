@@ -2124,6 +2124,7 @@ button:disabled,
 .students-header p { max-width: 680px; margin: 0; color: var(--text-muted); line-height: 1.5; }
 .student-form { display: grid; gap: 6px; }
 .student-form-row { display: grid; grid-template-columns: minmax(0, 1fr) 130px auto; gap: 8px; }
+.student-import-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 4px; color: var(--text-muted); font-size: 12px; }
 .student-name-input, .student-grade-input, .student-grade-select { min-height: 42px; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; }
 .student-name-input:focus, .student-grade-input:focus, .student-grade-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .students-layout { min-height: 560px; display: grid; grid-template-columns: minmax(230px, 0.34fr) minmax(0, 1fr); }
