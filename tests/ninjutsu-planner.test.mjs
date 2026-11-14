@@ -171,11 +171,13 @@ test("palabra de la semana solo en semanas de Carlos, con las ya explicadas", as
   assert.match(weekWord(40).word, /^Shoshin/);
   assert.match(weekWord(41).word, /^Ichigo ichie/);
   assert.match(weekWord(44).word, /^Ganbatte/);
-  assert.equal(weekWord(47).word, "");
-  const stored = { 44: { word: "Zanshin", text: "" } };
-  assert.equal(weekWord(44, stored).word, "Zanshin");
+  assert.match(weekWord(47).word, /^Zanshin/);
+  assert.match(weekWord(48).word, /^Gaman/);
+  assert.match(weekWord(51).word, /^Fudōshin/);
+  const stored = { 47: { word: "Zanshin personalizado", text: "" } };
+  assert.equal(weekWord(47, stored).word, "Zanshin personalizado");
   assert.deepEqual(previousWeekWords(findProgramSession("X41")).map(item => item.week), [40]);
-  assert.deepEqual(previousWeekWords(findProgramSession("L47"), stored).map(item => item.word.split(" ")[0]), ["Zanshin", "Ichigo", "Shoshin"]);
+  assert.deepEqual(previousWeekWords(findProgramSession("L51"), stored).map(item => item.word.split(" ")[0]), ["Gaman", "Zanshin", "Ganbatte", "Ichigo", "Shoshin"]);
   const markdown = sessionToMarkdown(findProgramSession("L41"), null, NINJUTSU_PROGRAM, weekWord(41));
   assert.match(markdown, /## Palabra de la semana\n\*\*Ichigo ichie \(一期一会\)\*\*/);
   assert.doesNotMatch(sessionToMarkdown(findProgramSession("L42")), /Palabra de la semana/);
