@@ -147,6 +147,18 @@ export const DEFAULT_WEEK_WORDS = Object.freeze({
   44: {
     word: "Ganbatte (頑張って)",
     text: "«¡Ánimo, esfuérzate, no te rindas!». Viene de ganbaru: perseverar con tenacidad ante la dificultad. En el tatami es seguir intentándolo cuando la técnica no sale, apoyar al compañero para que dé lo mejor de sí y valorar el esfuerzo constante más que el resultado inmediato."
+  },
+  47: {
+    word: "Zanshin (残心)",
+    text: "«Mente que permanece». Es conservar la atención y la disponibilidad antes, durante y después de actuar, sin desconectarse al creer que la técnica ya ha terminado. En el budō implica mantener la postura, la distancia y la percepción del entorno; en la vida cotidiana, terminar bien lo que hacemos y permanecer atentos a sus consecuencias."
+  },
+  48: {
+    word: "Gaman (我慢)",
+    text: "Perseverancia paciente y digna ante la dificultad. En el tatami es aceptar la incomodidad del aprendizaje, controlar la frustración y continuar practicando con constancia y respeto. En la vida cotidiana invita a sostener el esfuerzo sin quejarse impulsivamente, pero sin confundir perseverar con soportar situaciones dañinas."
+  },
+  51: {
+    word: "Fudōshin (不動心)",
+    text: "«Mente inamovible». Es mantener el centro ante el miedo, la presión o la incertidumbre: estable, pero no rígido. En el budō permite observar y responder sin quedar dominado por la emoción; en la vida cotidiana ayuda a conservar la claridad, adaptarse y decidir de acuerdo con los propios principios."
   }
 });
 

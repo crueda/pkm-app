@@ -43,7 +43,7 @@ The application SHALL bundle the 2026–2027 annual programming as read-only dat
 #### Scenario: Word of the week
 
 - **WHEN** the selected session belongs to a week taught by Carlos
-- **THEN** a "Palabra de la semana" card shows an editable word and explanation shared by both sessions of that week, prefilled for the weeks already taught (Shoshin, Ichigo ichie)
+- **THEN** a "Palabra de la semana" card shows an editable word and explanation shared by both sessions of that week, with the scheduled concepts prefilled when available
 - **AND** lists the words of previous Carlos weeks
 - **AND** the export includes a `## Palabra de la semana` section
 - **AND** weeks taught by other instructors show no card
